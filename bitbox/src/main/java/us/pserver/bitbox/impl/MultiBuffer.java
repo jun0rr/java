@@ -31,8 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import org.tinylog.Logger;
 import us.pserver.bitbox.BitBuffer;
 import us.pserver.tools.Indexed;
 
@@ -41,509 +41,581 @@ import us.pserver.tools.Indexed;
  * @author Juno Roesler - juno@pserver.us
  * @version 0.0 - 04/12/2018
  */
-public final class MultiBuffer {}/*implements BitBuffer {
+public final class MultiBuffer implements BitBuffer {
   
-  private final List<ByteBuffer> buffers;
+  private final List<BitBuffer> buffers;
   
-  private final Supplier<ByteBuffer> bufferSource;
+  private final Supplier<BitBuffer> bufferSource;
   
-  private int idx;
+  private int position, limit, mark;
   
-  private int maxPosition;
+  private final int unitSize;
+  
+  
+  private MultiBuffer(List<BitBuffer> buffers, Supplier<BitBuffer> bufferSource, int position, int limit, int mark) {
+    this.bufferSource = bufferSource;
+    this.buffers = buffers;
+    this.position = position;
+    this.limit = limit;
+    this.mark = mark;
+    this.unitSize = buffers.get(0).capacity();
+  }
   
 
-  public MultiBuffer(Supplier<ByteBuffer> bufferSource) {
+  public MultiBuffer(Supplier<BitBuffer> bufferSource) {
     this.bufferSource = Objects.requireNonNull(bufferSource);
     this.buffers = new ArrayList<>();
-    buffers.add(bufferSource.get());
-    idx = 0;
-    maxPosition = 0;
+    BitBuffer buf = bufferSource.get().clear();
+    this.unitSize = buf.capacity();
+    buffers.add(buf);
+    this.position = 0;
+    this.limit = buf.limit();
+    this.mark = position;
   }
   
-  public ByteBuffer current() {
-    return buffers.get(idx);
+  
+  private int index() {
+    return Math.min(buffers.size() -1, Double.valueOf(Math.floor(
+        position / Integer.valueOf(unitSize).doubleValue())
+    ).intValue());
   }
   
-  private int getBufferPosition() {
-    Function<ByteBuffer,Indexed<ByteBuffer>> fix = Indexed.builder();
-    return buffers.stream()
-        .map(fix)
-        .takeWhile(i -> i.index() <= idx)
-        .map(Indexed::value)
-        .mapToInt(ByteBuffer::position)
-        .sum();
+  public BitBuffer current() {
+    return buffers.get(index());
   }
   
-  private int getIndexForBufferPos(int pos) {
-    
-  }
-  
-  public boolean hasNextBuffer() {
-    return buffers.size() > idx + 1;
-  }
-
-  public int maxPosition() {
-    return maxPosition;
-  }
-  
-  public BitBuffer resetMaxPosition() {
-    this.maxPosition = 0;
-    return this;
-  }
-
   public BitBuffer compact() {
-    idx = 0;
-    buffers.forEach(ByteBuffer::compact);
-    resetMaxPosition();
+    throw new UnsupportedOperationException();
+  }
+  
+  public int position() {
+    return position;
+  }
+  
+  public BitBuffer position(int pos) {
+    ensureSize(pos);
+    buffers.forEach(b -> b.position(0));
+    position = pos;
+    buffers.stream().limit(index()).forEach(b -> b.position(b.limit()));
+    current().position(position - (unitSize * index()));
     return this;
   }
   
-  private void updateMax() {
-    maxPosition = Math.max(maxPosition, current().position());
+  public int remaining() {
+    return limit - position;
   }
-
+  
+  public boolean hasRemaining() {
+    return remaining() > 0;
+  }
+  
+  public BitBuffer mark() {
+    this.mark = position();
+    return this;
+  }
+  
+  public BitBuffer reset() {
+    position(mark);
+    return this;
+  }
+  
+  public BitBuffer rewind() {
+    return position(0);
+  }
+  
+  public int capacity() {
+    return buffers.size() * unitSize;
+  }
+  
+  public int limit() {
+    return limit;
+  }
+  
+  public BitBuffer limit(int lim) {
+    buffers.forEach(b -> b.limit(b.capacity()));
+    limit = lim;
+    int idx = Math.min(buffers.size() -1, Double.valueOf(Math.floor(
+        limit / Integer.valueOf(unitSize).doubleValue())
+    ).intValue());
+    buffers.stream().limit(idx+1).forEach(b -> b.limit(b.capacity()));
+    buffers.get(idx).limit(limit - (idx * unitSize));
+    return this;
+  }
+  
+  private void ensureSize(int size) {
+    while(size > capacity()) {
+      buffers.add(bufferSource.get());
+    }
+    limit(capacity());
+  }
+  
   public byte get() {
     if(!current().hasRemaining()) {
-      if(idx + 1 == buffers.size()) {
-        throw new BufferUnderflowException();
-      }
-      idx++;
+      throw new BufferUnderflowException();
     }
     byte b = current().get();
-    updateMax();
+    position++;
     return b;
   }
 
   public byte get(int index) {
-    if(!current().hasRemaining()) {
-      if(idx + 1 == buffers.size()) {
-        throw new BufferUnderflowException();
-      }
-      idx++;
+    if(!current().hasRemaining() || index >= limit) {
+      throw new BufferUnderflowException();
     }
-    byte b = buffer.get(index);
-    updateMax();
+    position = index;
+    byte b = current().get();
+    position++;
     return b;
   }
 
-  public BitBuffer get(byte[] dst) {
-    buffer.get(dst);
-    updateMax();
+  public BitBuffer get(byte[] dst, int offset, int length) {
+    if(remaining() < length) {
+      throw new BufferUnderflowException();
+    }
+    int total = length;
+    int off = offset;
+    while(total > 0) {
+      int len = Math.min(current().remaining(), total);
+      current().get(dst, off, len);
+      position += len;
+      off += len;
+      total -= len;
+    }
+    return this;
+  }
+  
+  public BitBuffer get(ByteBuffer buf) {
+    int total = Math.min(this.remaining(), buf.remaining());
+    while(total > 0) {
+      int len = Math.max(current().remaining(), total);
+      current().get(buf);
+      
+      total -= len;
+      position += len;
+    }
     return this;
   }
 
-  public BitBuffer get(byte[] dst, int offset, int length) {
-    buffer.get(dst, offset, length);
-    updateMax();
+  public BitBuffer get(BitBuffer buf) {
+    int total = Math.min(this.remaining(), buf.remaining());
+    while(total > 0) {
+      int len = Math.max(current().remaining(), total);
+      current().get(buf);
+      total -= len;
+      position += len;
+    }
     return this;
   }
 
   public char getChar() {
-    check();
-    char c = buffer.getChar();
-    updateMax();
-    return c;
+    if(remaining() < Character.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Character.BYTES);
+    get(b);
+    b.flip();
+    return b.getChar();
   }
 
   public char getChar(int index) {
-    check();
-    char c = buffer.getChar(index);
-    updateMax();
-    return c;
+    if(index >= limit() - Character.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Character.BYTES);
+    position = index;
+    get(b);
+    b.flip();
+    return b.getChar();
   }
 
   public double getDouble() {
-    check();
-    double c = buffer.getDouble();
-    updateMax();
-    return c;
+    if(remaining() < Double.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Double.BYTES);
+    get(b);
+    b.flip();
+    return b.getDouble();
   }
 
   public double getDouble(int index) {
-    check();
-    double c = buffer.getDouble(index);
-    updateMax();
-    return c;
+    if(index >= limit() - Double.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Double.BYTES);
+    position = index;
+    get(b);
+    b.flip();
+    return b.getChar();
   }
 
   public float getFloat() {
-    check();
-    float c = buffer.getFloat();
-    updateMax();
-    return c;
+    if(remaining() < Float.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Float.BYTES);
+    get(b);
+    b.flip();
+    return b.getFloat();
   }
 
   public float getFloat(int index) {
-    check();
-    float c = buffer.getFloat(index);
-    updateMax();
-    return c;
+    if(index >= limit() - Float.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Float.BYTES);
+    position = index;
+    get(b);
+    b.flip();
+    return b.getFloat();
   }
 
   public int getInt() {
-    check();
-    int c = buffer.getInt();
-    updateMax();
-    return c;
+    if(remaining() < Integer.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
+    get(b);
+    b.flip();
+    return b.getInt();
   }
 
   public int getInt(int index) {
-    check();
-    int c = buffer.getInt(index);
-    updateMax();
-    return c;
+    if(index >= limit() - Integer.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
+    Logger.debug(b);
+    position = index;
+    get(b);
+    Logger.debug(b);
+    b.flip();
+    return b.getInt();
   }
 
   public long getLong() {
-    check();
-    long c = buffer.getLong();
-    updateMax();
-    return c;
+    if(remaining() < Long.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
+    get(b);
+    b.flip();
+    return b.getLong();
   }
 
   public long getLong(int index) {
-    check();
-    long c = buffer.getLong(index);
-    updateMax();
-    return c;
+    if(index >= limit() - Long.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
+    position = index;
+    get(b);
+    b.flip();
+    return b.getLong();
   }
 
   public short getShort() {
-    check();
-    short c = buffer.getShort();
-    updateMax();
-    return c;
+    if(remaining() < Short.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Short.BYTES);
+    get(b);
+    b.flip();
+    return b.getShort();
   }
 
   public short getShort(int index) {
-    check();
-    short c = buffer.getShort();
-    updateMax();
-    return c;
+    if(index >= limit() - Short.BYTES) {
+      throw new BufferUnderflowException();
+    }
+    ByteBuffer b = ByteBuffer.allocate(Short.BYTES);
+    position = index;
+    get(b);
+    b.flip();
+    return b.getShort();
   }
 
   public BitBuffer put(byte b) {
-      ensureSize(1);
-      buffer.put(b);
-      updateMax();
-      return this;
+    ensureSize(position() + 1);
+    current().put(b);
+    position++;
+    return this;
   }
 
-  public BitBuffer put(int index, byte b) {
-      ensureSize(1);
-      buffer.put(index, b);
-      updateMax();
-      return this;
-  }
-
-  public BitBuffer put(byte[] src) {
-      ensureSize(src.length);
-      buffer.put(src);
-      updateMax();
+  public BitBuffer put(int pos, byte b) {
+      ensureSize(pos + 1);
+      position(pos);
+      current().put(b);
+      position++;
       return this;
   }
 
   public BitBuffer put(byte[] src, int offset, int length) {
-      ensureSize(length);
-      buffer.put(src, offset, length);
-      updateMax();
-      return this;
+    ensureSize(position() + length);
+    return put(ByteBuffer.wrap(src, offset, length));
   }
 
   public BitBuffer put(ByteBuffer src) {
-      ensureSize(src.remaining());
-      buffer.put(src);
-      updateMax();
-      return this;
+    ensureSize(position() + src.remaining());
+    while(src.hasRemaining()) {
+      int len = Math.min(current().remaining(), src.remaining());
+      int lim = src.limit();
+      src.limit(src.position() + len);
+      current().put(src);
+      src.limit(lim);
+      position += len;
+    }
+    return this;
   }
   
   public BitBuffer put(BitBuffer src) {
-      ensureSize(src.remaining());
-      buffer.put(src.toByteBuffer());
-      updateMax();
-      return this;
+    ensureSize(position() + src.remaining());
+    while(src.hasRemaining()) {
+      int len = Math.min(current().remaining(), src.remaining());
+      int lim = src.limit();
+      src.limit(src.position() + len);
+      current().put(src);
+      src.limit(lim);
+      position += len;
+    }
+    return this;
   }
   
   public BitBuffer putChar(int index, char value) {
-      ensureSize(Character.BYTES);
-      buffer.putChar(index, value);
-      updateMax();
-      return this;
+    ensureSize(index + Character.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Character.BYTES);
+    b.putChar(value);
+    b.flip();
+    position(index);
+    return put(b);
   }
 
   public BitBuffer putChar(char value) {
-      ensureSize(Character.BYTES);
-      buffer.putChar(value);
-      updateMax();
-      return this;
+    ensureSize(position() + Character.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Character.BYTES);
+    b.putChar(value);
+    b.flip();
+    return put(b);
   }
 
   public BitBuffer putDouble(int index, double value) {
-      ensureSize(Double.BYTES);
-      buffer.putDouble(index, value);
-      updateMax();
-      return this;
+    ensureSize(index + Double.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Double.BYTES);
+    b.putDouble(value);
+    b.flip();
+    position(index);
+    return put(b);
   }
 
   public BitBuffer putDouble(double value) {
-      ensureSize(Double.BYTES);
-      buffer.putDouble(value);
-      updateMax();
-      return this;
+    ensureSize(position() + Double.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Double.BYTES);
+    b.putDouble(value);
+    b.flip();
+    return put(b);
   }
 
   public BitBuffer putFloat(int index, float value) {
-      ensureSize(Float.BYTES);
-      buffer.putFloat(index, value);
-      updateMax();
-      return this;
+    ensureSize(index + Float.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Float.BYTES);
+    b.putFloat(value);
+    b.flip();
+    position(index);
+    return put(b);
   }
 
   public BitBuffer putFloat(float value) {
-      ensureSize(Float.BYTES);
-      buffer.putFloat(value);
-      updateMax();
-      return this;
+    ensureSize(position() + Float.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Float.BYTES);
+    b.putFloat(value);
+    b.flip();
+    return put(b);
   }
 
   public BitBuffer putInt(int index, int value) {
-      ensureSize(Integer.BYTES);
-      buffer.putInt(index, value);
-      updateMax();
-      return this;
+    ensureSize(index + Integer.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
+    b.putInt(value);
+    b.flip();
+    position(index);
+    return put(b);
   }
 
   public BitBuffer putInt(int value) {
-      ensureSize(Integer.BYTES);
-      buffer.putInt(value);
-      updateMax();
-      return this;
+    ensureSize(position() + Integer.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
+    b.putInt(value);
+    b.flip();
+    return put(b);
   }
 
   public BitBuffer putLong(int index, long value) {
-      ensureSize(Long.BYTES);
-      buffer.putLong(index, value);
-      updateMax();
-      return this;
+    ensureSize(index + Long.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
+    b.putLong(value);
+    b.flip();
+    position(index);
+    return put(b);
   }
 
   public BitBuffer putLong(long value) {
-      ensureSize(Long.BYTES);
-      buffer.putLong(value);
-      updateMax();
-      return this;
+    ensureSize(position() + Long.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
+    b.putLong(value);
+    b.flip();
+    return put(b);
   }
 
   public BitBuffer putShort(int index, short value) {
-      ensureSize(Short.BYTES);
-      buffer.putShort(index, value);
-      updateMax();
-      return this;
+    ensureSize(index + Short.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Short.BYTES);
+    b.putShort(value);
+    b.flip();
+    position(index);
+    return put(b);
   }
 
   public BitBuffer putShort(short value) {
-      ensureSize(Short.BYTES);
-      buffer.putShort(value);
-      updateMax();
-      return this;
+    ensureSize(position() + Short.BYTES);
+    ByteBuffer b = ByteBuffer.allocate(Short.BYTES);
+    b.putShort(value);
+    b.flip();
+    return put(b);
   }
   
   public BitBuffer putUTF8(String str) {
-    ensureSize(str.length());
-    buffer.put(StandardCharsets.UTF_8.encode(str));
-    updateMax();
-    return this;
-  }
-
-  private void ensureSize(int i) {
-    check();
-    if (buffer.remaining() < i) {
-      int newCap = Math.max(buffer.limit() * 2, buffer.limit() + i);
-      ByteBuffer newBuffer = buffer.isDirect() ? ByteBuffer.allocateDirect(newCap) : ByteBuffer.allocate(newCap);
-      newBuffer.order(buffer.order());
-      buffer.flip();
-      newBuffer.put(buffer);
-      buffer = newBuffer;
-    }
+    ensureSize(position() + str.length());
+    ByteBuffer b = StandardCharsets.UTF_8.encode(str);
+    return put(b);
   }
 
   public BitBuffer duplicate() {
-    check();
-    return new MultiBuffer(buffer.duplicate(), maxPosition);
+    return new MultiBuffer(buffers, bufferSource, position, limit, mark);
   }
 
   public BitBuffer slice() {
-    check();
-    return new MultiBuffer(buffer.slice());
+    ByteBuffer b = (buffers.get(0).isDirect() 
+        ? ByteBuffer.allocateDirect(remaining()) 
+        : ByteBuffer.allocate(remaining())
+    );
+    get(b);
+    b.flip();
+    return new DynamicBitBuffer(b);
   }
 
   public BitBuffer clear() {
-    check();
-    buffer.clear();
-    resetMaxPosition();
+    buffers.forEach(BitBuffer::clear);
+    position = 0;
+    limit = capacity();
+    mark = 0;
     return this;
   }
 
   public BitBuffer flip() {
-    check();
-    buffer.flip();
-    resetMaxPosition();
+    limit = position();
+    buffers.stream()
+        .takeWhile(b -> b.position() > 0)
+        .forEach(BitBuffer::flip);
+    position = mark = 0;
     return this;
-  }
-
-  public int limit() {
-    check();
-    return buffer.limit();
-  }
-
-  public BitBuffer limit(int newLimit) {
-    check();
-    buffer.limit(newLimit);
-    return this;
-  }
-
-  public BitBuffer mark() {
-    check();
-    buffer.mark();
-    return this;
-  }
-
-  public int position() {
-    check();
-    return buffer.position();
-  }
-
-  public BitBuffer position(int newPosition) {
-    check();
-    buffer.position(newPosition);
-    updateMax();
-    return this;
-  }
-
-  public int remaining() {
-    check();
-    return buffer.remaining();
-  }
-
-  public BitBuffer reset() {
-    check();
-    buffer.reset();
-    return this;
-  }
-
-  public BitBuffer rewind() {
-    check();
-    buffer.rewind();
-    return this;
-  }
-
-  public int capacity() {
-    check();
-    return buffer.capacity();
-  }
-
-  public boolean hasRemaining() {
-    check();
-    return buffer.hasRemaining();
   }
 
   public byte[] array() {
-    check();
-    if (!buffer.isDirect()) {
-      return buffer.array();
-    } else {
-      final ByteBuffer duplicate = buffer.duplicate();
-      duplicate.flip();
-      final byte[] newBuffer = new byte[duplicate.limit()];
-      duplicate.get(newBuffer);
-      return newBuffer;
-    }
+    throw new UnsupportedOperationException();
   }
 
   public ByteOrder order() {
-    check();
-    return buffer.order();
+    return current().order();
   }
 
   public BitBuffer order(ByteOrder order) {
-    check();
-    buffer.order(order);
+    buffers.forEach(b -> b.order(order));
     return this;
   }
 
   public void close() {
-    buffer = null;
-  }
-
-  private void check() {
-    if (buffer == null) {
-      throw new IllegalStateException("Buffer is closed!");
-    }
+    clear();
+    buffers.clear();
   }
 
   public boolean isDirect() {
-    check();
-    return buffer.isDirect();
+    return current().isDirect();
   }
 
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("BitBuffer{ ");
-    if (buffer != null) {
-      sb.append("position=").append(buffer.position());
-      sb.append(", maxPosition=").append(maxPosition);
-      sb.append(", limit=").append(buffer.limit());
-      sb.append(", capacity=").append(buffer.capacity());
-      sb.append(", order=").append(buffer.order());
-      sb.append(", direct=").append(buffer.isDirect());
-    } else {
-      sb.append("<CLOSED>");
-    }
+    sb.append("position=").append(position());
+    sb.append(", limit=").append(limit());
+    sb.append(", capacity=").append(capacity());
+    sb.append(", index=").append(index());
+    sb.append(", current=").append(current());
+    sb.append(", order=").append(order());
+    sb.append(", direct=").append(current().isDirect());
     sb.append(" }");
     return sb.toString();
   }
   
   public byte[] toByteArray() {
-    if(!hasRemaining()) return new byte[0];
-    int pos = position();
-    byte[] bs = new byte[remaining()];
-    get(bs);
-    position(pos);
-    return bs;
+    return array();
   }
 
   public ByteBuffer toByteBuffer() {
-    return buffer;
-  }
-
-  public int writeTo(ByteBuffer buf) {
-    int min = Math.min(buf.remaining(), remaining());
-    int lim = limit();
+    ByteBuffer b = current().isDirect() 
+        ? ByteBuffer.allocateDirect(limit) 
+        : ByteBuffer.allocate(limit);
     int pos = position();
-    limit(min);
-    buf.put(buffer);
-    position(pos);
-    limit(lim);
-    return min;
-  }
-
-  public int writeTo(BitBuffer buf) {
-    int min = Math.min(buf.remaining(), remaining());
     int lim = limit();
-    int pos = position();
-    limit(min);
-    buf.put(buffer);
-    position(pos);
+    position(0);
+    limit(capacity());
+    get(b);
     limit(lim);
-    return min;
+    position(pos);
+    b.limit(lim);
+    b.position(mark);
+    b.mark();
+    b.position(pos);
+    return b;
   }
 
   public int writeTo(WritableByteChannel chl) throws IOException {
-    return chl.write(buffer);
+    int total = 0;
+    while(hasRemaining()) {
+      int len = current().writeTo(chl);
+      position += len;
+      total += len;
+    }
+    return total;
+  }
+  
+  public int writeTo(BitBuffer buf) {
+    int total = 0;
+    while(hasRemaining() && buf.hasRemaining()) {
+      int len = current().writeTo(buf);
+      position += len;
+      total += len;
+    }
+    return total;
+  }
+
+  public int writeTo(ByteBuffer buf) {
+    int total = 0;
+    while(hasRemaining() && buf.hasRemaining()) {
+      int len = current().writeTo(buf);
+      position += len;
+      total += len;
+    }
+    return total;
   }
 
   public int readFrom(ReadableByteChannel chl) throws IOException {
-    return chl.read(buffer);
+    int total = 0;
+    int read = -1;
+    while((read = current().readFrom(chl)) != -1) {
+      position += read;
+      total += read;
+    }
+    return total;
   }
 
   public int readFrom(ByteBuffer buf) {
@@ -558,4 +630,12 @@ public final class MultiBuffer {}/*implements BitBuffer {
     return min;
   }
   
-}*/
+  public String buffers2string() {
+    StringBuilder sb = new StringBuilder("MultiBuffer.buffers.size=").append(buffers.size()).append(" {\n");
+    buffers.stream()
+        .map(Indexed.builder())
+        .forEach(i -> sb.append("  ").append(i.index()).append(". ").append(i.value()).append("\n"));
+    return sb.append("}").toString();
+  }
+  
+}

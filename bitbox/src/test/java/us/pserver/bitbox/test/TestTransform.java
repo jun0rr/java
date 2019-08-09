@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
 import us.pserver.bitbox.BitBoxConfiguration;
 import us.pserver.bitbox.BitBuffer;
-import us.pserver.bitbox.impl.BitBufferImpl;
+import us.pserver.bitbox.impl.DynamicBitBuffer;
 import us.pserver.bitbox.transform.*;
 import us.pserver.bitbox.type.ArrayBox;
 import us.pserver.bitbox.type.ArrayBoxImpl;
@@ -259,7 +259,7 @@ public class TestTransform {
     ls.add("java");
     ls.add("11");
     CollectionTransform<String> tran = new CollectionTransform<>(cfg);
-    BitBuffer buf = new BitBufferImpl(256, true);
+    BitBuffer buf = new DynamicBitBuffer(256, true);
     int len = tran.box(ls, buf);
     Assertions.assertEquals(32 + Integer.BYTES * 10, len);
     Assertions.assertEquals(len, buf.position());
@@ -279,7 +279,7 @@ public class TestTransform {
   
   @Test
   public void enum_transform() {
-    BitBuffer buf = new BitBufferImpl(256, true);
+    BitBuffer buf = new DynamicBitBuffer(256, true);
     EnumTransform<Weather> tran = new EnumTransform<>(cfg);
     int len = tran.box(Weather.RAIN, buf);
     Assertions.assertEquals(len, buf.position());

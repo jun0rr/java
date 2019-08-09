@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import us.pserver.bitbox.impl.BitBufferImpl;
+import us.pserver.bitbox.impl.DynamicBitBuffer;
 
 /**
  *
@@ -37,10 +37,6 @@ public interface BitBuffer {
 
   public BitBuffer compact();
   
-  public int maxPosition();
-  
-  public BitBuffer resetMaxPosition();
-
   public byte get();
 
   public byte get(int index);
@@ -50,6 +46,10 @@ public interface BitBuffer {
   }
 
   public BitBuffer get(byte[] dst, int offset, int length);
+  
+  public BitBuffer get(ByteBuffer buf);
+  
+  public BitBuffer get(BitBuffer buf);
 
   public char getChar();
 
@@ -79,7 +79,9 @@ public interface BitBuffer {
 
   public BitBuffer put(int index, byte b);
 
-  public BitBuffer put(byte[] src);
+  public default BitBuffer put(byte[] src) {
+    return put(src, 0, src.length);
+  }
 
   public BitBuffer put(byte[] src, int offset, int length);
 
@@ -125,21 +127,21 @@ public interface BitBuffer {
 
   public BitBuffer limit(int newLimit);
 
-  public BitBuffer mark();
-
   public int position();
 
   public BitBuffer position(int newPosition);
 
   public int remaining();
 
+  public boolean hasRemaining();
+  
+  public int capacity();
+  
+  public BitBuffer mark();
+  
   public BitBuffer reset();
 
   public BitBuffer rewind();
-
-  public int capacity();
-
-  public boolean hasRemaining();
 
   public byte[] array();
 
@@ -170,19 +172,19 @@ public interface BitBuffer {
   
   
   public static BitBuffer of(int capacity, boolean direct) {
-    return new BitBufferImpl(capacity, direct);
+    return new DynamicBitBuffer(capacity, direct);
   }
   
   public static BitBuffer of(ByteBuffer buf) {
-    return new BitBufferImpl(buf);
+    return new DynamicBitBuffer(buf);
   }
   
   public static BitBuffer of(byte[] bs) {
-    return new BitBufferImpl(bs);
+    return new DynamicBitBuffer(bs);
   }
   
   public static BitBuffer of(byte[] bs, int off, int len) {
-    return new BitBufferImpl(bs, off, len);
+    return new DynamicBitBuffer(bs, off, len);
   }
   
 }

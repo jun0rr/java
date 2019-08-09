@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="us.pserver.tools.match.test.TestMatch" time="0.082" tests="4" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="us.pserver.tools.match.test.TestMatch" time="0.027" tests="4" errors="0" skipped="0" failures="0">
   <properties>
+    <property name="sun.desktop" value="gnome"/>
     <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
     <property name="java.specification.version" value="11"/>
     <property name="sun.cpu.isalist" value=""/>
@@ -14,8 +15,8 @@
     <property name="os.name" value="Linux"/>
     <property name="user.country" value="BR"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
-    <property name="sun.boot.library.path" value="/usr/lib/jvm/java-11-openjdk-amd64/lib"/>
-    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/juno/java/toolbox-pom/tools-match/target/surefire 2019-07-28T14-19-50_232-jvmRun1 surefire16930388545321975999tmp surefire_19620562037892864648tmp"/>
+    <property name="sun.boot.library.path" value="/opt/jdk-11.0.2/lib"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/juno/java/toolbox-pom/tools-match/target/surefire 2019-08-09T13-50-01_409-jvmRun1 surefire17199492076025186585tmp surefire_13139063823073464994tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/home/juno/java/toolbox-pom/tools-match/target/test-classes:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.4.1/junit-jupiter-api-5.4.1.jar:/home/juno/.m2/repository/org/apiguardian/apiguardian-api/1.0.0/apiguardian-api-1.0.0.jar:/home/juno/.m2/repository/org/opentest4j/opentest4j/1.1.1/opentest4j-1.1.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-commons/1.4.1/junit-platform-commons-1.4.1.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.4.1/junit-jupiter-engine-5.4.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-engine/1.4.1/junit-platform-engine-1.4.1.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -23,8 +24,8 @@
     <property name="user.language" value="pt"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
     <property name="jdk.module.path" value="/home/juno/java/toolbox-pom/tools-match/target/classes:/home/juno/java/toolbox-pom/tools/target/tools-1.2.jar"/>
-    <property name="java.version.date" value="2019-04-16"/>
-    <property name="java.home" value="/usr/lib/jvm/java-11-openjdk-amd64"/>
+    <property name="java.version.date" value="2019-01-15"/>
+    <property name="java.home" value="/opt/jdk-11.0.2"/>
     <property name="file.separator" value="/"/>
     <property name="basedir" value="/home/juno/java/toolbox-pom/tools-match"/>
     <property name="java.vm.compressedOopsMode" value="Zero based"/>
@@ -33,32 +34,33 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
-    <property name="java.runtime.version" value="11.0.3+7-Ubuntu-1ubuntu218.04.1"/>
+    <property name="java.runtime.version" value="11.0.2+9"/>
     <property name="user.name" value="juno"/>
     <property name="path.separator" value=":"/>
     <property name="os.version" value="4.15.0-20-generic"/>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="file.encoding" value="UTF-8"/>
     <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.9"/>
     <property name="maven.ext.class.path" value="/opt/netbeans-11.1/java/maven-nblib/netbeans-eventspy.jar"/>
     <property name="localRepository" value="/home/juno/.m2/repository"/>
     <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="/tmp"/>
-    <property name="java.version" value="11.0.3"/>
+    <property name="java.version" value="11.0.2"/>
     <property name="user.dir" value="/home/juno/java/toolbox-pom/tools-match"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
     <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"/>
     <property name="sun.os.patch.level" value="unknown"/>
-    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib"/>
+    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
     <property name="java.vendor" value="Oracle Corporation"/>
     <property name="java.vm.info" value="mixed mode"/>
-    <property name="java.vm.version" value="11.0.3+7-Ubuntu-1ubuntu218.04.1"/>
+    <property name="java.vm.version" value="11.0.2+9"/>
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="55.0"/>
   </properties>
-  <testcase name="matchEmptyOnStringEmpty" classname="us.pserver.tools.match.test.TestMatch" time="0.053"/>
-  <testcase name="matchNotEmptyGetOrFail" classname="us.pserver.tools.match.test.TestMatch" time="0.003"/>
-  <testcase name="matchEmptyOnStringNull" classname="us.pserver.tools.match.test.TestMatch" time="0.003"/>
-  <testcase name="matchNullOnStringNull" classname="us.pserver.tools.match.test.TestMatch" time="0"/>
+  <testcase name="matchEmptyOnStringEmpty" classname="us.pserver.tools.match.test.TestMatch" time="0.016"/>
+  <testcase name="matchNotEmptyGetOrFail" classname="us.pserver.tools.match.test.TestMatch" time="0.002"/>
+  <testcase name="matchEmptyOnStringNull" classname="us.pserver.tools.match.test.TestMatch" time="0.001"/>
+  <testcase name="matchNullOnStringNull" classname="us.pserver.tools.match.test.TestMatch" time="0.001"/>
 </testsuite>
