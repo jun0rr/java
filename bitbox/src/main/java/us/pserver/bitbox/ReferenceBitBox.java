@@ -7,6 +7,7 @@ package us.pserver.bitbox;
 
 import java.util.function.Consumer;
 import us.pserver.bitbox.impl.ReferenceBitBoxImpl;
+import us.pserver.tools.io.BitBuffer;
 
 
 /**

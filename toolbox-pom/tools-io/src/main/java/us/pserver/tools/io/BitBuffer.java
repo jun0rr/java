@@ -19,14 +19,15 @@
  * endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.
  */
 
-package us.pserver.bitbox;
+package us.pserver.tools.io;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import us.pserver.bitbox.impl.DynamicBitBuffer;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 /**
  *
@@ -74,6 +75,8 @@ public interface BitBuffer {
   public short getShort();
 
   public short getShort(int index);
+  
+  public String getUTF8(int len);
 
   public BitBuffer put(byte b);
 
@@ -172,19 +175,72 @@ public interface BitBuffer {
   
   
   public static BitBuffer of(int capacity, boolean direct) {
-    return new DynamicBitBuffer(capacity, direct);
+    return new DefaultBitBuffer(capacity, direct);
   }
   
   public static BitBuffer of(ByteBuffer buf) {
-    return new DynamicBitBuffer(buf);
+    return new DefaultBitBuffer(buf);
   }
   
   public static BitBuffer of(byte[] bs) {
-    return new DynamicBitBuffer(bs);
+    return new DefaultBitBuffer(ByteBuffer.wrap(bs));
   }
   
   public static BitBuffer of(byte[] bs, int off, int len) {
-    return new DynamicBitBuffer(bs, off, len);
+    return new DefaultBitBuffer(ByteBuffer.wrap(bs, off, len));
+  }
+  
+  
+  public static DynamicBuffer dynamicBuffer(int capacity, boolean direct) {
+    return new DynamicBuffer(capacity, direct);
+  }
+  
+  public static DynamicBuffer dynamicBuffer(ByteBuffer buf) {
+    return new DynamicBuffer(buf);
+  }
+  
+  public static DynamicBuffer dynamicBuffer(byte[] bs) {
+    return new DynamicBuffer(bs);
+  }
+  
+  public static DynamicBuffer dynamicBuffer(byte[] bs, int off, int len) {
+    return new DynamicBuffer(bs, off, len);
+  }
+  
+  
+  public static MultiBuffer multiBuffer(int capacity, boolean direct) {
+    Supplier<ByteBuffer> bbsup = () -> direct ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
+    Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(bbsup.get());
+    return new MultiBuffer(sup);
+  }
+  
+  public static MultiBuffer multiBuffer(ByteBuffer buf) {
+    Supplier<ByteBuffer> bbsup = () -> buf.isDirect() 
+        ? ByteBuffer.allocateDirect(buf.capacity()) 
+        : ByteBuffer.allocate(buf.capacity());
+    AtomicReference<ByteBuffer> ref = new AtomicReference(buf);
+    Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(
+        ref.compareAndSet(buf, null) ? buf : bbsup.get()
+    );
+    return new MultiBuffer(sup);
+  }
+  
+  public static MultiBuffer multiBuffer(byte[] bs) {
+    Supplier<ByteBuffer> bbsup = () -> ByteBuffer.allocate(bs.length);
+    AtomicReference<byte[]> ref = new AtomicReference(bs);
+    Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(
+        ref.compareAndSet(bs, null) ? ByteBuffer.wrap(bs) : bbsup.get()
+    );
+    return new MultiBuffer(sup);
+  }
+  
+  public static MultiBuffer multiBuffer(byte[] bs, int off, int len) {
+    Supplier<ByteBuffer> bbsup = () -> ByteBuffer.allocate(len);
+    AtomicReference<byte[]> ref = new AtomicReference(bs);
+    Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(
+        ref.compareAndSet(bs, null) ? ByteBuffer.wrap(bs, off, len) : bbsup.get()
+    );
+    return new MultiBuffer(sup);
   }
   
 }

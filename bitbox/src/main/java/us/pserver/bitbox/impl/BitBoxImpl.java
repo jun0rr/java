@@ -23,7 +23,7 @@ package us.pserver.bitbox.impl;
 
 import us.pserver.bitbox.BitBox;
 import us.pserver.bitbox.BitBoxConfiguration;
-import us.pserver.bitbox.BitBuffer;
+import us.pserver.tools.io.BitBuffer;
 
 /**
  *

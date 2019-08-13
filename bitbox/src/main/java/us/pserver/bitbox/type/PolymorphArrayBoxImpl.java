@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import us.pserver.bitbox.BitBoxConfiguration;
-import us.pserver.bitbox.BitBuffer;
 import us.pserver.bitbox.transform.PolymorphNodeTransform;
+import us.pserver.tools.io.BitBuffer;
 
 
 public class PolymorphArrayBoxImpl implements ArrayBox<Object> {

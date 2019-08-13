@@ -8,13 +8,13 @@ package us.pserver.bitbox.impl;
 import java.util.Objects;
 import java.util.function.Consumer;
 import us.pserver.bitbox.BitBoxConfiguration;
-import us.pserver.bitbox.BitBuffer;
 import us.pserver.bitbox.BitTransform;
 import us.pserver.bitbox.Reference;
 import us.pserver.bitbox.ReferenceBitBox;
 import us.pserver.bitbox.ReferenceService;
 import us.pserver.bitbox.transform.ReferenceObjectTransform;
 import us.pserver.bitbox.transform.ReferenceTransform;
+import us.pserver.tools.io.BitBuffer;
 
 
 /**

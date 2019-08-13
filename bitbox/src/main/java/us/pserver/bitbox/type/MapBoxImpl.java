@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import us.pserver.bitbox.BitBoxConfiguration;
-import us.pserver.bitbox.BitBuffer;
 import us.pserver.bitbox.transform.MapTransform;
 import us.pserver.tools.Indexed;
+import us.pserver.tools.io.BitBuffer;
 
 public class MapBoxImpl<K,V> implements MapBox<K,V> {
   

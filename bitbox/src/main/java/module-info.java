@@ -10,6 +10,7 @@ module bitbox {
   requires tinylog.api;
   requires tinylog.impl;
   requires transitive toolbox.tools;
+  requires transitive toolbox.tools.io;
   exports us.pserver.bitbox;
   exports us.pserver.bitbox.impl;
   exports us.pserver.bitbox.transform;

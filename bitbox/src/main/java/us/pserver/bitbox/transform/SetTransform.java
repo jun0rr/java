@@ -6,8 +6,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import us.pserver.bitbox.BitBoxConfiguration;
-import us.pserver.bitbox.BitBuffer;
 import us.pserver.bitbox.BitTransform;
+import us.pserver.tools.io.BitBuffer;
 
 
 public class SetTransform<T> implements BitTransform<Set<T>> {

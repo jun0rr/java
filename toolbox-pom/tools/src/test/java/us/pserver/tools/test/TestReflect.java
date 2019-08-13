@@ -5,6 +5,7 @@
  */
 package us.pserver.tools.test;
 
+import java.lang.invoke.MethodHandles;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Reflect;
@@ -107,6 +108,80 @@ public class TestReflect {
   }
   
   @Test
+  public void test_field_getter_supplier() {
+    System.out.println("===========================================");
+    System.out.println("  public void test_field_getter_supplier()");
+    System.out.println("-------------------------------------------");
+    try {
+      ReflectTarget rt = new ReflectTarget("Juno");
+      Reflect r = Reflect.of(rt, MethodHandles.lookup()).selectField("hello").withPrivateLookup();
+      Supplier<String> hello = r.fieldGetterAsSupplier();
+      Assertions.assertEquals("Juno", hello.get());
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+  
+  @Test
+  public void test_field_getter_function() {
+    System.out.println("===========================================");
+    System.out.println("  public void test_field_getter_function()");
+    System.out.println("-------------------------------------------");
+    try {
+      ReflectTarget rt = new ReflectTarget("Juno");
+      Reflect r = Reflect.of(rt, MethodHandles.lookup()).selectField("hello").withPrivateLookup();
+      Function<ReflectTarget,String> hello = r.dynamicFieldGetterAsFunction();
+      Assertions.assertEquals("Juno", hello.apply(rt));
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+  
+  @Test
+  public void test_field_setter_consumer() {
+    System.out.println("===========================================");
+    System.out.println("  public void test_field_setter_consumer()");
+    System.out.println("-------------------------------------------");
+    try {
+      ReflectTarget rt = new ReflectTarget("Juno", 41);
+      Reflect r = Reflect.of(rt, MethodHandles.lookup()).selectField("magic").withPrivateLookup();
+      Function<ReflectTarget,Integer> getter = r.dynamicFieldGetterAsFunction();
+      Consumer<Integer> setter = r.fieldSetterAsConsumer();
+      Assertions.assertEquals(Integer.valueOf(41), getter.apply(rt));
+      setter.accept(51);
+      Assertions.assertEquals(Integer.valueOf(51), getter.apply(rt));
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+  
+  @Test
+  public void test_dynamic_field_setter_biconsumer() {
+    System.out.println("=====================================================");
+    System.out.println("  public void test_dynamic_field_setter_biconsumer()");
+    System.out.println("-----------------------------------------------------");
+    try {
+      ReflectTarget rt = new ReflectTarget("Juno", 41);
+      Reflect r = Reflect.of(rt, MethodHandles.lookup()).selectField("magic").withPrivateLookup();
+      Function<ReflectTarget,Integer> getter = r.dynamicFieldGetterAsFunction();
+      BiConsumer<ReflectTarget,Integer> setter = r.dynamicFieldSetterAsBiConsumer();
+      Assertions.assertEquals(Integer.valueOf(41), getter.apply(rt));
+      setter.accept(rt, 51);
+      Assertions.assertEquals(Integer.valueOf(51), getter.apply(rt));
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+  
+  @Test
   public void test_method_function() {
     System.out.println("=====================================");
     System.out.println("  public void test_method_function()");
@@ -180,7 +255,7 @@ public class TestReflect {
       Reflect<ReflectTarget> r = Reflect.of(ReflectTarget.class).createReflected().selectMethod("greet", String.class);
       ReflectTarget target = (ReflectTarget) r.getTarget();
       Function<String,String> greet = r.methodAsFunction();
-      BiFunction<ReflectTarget,String,String> dynamicGreet = r.dynamicFunctionMethod();
+      BiFunction<ReflectTarget,String,String> dynamicGreet = r.dynamicMethodAsBiFunction();
       BiFunction<ReflectTarget,String,String> dynamicLambda = r.dynamicLambdaMethod(BiFunction.class);
       int TIMES = 100_000_000;
       Timer tm = new Timer.Nanos().start();
@@ -245,7 +320,7 @@ public class TestReflect {
       Reflect<ReflectTarget> r = Reflect.of(ReflectTarget.class).createReflected("Juno").selectMethod("greet");
       ReflectTarget target = (ReflectTarget) r.getTarget();
       Supplier<String> greet = r.methodAsSupplier();
-      Function<ReflectTarget,String> dynamicGreet = r.dynamicSupplierMethod();
+      Function<ReflectTarget,String> dynamicGreet = r.dynamicMethodAsFunction();
       int TIMES = 100_000_000;
       Timer tm = new Timer.Nanos().start();
       int count = 0;

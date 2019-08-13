@@ -1,6 +1,8 @@
 package us.pserver.tools;
 
 import java.lang.invoke.*;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -328,10 +330,12 @@ public class Reflect<T> {
     Method[] dec = cls.getDeclaredMethods();
     Method[] pub = cls.getMethods();
     List<Method> all = new ArrayList<>();
-    Arrays.asList(dec).stream().filter(
-        m->!all.contains(m)).forEach(all::add);
-    Arrays.asList(pub).stream().filter(
-        m->!all.contains(m)).forEach(all::add);
+    Arrays.asList(dec).stream()
+        .filter(m->!all.contains(m))
+        .forEach(all::add);
+    Arrays.asList(pub).stream()
+        .filter(m->!all.contains(m))
+        .forEach(all::add);
     Method[] mts = new Method[all.size()];
     return all.toArray(mts);
   }
@@ -405,6 +409,22 @@ public class Reflect<T> {
         .map(f -> f.getName())
         .collect(Collectors.toList())
         .toArray(new String[0]);
+  }
+  
+  
+  public Reflect<T> setAssessible(boolean acs) {
+    if(null == cct && null == mth && null == fld) {
+      throw new IllegalStateException("None field, constructor or method is defined");
+    }
+    AccessibleObject acob = fld != null ? fld : cct != null ? cct : mth;
+    acob.setAccessible(acs);
+    return new Reflect(cls, obj, mth, fld, cct, lookup);
+  }
+  
+  
+  public Reflect<T> withPrivateLookup() {
+    Lookup privateLookup = Unchecked.call(() -> MethodHandles.privateLookupIn(cls, lookup));
+    return new Reflect(cls, obj, mth, fld, cct, privateLookup);
   }
 	
 	
@@ -507,16 +527,6 @@ public class Reflect<T> {
   }
   
   
-  private Supplier invokeSupplierHandle(MethodHandle handle) {
-    try {
-      return (Supplier) handle.invokeExact();
-    }
-    catch(Throwable e) {
-      throw new RuntimeException(e.toString(), e);
-    }
-  }
-  
-  
   private BiConsumer invokeBiConsumerHandle(MethodHandle handle) {
     try {
       return (BiConsumer) handle.invokeExact();
@@ -565,7 +575,7 @@ public class Reflect<T> {
     MethodType actualMethType = MethodType.methodType(cls);
     MethodType lambdaType = MethodType.methodType(Supplier.class);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, "get", lambdaType, methodType, handle, actualMethType));
-    return (Supplier<T>) invokeSupplierHandle(cs.getTarget());
+    return (Supplier<T>) Unchecked.call(() -> cs.getTarget().invokeExact());
   }
 	
   
@@ -587,7 +597,7 @@ public class Reflect<T> {
     MethodType actualMethType = MethodType.methodType(cls, cct.getParameterTypes()[0]);
     MethodType lambdaType = MethodType.methodType(Function.class);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, "apply", lambdaType, methodType, handle, actualMethType));
-    return (Function<P,T>) invokeFunctionHandle(cs.getTarget());
+    return (Function<P,T>) Unchecked.call(() -> cs.getTarget().invokeExact());
   }
   
   
@@ -622,7 +632,7 @@ public class Reflect<T> {
     MethodType actualMethType = MethodType.methodType(cls, cct.getParameterTypes());
     MethodType lambdaType = MethodType.methodType(lambda);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, lmth.get().getName(), lambdaType, methodType, handle, actualMethType));
-    return lambda.cast(invokeHandle(cs.getTarget()));
+    return lambda.cast(Unchecked.call(() -> cs.getTarget().invokeExact()));
   }
 	
   
@@ -648,7 +658,65 @@ public class Reflect<T> {
         ? MethodType.methodType(Supplier.class)
         : MethodType.methodType(Supplier.class, cls);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, "get", lambdaType, methodType, handle, actualMethType));
-    return (Supplier<S>) invokeHandle(cs.getTarget(), obj);
+    return (Supplier<S>) Unchecked.call(() -> cs.getTarget().invoke(obj));
+  }
+	
+  
+  /**
+   * Create and return a Supplier to get the selected field value.
+   * @param <S> Supplier return type
+   * @return A Supplier referencing the selected field.
+   * @throws IllegalStateException if field is not selected or 
+   * field is not static and target object was not provided.
+   */
+  public <S> Supplier<S> fieldGetterAsSupplier() {
+    if(fld == null) throw new IllegalStateException("Field not found");
+    boolean isStatic = Modifier.isStatic(fld.getModifiers());
+    if(!isStatic && obj == null) throw new IllegalStateException("Target object not found");
+    MethodHandle handle = Unchecked.call(() -> lookup.unreflectGetter(fld));
+    return () -> (S) Unchecked.call(() -> handle.invoke(obj));
+  }
+	
+  
+  /**
+   * Create and return a Function to get the selected field value on the informed object.
+   * @param <S> Return type
+   * @return A Function to get the selected field value on the informed object.
+   * @throws IllegalStateException if field is not selected.
+   */
+  public <S> Function<T,S> dynamicFieldGetterAsFunction() {
+    if(fld == null) throw new IllegalStateException("Field not found");
+    MethodHandle handle = Unchecked.call(() -> lookup.unreflectGetter(fld));
+    return o -> (S) Unchecked.call(() -> handle.invoke(o));
+  }
+	
+  
+  /**
+   * Create and return a Consumer to set the selected field value.
+   * @param <S> Field type
+   * @return A Consumer referencing the selected field.
+   * @throws IllegalStateException if field is not selected or 
+   * field is not static and target object was not provided.
+   */
+  public <S> Consumer<S> fieldSetterAsConsumer() {
+    if(fld == null) throw new IllegalStateException("Field not found");
+    boolean isStatic = Modifier.isStatic(fld.getModifiers());
+    if(!isStatic && obj == null) throw new IllegalStateException("Target object not found");
+    MethodHandle handle = Unchecked.call(() -> lookup.unreflectSetter(fld));
+    return s -> Unchecked.call(() -> handle.invoke(obj, s));
+  }
+	
+  
+  /**
+   * Create and return a BiConsumer to set the selected field value on the informed object.
+   * @param <S> Field type
+   * @return A function lambda referencing the dynamic method invokation.
+   * @throws IllegalStateException if field is not selected.
+   */
+  public <S> BiConsumer<T,S> dynamicFieldSetterAsBiConsumer() {
+    if(fld == null) throw new IllegalStateException("Field not found");
+    MethodHandle handle = Unchecked.call(() -> lookup.unreflectSetter(fld));
+    return (o,s) -> Unchecked.call(() -> handle.invoke(o, s));
   }
 	
   
@@ -660,7 +728,7 @@ public class Reflect<T> {
    * @throws IllegalStateException if the selected method signature is not 
    * compatible with <code>Supplier</code> signature.
    */
-  public <S> Function<T,S> dynamicSupplierMethod() {
+  public <S> Function<T,S> dynamicMethodAsFunction() {
     if(mth == null) throw new IllegalStateException("Method not found");
     if(mth.getParameterCount() > 0) {
       throw new IllegalStateException("Bad method cast: " + mth + " >> " + Supplier.class.getName());
@@ -731,7 +799,7 @@ public class Reflect<T> {
    * @throws IllegalStateException if the selected method signature is not 
    * compatible with <code>Consumer</code> signature.
    */
-  public <C> BiConsumer<T,C> dynamicConsumerMethod() {
+  public <C> BiConsumer<T,C> dynamicMethodAsBiConsumer() {
     if(mth == null) throw new IllegalStateException("Method not found");
     if(mth.getParameterCount() != 1 || mth.getReturnType() != void.class) {
       throw new IllegalStateException("Bad method cast: " + mth + " >> " + Consumer.class.getName());
@@ -780,7 +848,7 @@ public class Reflect<T> {
    * @throws IllegalStateException if the selected method signature is not 
    * compatible with <code>Function</code> signature.
    */
-  public <P,R> BiFunction<T,P,R> dynamicFunctionMethod() {
+  public <P,R> BiFunction<T,P,R> dynamicMethodAsBiFunction() {
     if(mth == null) throw new IllegalStateException("Method not found");
     if(mth.getParameterCount() != 1) {
       throw new IllegalStateException("Bad method cast: " + mth + " >> " + Function.class.getName());

@@ -81,7 +81,7 @@ public interface ObjectSpec<T> extends TypeMatching, SerializedType {
     
     private GetterTarget<T,Object> toGetterTarget(Method m) {
       return (GetterTarget<T,Object>) GetterTarget.of(getPropertyName(m), m.getReturnType(),
-          Reflect.of(cls, cfg.lookup()).selectMethod(m).dynamicSupplierMethod()
+          Reflect.of(cls, cfg.lookup()).selectMethod(m).dynamicMethodAsFunction()
       );
     }
     

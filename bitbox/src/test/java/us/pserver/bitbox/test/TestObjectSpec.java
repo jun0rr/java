@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
 import us.pserver.bitbox.BitBoxConfiguration;
-import us.pserver.bitbox.BitBuffer;
 import us.pserver.bitbox.BitTransform;
 import us.pserver.bitbox.spec.ObjectSpec;
+import us.pserver.tools.io.BitBuffer;
 
 
 /**

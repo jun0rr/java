@@ -16,22 +16,27 @@
     
     <dependencies>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.4.1</version>
-            <scope>test</scope>
-            <type>jar</type>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+          <version>5.4.1</version>
+          <scope>test</scope>
+          <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.4.1</version>
-            <scope>test</scope>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <version>5.4.1</version>
+          <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>us.pserver</groupId>
-            <artifactId>tools</artifactId>
-            <version>1.2</version>
+          <groupId>us.pserver</groupId>
+          <artifactId>tools</artifactId>
+          <version>1.2</version>
+        </dependency>
+        <dependency>
+          <groupId>us.pserver</groupId>
+          <artifactId>tools-io</artifactId>
+          <version>1.2</version>
         </dependency>
         <dependency>
           <groupId>org.tinylog</groupId>

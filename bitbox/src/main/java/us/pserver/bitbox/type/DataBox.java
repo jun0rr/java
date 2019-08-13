@@ -22,7 +22,7 @@
 package us.pserver.bitbox.type;
 
 import java.util.function.Function;
-import us.pserver.bitbox.BitBuffer;
+import us.pserver.tools.io.BitBuffer;
 
 /**
  *
