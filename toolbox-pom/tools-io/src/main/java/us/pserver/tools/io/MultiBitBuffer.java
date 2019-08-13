@@ -40,7 +40,7 @@ import java.util.function.Supplier;
  * @author Juno Roesler - juno@pserver.us
  * @version 0.0 - 04/12/2018
  */
-public final class MultiBuffer implements BitBuffer {
+public final class MultiBitBuffer implements BitBuffer {
   
   private final List<BitBuffer> buffers;
   
@@ -51,7 +51,7 @@ public final class MultiBuffer implements BitBuffer {
   private final int unitSize;
   
   
-  private MultiBuffer(List<BitBuffer> buffers, Supplier<BitBuffer> bufferSource, int position, int limit, int mark) {
+  private MultiBitBuffer(List<BitBuffer> buffers, Supplier<BitBuffer> bufferSource, int position, int limit, int mark) {
     this.bufferSource = bufferSource;
     this.buffers = buffers;
     this.position = position;
@@ -60,7 +60,7 @@ public final class MultiBuffer implements BitBuffer {
     this.unitSize = buffers.get(0).capacity();
   }
   
-  public MultiBuffer(Supplier<BitBuffer> bufferSource) {
+  public MultiBitBuffer(Supplier<BitBuffer> bufferSource) {
     this.bufferSource = Objects.requireNonNull(bufferSource);
     this.buffers = new ArrayList<>();
     BitBuffer buf = bufferSource.get().clear();
@@ -452,7 +452,7 @@ public final class MultiBuffer implements BitBuffer {
   }
 
   public BitBuffer duplicate() {
-    return new MultiBuffer(buffers, bufferSource, position, limit, mark);
+    return new MultiBitBuffer(buffers, bufferSource, position, limit, mark);
   }
 
   public BitBuffer slice() {
@@ -601,7 +601,7 @@ public final class MultiBuffer implements BitBuffer {
   }
   
   public WritableByteChannel toWritableByteChannel() {
-    final MultiBuffer _this = this;
+    final MultiBitBuffer _this = this;
     return new WritableByteChannel() {
       @Override
       public int write(ByteBuffer bb) throws IOException {

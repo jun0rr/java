@@ -208,13 +208,13 @@ public interface BitBuffer {
   }
   
   
-  public static MultiBuffer multiBuffer(int capacity, boolean direct) {
+  public static MultiBitBuffer multiBuffer(int capacity, boolean direct) {
     Supplier<ByteBuffer> bbsup = () -> direct ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
     Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(bbsup.get());
-    return new MultiBuffer(sup);
+    return new MultiBitBuffer(sup);
   }
   
-  public static MultiBuffer multiBuffer(ByteBuffer buf) {
+  public static MultiBitBuffer multiBuffer(ByteBuffer buf) {
     Supplier<ByteBuffer> bbsup = () -> buf.isDirect() 
         ? ByteBuffer.allocateDirect(buf.capacity()) 
         : ByteBuffer.allocate(buf.capacity());
@@ -222,25 +222,25 @@ public interface BitBuffer {
     Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(
         ref.compareAndSet(buf, null) ? buf : bbsup.get()
     );
-    return new MultiBuffer(sup);
+    return new MultiBitBuffer(sup);
   }
   
-  public static MultiBuffer multiBuffer(byte[] bs) {
+  public static MultiBitBuffer multiBuffer(byte[] bs) {
     Supplier<ByteBuffer> bbsup = () -> ByteBuffer.allocate(bs.length);
     AtomicReference<byte[]> ref = new AtomicReference(bs);
     Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(
         ref.compareAndSet(bs, null) ? ByteBuffer.wrap(bs) : bbsup.get()
     );
-    return new MultiBuffer(sup);
+    return new MultiBitBuffer(sup);
   }
   
-  public static MultiBuffer multiBuffer(byte[] bs, int off, int len) {
+  public static MultiBitBuffer multiBuffer(byte[] bs, int off, int len) {
     Supplier<ByteBuffer> bbsup = () -> ByteBuffer.allocate(len);
     AtomicReference<byte[]> ref = new AtomicReference(bs);
     Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(
         ref.compareAndSet(bs, null) ? ByteBuffer.wrap(bs, off, len) : bbsup.get()
     );
-    return new MultiBuffer(sup);
+    return new MultiBitBuffer(sup);
   }
   
 }

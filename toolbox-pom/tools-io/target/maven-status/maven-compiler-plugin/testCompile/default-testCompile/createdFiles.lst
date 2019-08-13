@@ -1,2 +1,3 @@
-module-info.class
 us/pserver/tools/io/test/TestMultiBuffer.class
+us/pserver/tools/io/test/TestBitBuffersPerformance.class
+module-info.class
