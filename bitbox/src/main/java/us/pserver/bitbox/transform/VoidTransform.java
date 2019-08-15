@@ -33,6 +33,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class VoidTransform implements BitTransform<Void> {
   
+  public static final byte BYTE_ID = 33;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return c == void.class || c == Void.class;

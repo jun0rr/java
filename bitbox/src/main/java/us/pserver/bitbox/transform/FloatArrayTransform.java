@@ -17,6 +17,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class FloatArrayTransform implements BitTransform<float[]> {
   
+  public static final byte BYTE_ID = 11;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return c.isArray() && c.getComponentType() == float.class;

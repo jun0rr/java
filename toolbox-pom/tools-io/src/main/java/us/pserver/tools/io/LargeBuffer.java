@@ -40,27 +40,30 @@ import java.util.function.Supplier;
  * @author Juno Roesler - juno@pserver.us
  * @version 0.0 - 04/12/2018
  */
-public final class MultiByteBuffer implements BitBuffer {
+public final class LargeBuffer {
   
   private final List<ByteBuffer> buffers;
   
   private final Supplier<ByteBuffer> bufferSource;
   
-  private int position, limit, mark;
+  private long position, limit, mark;
   
-  private final int unitSize;
+  private final long unitSize;
+  
+  private final ByteBuffer temp;
   
   
-  private MultiByteBuffer(List<ByteBuffer> buffers, Supplier<ByteBuffer> bufferSource, int position, int limit, int mark) {
+  private LargeBuffer(List<ByteBuffer> buffers, Supplier<ByteBuffer> bufferSource, ByteBuffer buffer, long position, long limit, long mark) {
     this.bufferSource = bufferSource;
     this.buffers = buffers;
+    this.temp = buffer;
     this.position = position;
     this.limit = limit;
     this.mark = mark;
     this.unitSize = buffers.get(0).capacity();
   }
   
-  public MultiByteBuffer(Supplier<ByteBuffer> bufferSource) {
+  public LargeBuffer(Supplier<ByteBuffer> bufferSource) {
     this.bufferSource = Objects.requireNonNull(bufferSource);
     this.buffers = new ArrayList<>();
     ByteBuffer buf = bufferSource.get().clear();
@@ -69,12 +72,11 @@ public final class MultiByteBuffer implements BitBuffer {
     this.position = 0;
     this.limit = buf.limit();
     this.mark = position;
+    this.temp = bufferSource.get();
   }
   
   private int index() {
-    return Math.min(buffers.size() -1, Double.valueOf(Math.floor(
-        position / Integer.valueOf(unitSize).doubleValue())
-    ).intValue());
+    return Math.min(buffers.size() -1, (int)Math.floor((double)position / unitSize));
   }
   
   public ByteBuffer current() {
@@ -85,20 +87,20 @@ public final class MultiByteBuffer implements BitBuffer {
     throw new UnsupportedOperationException();
   }
   
-  public int position() {
+  public long position() {
     return position;
   }
   
-  public BitBuffer position(int pos) {
+  public LargeBuffer position(long pos) {
     ensureSize(pos, true);
     buffers.forEach(b -> b.position(0));
     position = pos;
     buffers.stream().limit(index()).forEach(b -> b.position(b.limit()));
-    current().position(position - (unitSize * index()));
+    current().position((int)(position - (unitSize * index())));
     return this;
   }
   
-  public int remaining() {
+  public long remaining() {
     return limit - position;
   }
   
@@ -106,41 +108,38 @@ public final class MultiByteBuffer implements BitBuffer {
     return remaining() > 0;
   }
   
-  public BitBuffer mark() {
+  public LargeBuffer mark() {
     this.mark = position();
     return this;
   }
   
-  public BitBuffer reset() {
+  public LargeBuffer reset() {
     position(mark);
     return this;
   }
   
-  public BitBuffer rewind() {
+  public LargeBuffer rewind() {
     return position(0);
   }
   
-  public int capacity() {
+  public long capacity() {
     return buffers.size() * unitSize;
   }
   
-  public int limit() {
+  public long limit() {
     return limit;
   }
   
-  public BitBuffer limit(int lim) {
+  public LargeBuffer limit(long lim) {
     ensureSize(lim, false);
-    buffers.forEach(b -> b.limit(b.capacity()));
     limit = lim;
-    int idx = Math.min(buffers.size() -1, Double.valueOf(Math.floor(
-        limit / Integer.valueOf(unitSize).doubleValue())
-    ).intValue());
+    int idx = Math.min(buffers.size() -1, (int)Math.floor((double) limit / unitSize));
     buffers.stream().limit(idx+1).forEach(b -> b.limit(b.capacity()));
-    buffers.get(idx).limit(limit - (idx * unitSize));
+    buffers.get(idx).limit((int)(limit - (idx * unitSize)));
     return this;
   }
   
-  private void ensureSize(int size, boolean resetLimit) {
+  private void ensureSize(long size, boolean resetLimit) {
     while(size > capacity()) {
       buffers.add(bufferSource.get());
     }
@@ -168,15 +167,20 @@ public final class MultiByteBuffer implements BitBuffer {
     return b;
   }
 
-  public BitBuffer get(byte[] dst, int offset, int length) {
+  public LargeBuffer get(byte[] src) {
+    return get(src, 0, src.length);
+  }
+  
+  public LargeBuffer get(byte[] dst, int offset, int length) {
     if(remaining() < length) {
       throw new BufferUnderflowException();
     }
     int total = length;
     int off = offset;
     while(total > 0) {
-      int len = Math.min(current().remaining(), total);
-      current().get(dst, off, len);
+      ByteBuffer cur = current();
+      int len = Math.min(cur.remaining(), total);
+      cur.get(dst, off, len);
       position += len;
       off += len;
       total -= len;
@@ -184,8 +188,23 @@ public final class MultiByteBuffer implements BitBuffer {
     return this;
   }
   
-  public BitBuffer get(ByteBuffer buf) {
-    int total = Math.min(this.remaining(), buf.remaining());
+  public LargeBuffer get(ByteBuffer buf) {
+    long total = Math.min((int)this.remaining(), (long)buf.remaining());
+    while(total > 0) {
+      ByteBuffer cur = current();
+      long len = Math.min(cur.remaining(), total);
+      int lim = cur.limit();
+      cur.limit((int)(cur.position() + len));
+      buf.put(cur);
+      cur.limit(lim);
+      total -= len;
+      position += len;
+    }
+    return this;
+  }
+
+  public LargeBuffer get(BitBuffer buf) {
+    int total = Math.min((int)this.remaining(), buf.remaining());
     while(total > 0) {
       ByteBuffer cur = current();
       int len = Math.min(cur.remaining(), total);
@@ -198,30 +217,16 @@ public final class MultiByteBuffer implements BitBuffer {
     }
     return this;
   }
-
-  public BitBuffer get(BitBuffer buf) {
-    int total = Math.min(this.remaining(), buf.remaining());
-    while(total > 0) {
-      ByteBuffer cur = current();
-      int len = Math.min(cur.remaining(), total);
-      int lim = cur.limit();
-      cur.limit(cur.position() + len);
-      buf.put(cur);
-      cur.limit(lim);
-      total -= len;
-      position += len;
-    }
-    return this;
-  }
-
+  
   public char getChar() {
     if(remaining() < Character.BYTES) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(Character.BYTES);
-    get(b);
-    b.flip();
-    return b.getChar();
+    temp.clear();
+    temp.limit(Character.BYTES);
+    get(temp);
+    temp.flip();
+    return temp.getChar();
   }
 
   public char getChar(int index) {
@@ -236,10 +241,11 @@ public final class MultiByteBuffer implements BitBuffer {
     if(remaining() < Double.BYTES) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(Double.BYTES);
-    get(b);
-    b.flip();
-    return b.getDouble();
+    temp.clear();
+    temp.limit(Double.BYTES);
+    get(temp);
+    temp.flip();
+    return temp.getDouble();
   }
 
   public double getDouble(int index) {
@@ -254,10 +260,11 @@ public final class MultiByteBuffer implements BitBuffer {
     if(remaining() < Float.BYTES) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(Float.BYTES);
-    get(b);
-    b.flip();
-    return b.getFloat();
+    temp.clear();
+    temp.limit(Float.BYTES);
+    get(temp);
+    temp.flip();
+    return temp.getFloat();
   }
 
   public float getFloat(int index) {
@@ -272,10 +279,11 @@ public final class MultiByteBuffer implements BitBuffer {
     if(remaining() < Integer.BYTES) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
-    get(b);
-    b.flip();
-    return b.getInt();
+    temp.clear();
+    temp.limit(Integer.BYTES);
+    get(temp);
+    temp.flip();
+    return temp.getInt();
   }
 
   public int getInt(int index) {
@@ -290,10 +298,11 @@ public final class MultiByteBuffer implements BitBuffer {
     if(remaining() < Long.BYTES) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
-    get(b);
-    b.flip();
-    return b.getLong();
+    temp.clear();
+    temp.limit(Long.BYTES);
+    get(temp);
+    temp.flip();
+    return temp.getLong();
   }
 
   public long getLong(int index) {
@@ -308,10 +317,11 @@ public final class MultiByteBuffer implements BitBuffer {
     if(remaining() < Short.BYTES) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(Short.BYTES);
-    get(b);
-    b.flip();
-    return b.getShort();
+    temp.clear();
+    temp.limit(Short.BYTES);
+    get(temp);
+    temp.flip();
+    return temp.getShort();
   }
 
   public short getShort(int index) {
@@ -326,30 +336,44 @@ public final class MultiByteBuffer implements BitBuffer {
     if(remaining() < len) {
       throw new BufferUnderflowException();
     }
-    ByteBuffer b = ByteBuffer.allocate(len);
-    get(b);
-    b.flip();
-    return StandardCharsets.UTF_8.decode(b).toString();
+    String str;
+    ByteBuffer cur = current();
+    if(cur.remaining() >= len) {
+      int lim = cur.limit();
+      cur.limit(cur.position() + len);
+      str = StandardCharsets.UTF_8.decode(cur).toString();
+    }
+    else {
+      ByteBuffer b = ByteBuffer.allocate(len);
+      get(b);
+      b.flip();
+      str = StandardCharsets.UTF_8.decode(b).toString();
+    }
+    return str;
   }
 
-  public BitBuffer put(byte b) {
+  public LargeBuffer put(byte b) {
     ensureSize(position() + 1, true);
     current().put(b);
     position++;
     return this;
   }
 
-  public BitBuffer put(int pos, byte b) {
+  public LargeBuffer put(long pos, byte b) {
     position(pos);
     return put(b);
   }
-
-  public BitBuffer put(byte[] src, int offset, int length) {
+  
+  public LargeBuffer put(byte[] src) {
+    return put(src, 0, src.length);
+  }
+  
+  public LargeBuffer put(byte[] src, int offset, int length) {
     ensureSize(position() + length, true);
     return put(ByteBuffer.wrap(src, offset, length));
   }
 
-  public BitBuffer put(ByteBuffer src) {
+  public LargeBuffer put(ByteBuffer src) {
     ensureSize(position() + src.remaining(), true);
     while(src.hasRemaining()) {
       ByteBuffer cur = current();
@@ -363,7 +387,7 @@ public final class MultiByteBuffer implements BitBuffer {
     return this;
   }
   
-  public BitBuffer put(BitBuffer src) {
+  public LargeBuffer put(BitBuffer src) {
     ensureSize(position() + src.remaining(), true);
     while(src.hasRemaining()) {
       ByteBuffer cur = current();
@@ -377,105 +401,110 @@ public final class MultiByteBuffer implements BitBuffer {
     return this;
   }
   
-  public BitBuffer putChar(int index, char value) {
+  public LargeBuffer putChar(int index, char value) {
     position(index);
     return putChar(value);
   }
 
-  public BitBuffer putChar(char value) {
+  public LargeBuffer putChar(char value) {
     ensureSize(position() + Character.BYTES, true);
-    ByteBuffer b = ByteBuffer.allocate(Character.BYTES);
-    b.putChar(value);
-    b.flip();
-    return put(b);
+    temp.clear();
+    temp.putChar(value);
+    temp.flip();
+    put(temp);
+    return this;
   }
 
-  public BitBuffer putDouble(int index, double value) {
+  public LargeBuffer putDouble(int index, double value) {
     position(index);
     return putDouble(value);
   }
 
-  public BitBuffer putDouble(double value) {
+  public LargeBuffer putDouble(double value) {
     ensureSize(position() + Double.BYTES, true);
-    ByteBuffer b = ByteBuffer.allocate(Double.BYTES);
-    b.putDouble(value);
-    b.flip();
-    return put(b);
+    temp.clear();
+    temp.putDouble(value);
+    temp.flip();
+    put(temp);
+    return this;
   }
 
-  public BitBuffer putFloat(int index, float value) {
+  public LargeBuffer putFloat(int index, float value) {
     position(index);
     return putFloat(value);
   }
 
-  public BitBuffer putFloat(float value) {
+  public LargeBuffer putFloat(float value) {
     ensureSize(position() + Float.BYTES, true);
-    ByteBuffer b = ByteBuffer.allocate(Float.BYTES);
-    b.putFloat(value);
-    b.flip();
-    return put(b);
+    temp.clear();
+    temp.putFloat(value);
+    temp.flip();
+    put(temp);
+    return this;
   }
 
-  public BitBuffer putInt(int index, int value) {
+  public LargeBuffer putInt(int index, int value) {
     position(index);
     return putInt(value);
   }
 
-  public BitBuffer putInt(int value) {
+  public LargeBuffer putInt(int value) {
     ensureSize(position() + Integer.BYTES, true);
-    ByteBuffer b = ByteBuffer.allocate(Integer.BYTES);
-    b.putInt(value);
-    b.flip();
-    return put(b);
+    temp.clear();
+    temp.putInt(value);
+    temp.flip();
+    put(temp);
+    return this;
   }
 
-  public BitBuffer putLong(int index, long value) {
+  public LargeBuffer putLong(int index, long value) {
     position(index);
     return putLong(value);
   }
 
-  public BitBuffer putLong(long value) {
+  public LargeBuffer putLong(long value) {
     ensureSize(position() + Long.BYTES, true);
-    ByteBuffer b = ByteBuffer.allocate(Long.BYTES);
-    b.putLong(value);
-    b.flip();
-    return put(b);
+    temp.clear();
+    temp.putLong(value);
+    temp.flip();
+    put(temp);
+    return this;
   }
 
-  public BitBuffer putShort(int index, short value) {
+  public LargeBuffer putShort(int index, short value) {
     position(index);
     return putShort(value);
   }
 
-  public BitBuffer putShort(short value) {
+  public LargeBuffer putShort(short value) {
     ensureSize(position() + Short.BYTES, true);
-    ByteBuffer b = ByteBuffer.allocate(Short.BYTES);
-    b.putShort(value);
-    b.flip();
-    return put(b);
+    temp.clear();
+    temp.putShort(value);
+    temp.flip();
+    put(temp);
+    return this;
   }
   
-  public BitBuffer putUTF8(String str) {
+  public LargeBuffer putUTF8(String str) {
     ensureSize(position() + str.length(), true);
-    ByteBuffer b = StandardCharsets.UTF_8.encode(str);
-    return put(b);
+    return put(str.getBytes(StandardCharsets.UTF_8));
   }
 
-  public BitBuffer duplicate() {
-    return new MultiByteBuffer(buffers, bufferSource, position, limit, mark);
+  public LargeBuffer duplicate() {
+    return new LargeBuffer(buffers, bufferSource, temp, position, limit, mark);
   }
 
-  public BitBuffer slice() {
+  public ByteBuffer slice() {
     ByteBuffer b = (buffers.get(0).isDirect() 
-        ? ByteBuffer.allocateDirect(remaining()) 
-        : ByteBuffer.allocate(remaining())
+        ? ByteBuffer.allocateDirect((int)remaining()) 
+        : ByteBuffer.allocate((int)remaining())
     );
     get(b);
     b.flip();
-    return new DefaultBitBuffer(b);
+    return b;
   }
 
-  public BitBuffer clear() {
+  public LargeBuffer clear() {
     buffers.forEach(ByteBuffer::clear);
     position = 0;
     limit = capacity();
@@ -483,7 +512,7 @@ public final class MultiByteBuffer implements BitBuffer {
     return this;
   }
 
-  public BitBuffer flip() {
+  public LargeBuffer flip() {
     limit = position();
     buffers.stream()
         .takeWhile(b -> b.position() > 0)
@@ -500,7 +529,7 @@ public final class MultiByteBuffer implements BitBuffer {
     return current().order();
   }
 
-  public BitBuffer order(ByteOrder order) {
+  public LargeBuffer order(ByteOrder order) {
     buffers.forEach(b -> b.order(order));
     return this;
   }
@@ -528,36 +557,6 @@ public final class MultiByteBuffer implements BitBuffer {
     return sb.toString();
   }
   
-  public byte[] toByteArray() {
-    byte[] array = new byte[capacity()];
-    int pos = position();
-    int lim = limit();
-    position(0);
-    limit(capacity());
-    get(array);
-    limit(lim);
-    position(pos);
-    return array;
-  }
-
-  public ByteBuffer toByteBuffer() {
-    ByteBuffer b = current().isDirect() 
-        ? ByteBuffer.allocateDirect(capacity()) 
-        : ByteBuffer.allocate(capacity());
-    int pos = position();
-    int lim = limit();
-    position(0);
-    limit(capacity());
-    get(b);
-    limit(lim);
-    position(pos);
-    b.limit(lim);
-    b.position(mark);
-    b.mark();
-    b.position(pos);
-    return b;
-  }
-
   public int writeTo(WritableByteChannel chl) throws IOException {
     int total = 0;
     while(hasRemaining()) {
@@ -587,7 +586,7 @@ public final class MultiByteBuffer implements BitBuffer {
       cur.limit(cur.position() + len);
       buf.put(cur);
       cur.limit(lim);
-;      position += len;
+      position += len;
       total += len;
     }
     return total;
@@ -604,19 +603,19 @@ public final class MultiByteBuffer implements BitBuffer {
   }
 
   public int readFrom(ByteBuffer buf) {
-    int min = Math.min(remaining(), buf.remaining());
+    int min = Math.min((int)remaining(), buf.remaining());
     put(buf);
     return min;
   }
   
   public int readFrom(BitBuffer buf) {
-    int min = Math.min(remaining(), buf.remaining());
+    int min = Math.min((int)remaining(), buf.remaining());
     put(buf);
     return min;
   }
   
   public WritableByteChannel toWritableByteChannel() {
-    final MultiByteBuffer _this = this;
+    final LargeBuffer _this = this;
     return new WritableByteChannel() {
       @Override
       public int write(ByteBuffer bb) throws IOException {

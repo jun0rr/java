@@ -33,6 +33,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class InstantTransform implements BitTransform<Instant> {
   
+  public static final byte BYTE_ID = 15;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return Instant.class.isAssignableFrom(c);

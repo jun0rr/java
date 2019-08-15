@@ -32,6 +32,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class BooleanTransform implements BitTransform<Boolean> {
   
+  public static final byte BYTE_ID = 1;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return c == boolean.class || c == Boolean.class;

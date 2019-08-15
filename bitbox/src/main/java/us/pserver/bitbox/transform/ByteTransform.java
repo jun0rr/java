@@ -32,6 +32,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class ByteTransform implements BitTransform<Byte> {
   
+  public static final byte BYTE_ID = 3;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return c == byte.class || c == Byte.class;
@@ -52,5 +59,7 @@ public class ByteTransform implements BitTransform<Byte> {
   public Byte unbox(BitBuffer buf) {
     return buf.get();
   }
+  
+  
   
 }

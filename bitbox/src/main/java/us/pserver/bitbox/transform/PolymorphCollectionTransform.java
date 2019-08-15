@@ -25,10 +25,17 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class PolymorphCollectionTransform implements BitTransform<Collection> {
   
+  public static final byte BYTE_ID = 24;
+  
   private final PolymorphNodeTransform ptran;
   
   public PolymorphCollectionTransform(BitBoxConfiguration cfg) {
     this.ptran = new PolymorphNodeTransform(Objects.requireNonNull(cfg));
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

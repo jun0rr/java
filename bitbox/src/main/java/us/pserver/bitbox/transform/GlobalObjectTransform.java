@@ -27,6 +27,8 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class GlobalObjectTransform implements BitTransform<Object> {
   
+  public static final byte BYTE_ID = 13;
+  
   private final PolymorphMapTransform dtran;
   
   private final BitBoxConfiguration cfg;
@@ -34,6 +36,11 @@ public class GlobalObjectTransform implements BitTransform<Object> {
   public GlobalObjectTransform(BitBoxConfiguration cfg) {
     this.cfg = Objects.requireNonNull(cfg);
     this.dtran = new PolymorphMapTransform(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

@@ -12,7 +12,6 @@ import java.util.Optional;
  *
  * @author juno
  */
-@FunctionalInterface
 public interface SerializedType {
   
   public Optional<Class> serialType();

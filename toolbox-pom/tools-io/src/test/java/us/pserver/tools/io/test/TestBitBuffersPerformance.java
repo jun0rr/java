@@ -5,18 +5,20 @@
  */
 package us.pserver.tools.io.test;
 
+import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
+import us.pserver.tools.Reflect;
 import us.pserver.tools.Timer;
-import us.pserver.tools.io.BitBuffer;
-import us.pserver.tools.io.DefaultBitBuffer;
 import us.pserver.tools.io.DynamicBuffer;
-import us.pserver.tools.io.MultiBitBuffer;
-import us.pserver.tools.io.MultiByteBuffer;
+import us.pserver.tools.io.MultiBuffer;
 
 
 /**
@@ -91,8 +93,11 @@ public class TestBitBuffersPerformance {
   @Test
   public void test_direct_MultiBuffer_performance() {
     try {
-      Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(1024, true);
-      MultiBitBuffer db = new MultiBitBuffer(sup);
+      DecimalFormat df = new DecimalFormat("0.000#ms");
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(4096);
+      MultiBuffer db = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(db, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<Long[]> times = ref.selectField("times").fieldGetterAsSupplier();
       Logger.debug("Writing ints to direct MultiBuffer...");
       Timer tm = new Timer.Nanos().start();
       IntStream.range(0, RANDOM_INTS_SIZE)
@@ -100,32 +105,11 @@ public class TestBitBuffersPerformance {
       Logger.debug(tm.stop());
       Logger.debug("Reading ints from direct DynamicBuffer...");
       db.flip();
-      long total = 0;
-      tm.clear().start();
-      while(db.hasRemaining()) {
-        total += db.getInt();
-      }
-      tm.stop();
-      Logger.debug("Done {} - {}", total, tm);
-    }
-    catch(Exception e) {
-      e.printStackTrace();
-      throw e;
-    }
-  }
-  
-  @Test
-  public void test_direct_MultiByteBuffer_performance() {
-    try {
-      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(1024);
-      MultiByteBuffer db = new MultiByteBuffer(sup);
-      Logger.debug("Writing ints to direct MultiByteBuffer...");
-      Timer tm = new Timer.Nanos().start();
-      IntStream.range(0, RANDOM_INTS_SIZE)
-          .forEach(i -> db.putInt(RANDOM_INTS[i]));
-      Logger.debug(tm.stop());
-      Logger.debug("Reading ints from direct MultiByteBuffer...");
-      db.flip();
+      List<Double> millis = Timer.nanosToMillis(Arrays.asList(times.get()));
+      Logger.debug("Time 0 - temp.put(): {}", df.format(millis.get(0)));
+      Logger.debug("Time 1 - this.put(): {}", df.format(millis.get(1)));
+      Logger.debug("Time 2 - ensureSize: {}", df.format(millis.get(2)));
+      Logger.debug("Time 3 - put.while : {}", df.format(millis.get(3)));
       long total = 0;
       tm.clear().start();
       while(db.hasRemaining()) {
@@ -143,15 +127,23 @@ public class TestBitBuffersPerformance {
   @Test
   public void test_heap_MultiBuffer_performance() {
     try {
-      Supplier<BitBuffer> sup = () -> new DefaultBitBuffer(1024, false);
-      MultiBitBuffer db = new MultiBitBuffer(sup);
-      Logger.debug("Writing ints to heap MultiBuffer...");
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocate(1024);
+      DecimalFormat df = new DecimalFormat("0.000#ms");
+      MultiBuffer db = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(db, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<Long[]> times = ref.selectField("times").fieldGetterAsSupplier();
+      Logger.debug("Writing ints to direct MultiBuffer...");
       Timer tm = new Timer.Nanos().start();
       IntStream.range(0, RANDOM_INTS_SIZE)
           .forEach(i -> db.putInt(RANDOM_INTS[i]));
       Logger.debug(tm.stop());
-      Logger.debug("Reading ints from heap DynamicBuffer...");
+      Logger.debug("Reading ints from direct DynamicBuffer...");
       db.flip();
+      List<Double> millis = Timer.nanosToMillis(Arrays.asList(times.get()));
+      Logger.debug("Time 0 - temp.put(): {}", df.format(millis.get(0)));
+      Logger.debug("Time 1 - this.put(): {}", df.format(millis.get(1)));
+      Logger.debug("Time 2 - ensureSize: {}", df.format(millis.get(2)));
+      Logger.debug("Time 3 - put.while : {}", df.format(millis.get(3)));
       long total = 0;
       tm.clear().start();
       while(db.hasRemaining()) {

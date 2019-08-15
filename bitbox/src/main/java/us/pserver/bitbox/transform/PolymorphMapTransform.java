@@ -22,10 +22,17 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class PolymorphMapTransform implements BitTransform<Map>{
   
+  public static final byte BYTE_ID = 26;
+  
   private final PolymorphEntryTransform etran;
 
   public PolymorphMapTransform(BitBoxConfiguration cfg) {
     this.etran = new PolymorphEntryTransform(Objects.requireNonNull(cfg));
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

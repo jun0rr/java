@@ -17,12 +17,18 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class IntArrayTransform implements BitTransform<int[]> {
   
+  public static final byte BYTE_ID = 16;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return c.isArray() && c.getComponentType() == int.class;
   }
-
-
+  
   @Override
   public Optional<Class> serialType() {
     return Optional.empty();

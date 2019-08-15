@@ -11,10 +11,17 @@ import us.pserver.tools.io.BitBuffer;
 
 public class ListTransform<T> implements BitTransform<List<T>> {
   
+  public static final byte BYTE_ID = 18;
+  
   private final BitBoxConfiguration cfg;
   
   public ListTransform(BitBoxConfiguration cfg) {
     this.cfg = Objects.requireNonNull(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

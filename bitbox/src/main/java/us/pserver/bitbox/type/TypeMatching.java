@@ -5,6 +5,7 @@
  */
 package us.pserver.bitbox.type;
 
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
 
@@ -12,14 +13,24 @@ import java.util.function.Predicate;
  *
  * @author juno
  */
-@FunctionalInterface
 public interface TypeMatching {
   
   public boolean match(Class c);
   
+  public boolean match(byte id);
   
-  public static TypeMatching of(Predicate<Class> p) {
-    return c -> p.test(c);
+  
+  public static TypeMatching of(Predicate<Class> p, IntPredicate pid) {
+    return new TypeMatching() {
+      @Override
+      public boolean match(Class c) {
+        return p.test(c);
+      }
+      @Override
+      public boolean match(byte id) {
+        return pid.test(id);
+      }
+    };
   }
   
 }

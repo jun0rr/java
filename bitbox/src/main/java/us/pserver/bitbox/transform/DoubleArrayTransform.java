@@ -18,6 +18,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class DoubleArrayTransform implements BitTransform<double[]> {
   
+  public static final byte BYTE_ID = 8;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return c.isArray() && c.getComponentType() == double.class;

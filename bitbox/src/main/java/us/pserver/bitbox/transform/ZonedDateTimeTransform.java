@@ -34,7 +34,14 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class ZonedDateTimeTransform implements BitTransform<ZonedDateTime> {
   
+  public static final byte BYTE_ID = 34;
+  
   private final CharSequenceTransform stran = new CharSequenceTransform();
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
   
   @Override
   public boolean match(Class c) {

@@ -20,6 +20,8 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class ReferenceTransform implements BitTransform<Reference> {
   
+  public static final byte BYTE_ID = 29;
+  
   private final ReferenceService service;
   
   private final BitBoxConfiguration cfg;
@@ -27,6 +29,11 @@ public class ReferenceTransform implements BitTransform<Reference> {
   public ReferenceTransform(ReferenceService service, BitBoxConfiguration cfg) {
     this.service = Objects.requireNonNull(service);
     this.cfg = Objects.requireNonNull(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

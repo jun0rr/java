@@ -34,10 +34,17 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class PolymorphNodeTransform implements BitTransform<Object> {
 
+  public static final byte BYTE_ID = 27;
+  
   private final BitBoxConfiguration cfg;
   
   public PolymorphNodeTransform(BitBoxConfiguration cfg) {
     this.cfg = Objects.requireNonNull(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

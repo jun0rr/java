@@ -15,10 +15,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
 import us.pserver.tools.io.BitBuffer;
-import us.pserver.tools.io.DefaultBitBuffer;
 import us.pserver.tools.IndexedInt;
 import us.pserver.tools.Reflect;
-import us.pserver.tools.io.MultiBitBuffer;
+import us.pserver.tools.io.MultiBuffer;
 
 
 /**
@@ -30,8 +29,8 @@ public class TestMultiBuffer {
   @Test
   public void test_put_flip_get() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
       Logger.debug(buf);
       byte[] bs = new byte[30];
       IntStream.range(1, 31)
@@ -54,12 +53,12 @@ public class TestMultiBuffer {
   @Test
   public void test_set_posisition_gt_capacity() throws Exception {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
       Logger.debug(buf);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>fieldGetterAsSupplier().get();
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       Assertions.assertEquals(0, buf.position());
       Assertions.assertEquals(10, buf.limit());
       Assertions.assertEquals(10, buf.capacity());
@@ -91,12 +90,12 @@ public class TestMultiBuffer {
   @Test
   public void test_set_posisition_gt_limit() throws Exception {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
       Logger.debug(buf);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>fieldGetterAsSupplier().get();
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       Assertions.assertEquals(0, buf.position());
       Assertions.assertEquals(10, buf.limit());
       Assertions.assertEquals(10, buf.capacity());
@@ -130,11 +129,11 @@ public class TestMultiBuffer {
   @Test
   public void test_put_get_int_growing() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>fieldGetterAsSupplier().get();
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       byte[] bs = new byte[8];
       IntStream.range(1, 9).mapToObj(IndexedInt.builder()).forEach(i -> bs[i.index()] = (byte)i.value());
       
@@ -166,11 +165,11 @@ public class TestMultiBuffer {
   @Test
   public void test_put_get_double_growing() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>fieldGetterAsSupplier().get();
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       byte[] bs = new byte[8];
       IntStream.range(1, 9).mapToObj(IndexedInt.builder()).forEach(i -> bs[i.index()] = (byte)i.value());
       
@@ -202,11 +201,11 @@ public class TestMultiBuffer {
   @Test
   public void test_put_utf8_growing() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>fieldGetterAsSupplier().get();
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       
       String str = "Vivamus porta orci aliquam";
       
@@ -244,11 +243,11 @@ public class TestMultiBuffer {
   @Test
   public void test_toByteBuffer() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>dynamicFieldGetterAsFunction().apply(buf);
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       
       IntStream.range(10101, 10111).forEach(i -> buf.putInt(i));
       Assertions.assertEquals(40, buf.position());
@@ -276,11 +275,11 @@ public class TestMultiBuffer {
   @Test
   public void test_toByteArray() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>dynamicFieldGetterAsFunction().apply(buf);
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       
       IntStream.range(10101, 10111).forEach(i -> buf.putInt(i));
       Assertions.assertEquals(40, buf.position());
@@ -308,11 +307,11 @@ public class TestMultiBuffer {
   @Test
   public void test_writeTo_ByteArray() {
     try {
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>dynamicFieldGetterAsFunction().apply(buf);
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       
       IntStream.range(10101, 10111).forEach(i -> buf.putInt(i));
       Assertions.assertEquals(40, buf.position());
@@ -347,11 +346,11 @@ public class TestMultiBuffer {
       IntStream.range(10101, 10111).forEach(i -> bb.putInt(i));
       bb.flip();
       
-      Supplier<BitBuffer> s = () -> new DefaultBitBuffer(10, false);
-      MultiBitBuffer buf = new MultiBitBuffer(s);
-      Reflect<MultiBitBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
+      Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
+      MultiBuffer buf = new MultiBuffer(sup);
+      Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
       IntSupplier index = ref.selectMethod("index").methodAsLambda(IntSupplier.class);
-      List<BitBuffer> buffers = ref.selectField("buffers").<List<BitBuffer>>dynamicFieldGetterAsFunction().apply(buf);
+      List<ByteBuffer> buffers = ref.selectField("buffers").<List<ByteBuffer>>fieldGetterAsSupplier().get();
       
       buf.readFrom(bb);
       Assertions.assertEquals(40, buf.position());

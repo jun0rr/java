@@ -38,6 +38,13 @@ public class LocalDateTimeTransform implements BitTransform<LocalDateTime> {
   
   public static final ZoneId ZID = ZoneId.of("Z");
   
+  public static final byte BYTE_ID = 19;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return LocalDateTime.class.isAssignableFrom(c);

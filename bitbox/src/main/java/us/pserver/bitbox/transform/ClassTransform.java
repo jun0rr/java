@@ -10,10 +10,17 @@ import us.pserver.tools.io.BitBuffer;
 
 public class ClassTransform implements BitTransform<Class> {
   
+  public static final byte BYTE_ID = 6;
+  
   private final BitBoxConfiguration cfg;
   
   public ClassTransform(BitBoxConfiguration cfg) {
     this.cfg = Objects.requireNonNull(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

@@ -29,6 +29,8 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class ReferenceObjectTransform implements BitTransform<Object> {
   
+  public static final byte BYTE_ID = 28;
+  
   private final ReferenceService service;
   
   private final PolymorphMapTransform dtran;
@@ -39,6 +41,11 @@ public class ReferenceObjectTransform implements BitTransform<Object> {
     this.service = Objects.requireNonNull(rs);
     this.cfg = Objects.requireNonNull(cfg);
     this.dtran = new PolymorphMapTransform(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

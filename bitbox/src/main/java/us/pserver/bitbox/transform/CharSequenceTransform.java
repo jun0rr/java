@@ -34,6 +34,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class CharSequenceTransform implements BitTransform<CharSequence> {
   
+  public static final byte BYTE_ID = 5;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return CharSequence.class.isAssignableFrom(c);

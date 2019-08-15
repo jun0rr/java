@@ -18,10 +18,17 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class EnumTransform<T extends Enum> implements BitTransform<T>{
   
+  public static final byte BYTE_ID = 10;
+  
   private final BitBoxConfiguration cfg;
   
   public EnumTransform(BitBoxConfiguration cfg) {
     this.cfg = Objects.requireNonNull(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

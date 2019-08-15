@@ -22,10 +22,17 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class CollectionTransform<T> implements BitTransform<Collection<T>> {
   
+  public static final byte BYTE_ID = 7;
+  
   private final BitBoxConfiguration cfg;
   
   public CollectionTransform(BitBoxConfiguration cfg) {
     this.cfg = Objects.requireNonNull(cfg);
+  }
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
   }
   
   @Override

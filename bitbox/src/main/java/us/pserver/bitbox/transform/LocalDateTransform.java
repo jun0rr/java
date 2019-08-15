@@ -33,6 +33,13 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class LocalDateTransform implements BitTransform<LocalDate> {
   
+  public static final byte BYTE_ID = 20;
+  
+  @Override
+  public boolean match(byte id) {
+    return BYTE_ID == id;
+  }
+  
   @Override
   public boolean match(Class c) {
     return LocalDate.class.isAssignableFrom(c);
