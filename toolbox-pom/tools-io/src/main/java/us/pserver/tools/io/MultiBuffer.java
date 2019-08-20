@@ -54,8 +54,6 @@ public final class MultiBuffer implements BitBuffer {
   
   private final ByteBuffer temp;
   
-  private final Long[] times;
-  
   
   private MultiBuffer(List<ByteBuffer> buffers, Supplier<ByteBuffer> bufferSource, ByteBuffer buffer, int position, int limit, int mark) {
     this.bufferSource = bufferSource;
@@ -65,8 +63,6 @@ public final class MultiBuffer implements BitBuffer {
     this.limit = limit;
     this.mark = mark;
     this.unitSize = buffers.get(0).capacity();
-    this.times = new Long[4];
-    IntStream.range(0, times.length).forEach(i -> times[i] = 0L);
   }
   
   public MultiBuffer(Supplier<ByteBuffer> bufferSource) {
@@ -79,16 +75,33 @@ public final class MultiBuffer implements BitBuffer {
     this.limit = buf.limit();
     this.mark = position;
     this.temp = bufferSource.get();
-    this.times = new Long[4];
-    IntStream.range(0, times.length).forEach(i -> times[i] = 0L);
   }
   
   private int index() {
-    return Math.min(buffers.size() -1, (int)Math.floor((double)position / unitSize));
+    return Math.min(buffers.size() -1, position / unitSize);
   }
   
-  public ByteBuffer current() {
+  private int limitIndex() {
+    return Math.min(buffers.size() -1, limit / unitSize);
+  }
+  
+  private ByteBuffer current() {
     return buffers.get(index());
+  }
+  
+  private int currentpos() {
+    return position - index() * unitSize;
+  }
+  
+  private int currentlim() {
+    return limit - limitIndex() * unitSize;
+  }
+  
+  private ByteBuffer setupCurrent() {
+    ByteBuffer b = current();
+    b.clear().position(currentpos());
+    if(limitIndex() == index()) b.limit(currentlim());
+    return b;
   }
   
   public BitBuffer compact() {
@@ -100,15 +113,9 @@ public final class MultiBuffer implements BitBuffer {
   }
   
   public BitBuffer position(int pos) {
-    ensureSize(pos, true);
-    if(limit() < pos) limit(capacity());
+    if(pos < 0) throw new IllegalArgumentException("Bad position: " + pos);
+    ensureSize(pos);
     position = pos;
-    int idx = index();
-    buffers.stream().map(Indexed.builder()).forEach(i -> {
-      if(i.index() > idx) i.value().position(0); 
-      else i.value().position(i.value().limit());
-    });
-    buffers.get(idx).position(position - (unitSize * idx));
     return this;
   }
   
@@ -121,17 +128,18 @@ public final class MultiBuffer implements BitBuffer {
   }
   
   public BitBuffer mark() {
-    this.mark = position();
+    this.mark = position;
     return this;
   }
   
   public BitBuffer reset() {
-    position(mark);
+    position = mark;
     return this;
   }
   
   public BitBuffer rewind() {
-    return position(0);
+    position = mark = 0;
+    return this;
   }
   
   public int capacity() {
@@ -143,44 +151,36 @@ public final class MultiBuffer implements BitBuffer {
   }
   
   public BitBuffer limit(int lim) {
-    ensureSize(lim, false);
+    if(limit < position) throw new IllegalArgumentException("Bad limit (limit < position): " + lim);
+    ensureSize(lim);
     limit = lim;
-    int idx = Math.min(buffers.size() -1, (int)Math.floor((double) limit / unitSize));
-    buffers.stream().forEach(b -> b.limit(b.capacity()));
-    buffers.get(idx).limit(limit - (idx * unitSize));
     return this;
   }
   
-  private void ensureSize(int size, boolean resetLimit) {
-    if(size > capacity()) {
-      while(size > capacity()) {
-        buffers.add(bufferSource.get());
-      }
-      if(resetLimit) {
-        limit(capacity());
-      }
+  private void ensureSize(int size) {
+    while(size > capacity()) {
+      buffers.add(bufferSource.get());
     }
+    limit = capacity();
   }
   
   public byte get() {
-    if(!current().hasRemaining()) {
+    if(!hasRemaining()) {
       throw new BufferUnderflowException();
     }
-    byte b = current().get();
+    byte b = setupCurrent().get();
     position++;
     return b;
   }
 
   public byte get(int index) {
-    if(!current().hasRemaining() || index >= limit) {
-      throw new BufferUnderflowException();
-    }
-    position = index;
-    byte b = current().get();
+    position(index);
+    ByteBuffer cur = setupCurrent();
+    byte b = cur.get();
     position++;
     return b;
   }
-
+  
   public BitBuffer get(byte[] dst, int offset, int length) {
     if(remaining() < length) {
       throw new BufferUnderflowException();
@@ -188,7 +188,7 @@ public final class MultiBuffer implements BitBuffer {
     int total = length;
     int off = offset;
     while(total > 0) {
-      ByteBuffer cur = current();
+      ByteBuffer cur = setupCurrent();
       int len = Math.min(cur.remaining(), total);
       cur.get(dst, off, len);
       position += len;
@@ -201,12 +201,10 @@ public final class MultiBuffer implements BitBuffer {
   public BitBuffer get(ByteBuffer buf) {
     int total = Math.min(this.remaining(), buf.remaining());
     while(total > 0) {
-      ByteBuffer cur = current();
+      ByteBuffer cur = setupCurrent();
       int len = Math.min(cur.remaining(), total);
-      int lim = cur.limit();
       cur.limit(cur.position() + len);
       buf.put(cur);
-      cur.limit(lim);
       total -= len;
       position += len;
     }
@@ -216,12 +214,10 @@ public final class MultiBuffer implements BitBuffer {
   public BitBuffer get(BitBuffer buf) {
     int total = Math.min(this.remaining(), buf.remaining());
     while(total > 0) {
-      ByteBuffer cur = current();
+      ByteBuffer cur = setupCurrent();
       int len = Math.min(cur.remaining(), total);
-      int lim = cur.limit();
       cur.limit(cur.position() + len);
       buf.put(cur);
-      cur.limit(lim);
       total -= len;
       position += len;
     }
@@ -232,8 +228,7 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < Character.BYTES) {
       throw new BufferUnderflowException();
     }
-    temp.clear();
-    temp.limit(Character.BYTES);
+    temp.clear().limit(Character.BYTES);
     get(temp);
     temp.flip();
     return temp.getChar();
@@ -251,8 +246,7 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < Double.BYTES) {
       throw new BufferUnderflowException();
     }
-    temp.clear();
-    temp.limit(Double.BYTES);
+    temp.clear().limit(Double.BYTES);
     get(temp);
     temp.flip();
     return temp.getDouble();
@@ -262,7 +256,7 @@ public final class MultiBuffer implements BitBuffer {
     if(index >= limit() - Double.BYTES) {
       throw new BufferUnderflowException();
     }
-    position(index);
+    position = index;
     return getDouble();
   }
 
@@ -270,8 +264,7 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < Float.BYTES) {
       throw new BufferUnderflowException();
     }
-    temp.clear();
-    temp.limit(Float.BYTES);
+    temp.clear().limit(Float.BYTES);
     get(temp);
     temp.flip();
     return temp.getFloat();
@@ -281,7 +274,7 @@ public final class MultiBuffer implements BitBuffer {
     if(index >= limit() - Float.BYTES) {
       throw new BufferUnderflowException();
     }
-    position(index);
+    position = index;
     return getFloat();
   }
 
@@ -289,18 +282,24 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < Integer.BYTES) {
       throw new BufferUnderflowException();
     }
-    temp.clear();
-    temp.limit(Integer.BYTES);
-    get(temp);
-    temp.flip();
-    return temp.getInt();
+    ByteBuffer cur = setupCurrent();
+    if(cur.remaining() >= Integer.BYTES) {
+      position += Integer.BYTES;
+      return cur.getInt();
+    }
+    else {
+      temp.clear().limit(Integer.BYTES);
+      get(temp);
+      temp.flip();
+      return temp.getInt();
+    }
   }
 
   public int getInt(int index) {
     if(index >= limit() - Integer.BYTES) {
       throw new BufferUnderflowException();
     }
-    position(index);
+    position = index;
     return getInt();
   }
 
@@ -308,8 +307,7 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < Long.BYTES) {
       throw new BufferUnderflowException();
     }
-    temp.clear();
-    temp.limit(Long.BYTES);
+    temp.clear().limit(Long.BYTES);
     get(temp);
     temp.flip();
     return temp.getLong();
@@ -319,7 +317,7 @@ public final class MultiBuffer implements BitBuffer {
     if(index >= limit() - Long.BYTES) {
       throw new BufferUnderflowException();
     }
-    position(index);
+    position = index;
     return getLong();
   }
 
@@ -327,8 +325,7 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < Short.BYTES) {
       throw new BufferUnderflowException();
     }
-    temp.clear();
-    temp.limit(Short.BYTES);
+    temp.clear().limit(Short.BYTES);
     get(temp);
     temp.flip();
     return temp.getShort();
@@ -338,7 +335,7 @@ public final class MultiBuffer implements BitBuffer {
     if(index >= limit() - Short.BYTES) {
       throw new BufferUnderflowException();
     }
-    position(index);
+    position = index;
     return getShort();
   }
   
@@ -346,25 +343,14 @@ public final class MultiBuffer implements BitBuffer {
     if(remaining() < len) {
       throw new BufferUnderflowException();
     }
-    String str;
-    ByteBuffer cur = current();
-    if(cur.remaining() >= len) {
-      int lim = cur.limit();
-      cur.limit(cur.position() + len);
-      str = StandardCharsets.UTF_8.decode(cur).toString();
-    }
-    else {
-      ByteBuffer b = ByteBuffer.allocate(len);
-      get(b);
-      b.flip();
-      str = StandardCharsets.UTF_8.decode(b).toString();
-    }
-    return str;
+    byte[] bs = new byte[len];
+    get(bs);
+    return new String(bs, StandardCharsets.UTF_8);
   }
 
   public BitBuffer put(byte b) {
-    ensureSize(position() + 1, true);
-    current().put(b);
+    ensureSize(position + 1);
+    setupCurrent().put(b);
     position++;
     return this;
   }
@@ -379,12 +365,9 @@ public final class MultiBuffer implements BitBuffer {
   }
 
   public BitBuffer put(ByteBuffer src) {
-    long start = System.nanoTime();
-    ensureSize(position + src.remaining(), true);
-    times[2] += System.nanoTime() - start;
-    start = System.nanoTime();
+    ensureSize(position + src.remaining());
     while(src.hasRemaining()) {
-      ByteBuffer cur = current();
+      ByteBuffer cur = setupCurrent();
       int len = Math.min(cur.remaining(), src.remaining());
       int lim = src.limit();
       src.limit(src.position() + len);
@@ -392,14 +375,13 @@ public final class MultiBuffer implements BitBuffer {
       src.limit(lim);
       position += len;
     }
-    times[3] += System.nanoTime() - start;
     return this;
   }
   
   public BitBuffer put(BitBuffer src) {
-    ensureSize(position() + src.remaining(), true);
+    ensureSize(position() + src.remaining());
     while(src.hasRemaining()) {
-      ByteBuffer cur = current();
+      ByteBuffer cur = setupCurrent();
       int len = Math.min(cur.remaining(), src.remaining());
       int lim = src.limit();
       src.limit(src.position() + len);
@@ -455,14 +437,17 @@ public final class MultiBuffer implements BitBuffer {
   }
 
   public BitBuffer putInt(int value) {
-    long start = System.nanoTime();
-    temp.clear();
-    temp.putInt(value);
-    temp.flip();
-    times[0] += System.nanoTime() - start;
-    start = System.nanoTime();
-    put(temp);
-    times[1] += System.nanoTime() - start;
+    ByteBuffer cur = setupCurrent();
+    if(cur.remaining() >= Integer.BYTES) {
+      position += Integer.BYTES;
+      cur.putInt(value);
+    }
+    else {
+      temp.clear();
+      temp.putInt(value);
+      temp.flip();
+      put(temp);
+    }
     return this;
   }
 
@@ -472,10 +457,17 @@ public final class MultiBuffer implements BitBuffer {
   }
 
   public BitBuffer putLong(long value) {
-    temp.clear();
-    temp.putLong(value);
-    temp.flip();
-    put(temp);
+    ByteBuffer cur = setupCurrent();
+    if(cur.remaining() >= Long.BYTES) {
+      position += Long.BYTES;
+      cur.putLong(value);
+    }
+    else {
+      temp.clear();
+      temp.putLong(value);
+      temp.flip();
+      put(temp);
+    }
     return this;
   }
 
@@ -485,10 +477,17 @@ public final class MultiBuffer implements BitBuffer {
   }
 
   public BitBuffer putShort(short value) {
-    temp.clear();
-    temp.putShort(value);
-    temp.flip();
-    put(temp);
+    ByteBuffer cur = setupCurrent();
+    if(cur.remaining() >= Short.BYTES) {
+      position += Short.BYTES;
+      cur.putShort(value);
+    }
+    else {
+      temp.clear();
+      temp.putShort(value);
+      temp.flip();
+      put(temp);
+    }
     return this;
   }
   
@@ -511,7 +510,6 @@ public final class MultiBuffer implements BitBuffer {
   }
 
   public BitBuffer clear() {
-    buffers.forEach(ByteBuffer::clear);
     position = 0;
     limit = capacity();
     mark = 0;
@@ -520,10 +518,7 @@ public final class MultiBuffer implements BitBuffer {
 
   public BitBuffer flip() {
     limit = position();
-    buffers.stream()
-        .takeWhile(b -> b.position() > 0)
-        .forEach(ByteBuffer::flip);
-    position = mark = 0;
+    position = 0;
     return this;
   }
 
@@ -556,7 +551,7 @@ public final class MultiBuffer implements BitBuffer {
     sb.append(", limit=").append(limit());
     sb.append(", capacity=").append(capacity());
     sb.append(", index=").append(index());
-    sb.append(", current=").append(current());
+    sb.append(", current=").append(setupCurrent());
     //sb.append(", order=").append(order());
     //sb.append(", direct=").append(current().isDirect());
     sb.append(" }");
@@ -596,7 +591,7 @@ public final class MultiBuffer implements BitBuffer {
   public int writeTo(WritableByteChannel chl) throws IOException {
     int total = 0;
     while(hasRemaining()) {
-      int len = chl.write(current());
+      int len = chl.write(setupCurrent());
       position += len;
       total += len;
     }
@@ -606,7 +601,7 @@ public final class MultiBuffer implements BitBuffer {
   public int writeTo(BitBuffer buf) {
     int total = 0;
     while(hasRemaining() && buf.hasRemaining()) {
-      int len = buf.readFrom(current());
+      int len = buf.readFrom(setupCurrent());
       position += len;
       total += len;
     }
@@ -616,7 +611,7 @@ public final class MultiBuffer implements BitBuffer {
   public int writeTo(ByteBuffer buf) {
     int total = 0;
     while(hasRemaining() && buf.hasRemaining()) {
-      ByteBuffer cur = current();
+      ByteBuffer cur = setupCurrent();
       int len = Math.min(cur.remaining(), buf.remaining());
       int lim = cur.limit();
       cur.limit(cur.position() + len);
@@ -631,7 +626,7 @@ public final class MultiBuffer implements BitBuffer {
   public int readFrom(ReadableByteChannel chl) throws IOException {
     int total = 0;
     int read = -1;
-    while((read = chl.read(current())) != -1) {
+    while((read = chl.read(setupCurrent())) != -1) {
       position += read;
       total += read;
     }

@@ -14,7 +14,6 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
-import us.pserver.tools.io.BitBuffer;
 import us.pserver.tools.IndexedInt;
 import us.pserver.tools.Reflect;
 import us.pserver.tools.io.MultiBuffer;
@@ -29,6 +28,7 @@ public class TestMultiBuffer {
   @Test
   public void test_put_flip_get() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Logger.debug(buf);
@@ -53,6 +53,7 @@ public class TestMultiBuffer {
   @Test
   public void test_set_posisition_gt_capacity() throws Exception {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Logger.debug(buf);
@@ -71,15 +72,11 @@ public class TestMultiBuffer {
       Assertions.assertEquals(20, buf.limit());
       Assertions.assertEquals(20, buf.capacity());
       Assertions.assertEquals(1, index.getAsInt());
-      Assertions.assertEquals(10, buffers.get(0).position());
-      Assertions.assertEquals(8, buffers.get(1).position());
       
       buf.position(0);
       Logger.debug(buf);
       Assertions.assertEquals(0, buf.position());
       Assertions.assertEquals(0, index.getAsInt());
-      Assertions.assertEquals(0, buffers.get(0).position());
-      Assertions.assertEquals(0, buffers.get(1).position());
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -90,6 +87,7 @@ public class TestMultiBuffer {
   @Test
   public void test_set_posisition_gt_limit() throws Exception {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Logger.debug(buf);
@@ -110,15 +108,11 @@ public class TestMultiBuffer {
       Assertions.assertEquals(20, buf.capacity());
       Assertions.assertEquals(4, buf.remaining());
       Assertions.assertEquals(1, index.getAsInt());
-      Assertions.assertEquals(10, buffers.get(0).position());
-      Assertions.assertEquals(6, buffers.get(1).position());
       
       buf.position(0);
       Logger.debug(buf);
       Assertions.assertEquals(0, buf.position());
       Assertions.assertEquals(0, index.getAsInt());
-      Assertions.assertEquals(0, buffers.get(0).position());
-      Assertions.assertEquals(0, buffers.get(1).position());
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -129,6 +123,7 @@ public class TestMultiBuffer {
   @Test
   public void test_put_get_int_growing() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
@@ -165,6 +160,7 @@ public class TestMultiBuffer {
   @Test
   public void test_put_get_double_growing() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
@@ -201,6 +197,7 @@ public class TestMultiBuffer {
   @Test
   public void test_put_utf8_growing() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
@@ -243,6 +240,7 @@ public class TestMultiBuffer {
   @Test
   public void test_toByteBuffer() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
@@ -275,6 +273,7 @@ public class TestMultiBuffer {
   @Test
   public void test_toByteArray() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
@@ -307,6 +306,7 @@ public class TestMultiBuffer {
   @Test
   public void test_writeTo_ByteArray() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(10);
       MultiBuffer buf = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(buf, MethodHandles.lookup()).withPrivateLookup();
@@ -327,6 +327,7 @@ public class TestMultiBuffer {
       buf.flip();
       ByteBuffer bb = ByteBuffer.allocate(Integer.BYTES * 10);
       buf.writeTo(bb);
+      Logger.debug(buf);
       bb.flip();
       buf.flip();
       IntStream.range(10101, 10111)
@@ -342,6 +343,7 @@ public class TestMultiBuffer {
   @Test
   public void test_readFrom_ByteArray() {
     try {
+      System.out.println(Thread.currentThread().getStackTrace()[1]);
       ByteBuffer bb = ByteBuffer.allocate(Integer.BYTES * 10);
       IntStream.range(10101, 10111).forEach(i -> bb.putInt(i));
       bb.flip();
