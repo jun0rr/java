@@ -12,6 +12,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import us.pserver.tools.Reflect;
 import us.pserver.tools.Unchecked;
@@ -21,7 +22,7 @@ import us.pserver.tools.Unchecked;
  *
  * @author juno
  */
-public class ClassDefinition {
+public class ClassCompilation {
   
   public static final String LOOKUP_CODE = "public static MethodHandles.Lookup _lookup_() { return MethodHandles.lookup(); }";
   
@@ -37,39 +38,39 @@ public class ClassDefinition {
   private final AtomicReference<Class> clazz;
   
   
-  public ClassDefinition(String name) {
+  public ClassCompilation(String name) {
     this.name = Objects.requireNonNull(name);
     this.code = new StringBuilder();
     this.clazz = new AtomicReference();
   }
   
   
-  public ClassDefinition append(String s) {
+  public ClassCompilation append(String s) {
     this.code.append(s);
     return this;
   }
   
-  public ClassDefinition append(Object o) {
+  public ClassCompilation append(Object o) {
     this.code.append(o);
     return this;
   }
   
-  public ClassDefinition append(String str, Object... args) {
+  public ClassCompilation append(String str, Object... args) {
     this.code.append(String.format(str, args));
     return this;
   }
   
-  public ClassDefinition appendln(String s) {
+  public ClassCompilation appendln(String s) {
     this.code.append(s).append(LN);
     return this;
   }
   
-  public ClassDefinition appendln(Object o) {
+  public ClassCompilation appendln(Object o) {
     this.code.append(o).append(LN);
     return this;
   }
   
-  public ClassDefinition appendln(String str, Object... args) {
+  public ClassCompilation appendln(String str, Object... args) {
     this.code.append(String.format(str, args)).append(LN);
     return this;
   }
@@ -90,7 +91,12 @@ public class ClassDefinition {
   }
   
   
-  public MethodHandles.Lookup definedClassLookup() {
+  public Optional<Class> getCompiledClass() {
+    return Optional.ofNullable(clazz.get());
+  }
+  
+  
+  public MethodHandles.Lookup getCompiledLookup() {
     if(clazz.get() == null) throw new IllegalStateException("Class not compiled");
     return (MethodHandles.Lookup) Reflect.of(clazz.get())
         .selectMethod("_lookup_")
@@ -130,7 +136,7 @@ public class ClassDefinition {
   
   public <T> Reflect<T> reflectCompiled() {
     if(clazz.get() == null) compile();
-    return Reflect.of(clazz.get(), definedClassLookup());
+    return Reflect.of(clazz.get(), getCompiledLookup());
   }
   
   

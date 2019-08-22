@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
 
-public class PersonDef {
+public class PersonDef implements IPerson {
   
   private final String name;
   

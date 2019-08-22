@@ -68,7 +68,7 @@ public class Person implements IPerson {
   }
   
   @BitProperty("strbirth")
-  public String stringBirth() {
+  public String getBirthAsString() {
     return getBirth().toString();
   }
 

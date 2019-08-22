@@ -29,7 +29,7 @@ public interface IPerson {
   @BitIgnore
   public LocalDate getBirth();
   
-  public String stringBirth();
+  public String getBirthAsString();
 
   public List<Address> getAddress();
   

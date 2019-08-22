@@ -19,6 +19,7 @@ import us.pserver.bitbox.Reference;
 import us.pserver.bitbox.ReferenceService;
 import us.pserver.bitbox.spec.GetterTarget;
 import us.pserver.bitbox.spec.ObjectSpec;
+import static us.pserver.bitbox.transform.GlobalObjectTransform.BYTE_ID;
 import us.pserver.tools.Indexed;
 import us.pserver.tools.Pair;
 import us.pserver.tools.io.BitBuffer;
@@ -77,9 +78,11 @@ public class ReferenceObjectTransform implements BitTransform<Object> {
    */
   @Override
   public int box(Object o, BitBuffer b) {
+    int startPos = b.position();
+    b.put(BYTE_ID);
     BitTransform<Reference> rtran = cfg.getTransform(Reference.class);
     if(o == null) {
-      return rtran.box(Reference.BAD_REFERENCE, b);
+      return 1 + rtran.box(Reference.BAD_REFERENCE, b);
     }
     Class c = o.getClass();
     ObjectSpec spec = getOrCreateSpec(c);
@@ -88,14 +91,14 @@ public class ReferenceObjectTransform implements BitTransform<Object> {
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     ctran.box(spec.serialType().orElse(c), ref.getBuffer());
     dtran.box(m, ref.getBuffer());
-    return rtran.box(ref, b);
+    return 1 + rtran.box(ref, b);
   }
   
   private Map<String,Object> obj2map(Object obj, ObjectSpec spec) {
     Map<String,Object> m = new TreeMap<>();
     Set<GetterTarget> getters = spec.getters();
     getters.stream()
-        .map(g -> new Pair<String,Object>(g.getName(), g.apply(obj)))
+        .map(g -> new Pair<>(g.getName(), g.apply(obj)))
         .filter(p -> p.a != null && p.b != null)
         .forEach(p -> m.put(p.a, p.b));
     return m;
@@ -103,6 +106,10 @@ public class ReferenceObjectTransform implements BitTransform<Object> {
   
   @Override
   public Object unbox(BitBuffer b) {
+    int pos = b.position();
+    byte id = b.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a reference object buffer (%d)", id, BYTE_ID));
     BitTransform<Reference> rtran = cfg.getTransform(Reference.class);
     Reference ref = rtran.unbox(b);
     if(Reference.BAD_REFERENCE.equals(ref)) {

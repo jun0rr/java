@@ -7,11 +7,11 @@ package us.pserver.tools.compile.test;
 
 import java.time.LocalDate;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.ToIntFunction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
-import us.pserver.tools.compile.ClassDefinition;
+import us.pserver.tools.compile.ClassCompilation;
 import us.pserver.tools.Reflect;
 
 
@@ -19,17 +19,17 @@ import us.pserver.tools.Reflect;
  *
  * @author juno
  */
-public class TestClassDefinition {
+public class TestClassCompilation {
   
   @Test
-  public void test_ClassDefinition() throws Throwable {
+  public void test_ClassCompilation() throws Throwable {
     try {
-      ClassDefinition cdef = new ClassDefinition("us.pserver.tools.compile.test.Person");
+      ClassCompilation cdef = new ClassCompilation("us.pserver.tools.compile.test.Person");
       cdef.appendln("package us.pserver.tools.compile.test;")
           .appendln("import java.time.LocalDate;")
           .appendln("import java.time.Period;")
           .appendln("import java.util.Objects;")
-          .appendln("public class Person {")
+          .appendln("public class Person implements IPerson {")
           .appendln("  private final String name;")
           .appendln("  private final String lastname;")
           .appendln("  private final LocalDate birth;")
@@ -86,17 +86,19 @@ public class TestClassDefinition {
           .appendln("    return \"Person{\" + \"fullname=\" + getFullName() + \", birth=\" + birth + \", age=\" + getAge() + '}';")
           .appendln("  }")
           .appendln("}");
-      Reflect ref = cdef.reflectCompiled();
-      TriFunction<String,String,LocalDate,Object> cct = (TriFunction<String,String,LocalDate,Object>) ref
+      Reflect<IPerson> ref = cdef.reflectCompiled();
+      TriFunction<String,String,LocalDate,IPerson> cct = ref
           .selectConstructor(String.class, String.class, LocalDate.class)
           .constructorAsLambda(TriFunction.class);
-      Object juno = cct.apply("Juno", "Roesler", LocalDate.of(1980, 7, 7));
+      IPerson juno = cct.apply("Juno", "Roesler", LocalDate.of(1980, 7, 7));
       Logger.debug(juno);
       //ref = ref.of(juno, ref.lookup());
-      Function<Object,String> fullname = ref.selectMethod("getFullName").dynamicMethodAsFunction();
-      Function<Object,Integer> age = ref.selectMethod("getAge").dynamicMethodAsFunction();
+      Function<IPerson,String> fullname = ref.selectMethod("getFullName").dynamicMethodAsFunction();
+      ToIntFunction<IPerson> age = ref.selectMethod("getAge").dynamicLambdaMethod(ToIntFunction.class);
       Assertions.assertEquals("Juno Roesler", fullname.apply(juno));
-      Assertions.assertEquals(39, age.apply(juno));
+      Assertions.assertEquals("Juno Roesler", juno.getFullName());
+      Assertions.assertEquals(39, age.applyAsInt(juno));
+      Assertions.assertEquals(39, juno.getAge());
     }
     catch(Throwable e) {
       e.printStackTrace();
