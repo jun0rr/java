@@ -48,23 +48,29 @@ public class PolymorphCollectionTransform implements BitTransform<Collection> {
     return Optional.of(Collection.class);
   }
   
+  /**
+   * [byte][int*(length + 1)][PolymorphNode]
+   * @param c
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Collection c, BitBuffer buf) {
+    int pos = buf.position();
+    buf.put(BYTE_ID);
     if(c == null || c.isEmpty()) {
       buf.putInt(0);
       return Integer.BYTES;
     }
-    int pos = buf.position();
-    int len = Integer.BYTES * (c.size() + 1);
+    int len = 1 + Integer.BYTES * (c.size() + 1);
     buf.putInt(c.size());
     int[] idx = new int[c.size()];
     buf.position(pos + len);
-    Function<Object,Indexed<Object>> ibd = Indexed.builder();
-    Stream<Indexed<Object>> stream = c.stream().map(ibd);
+    Stream<Indexed<Object>> stream = c.stream().map(Indexed.builder());
     len = stream.peek(i -> idx[i.index()] = buf.position())
         .mapToInt(i -> ptran.box(i.value(), buf))
         .reduce(len, Integer::sum);
-    buf.position(pos + Integer.BYTES);
+    buf.position(pos + 1 + Integer.BYTES);
     IntStream.of(idx).forEach(buf::putInt);
     buf.position(pos + len);
     return len;
@@ -73,6 +79,9 @@ public class PolymorphCollectionTransform implements BitTransform<Collection> {
   @Override
   public Collection unbox(BitBuffer buf) {
     int pos = buf.position();
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a PolymorphCollection buffer (%d)", id, BYTE_ID));
     int size = buf.getInt();
     if(size == 0) {
       return Collections.EMPTY_LIST;

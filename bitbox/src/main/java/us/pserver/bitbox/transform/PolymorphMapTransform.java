@@ -46,19 +46,27 @@ public class PolymorphMapTransform implements BitTransform<Map>{
     return Optional.of(Map.class);
   }
   
+  /**
+   * [byte][int][PolymorphEntry*(length)]
+   * @param m
+   * @param b
+   * @return 
+   */
   @Override
   public int box(Map m, BitBuffer b) {
-    int len = Integer.BYTES;
-    b.putInt(m.size());
+    int len = 1 + Integer.BYTES;
+    b.put(BYTE_ID).putInt(m.size());
     Set<Map.Entry> entries = m.entrySet();
     return entries.stream()
         .mapToInt(e -> etran.box(e, b))
         .reduce(len, Integer::sum);
   }
-
-
+  
   @Override
   public Map unbox(BitBuffer b) {
+    byte id = b.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a PolymorphMap buffer (%d)", id, BYTE_ID));
     int size = b.getInt();
     return IntStream.range(0, size)
         .mapToObj(i -> etran.unbox(b))

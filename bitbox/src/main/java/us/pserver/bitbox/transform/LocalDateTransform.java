@@ -50,14 +50,23 @@ public class LocalDateTransform implements BitTransform<LocalDate> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][long]
+   * @param l
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(LocalDate l, BitBuffer buf) {
-    buf.putLong(l.toEpochDay());
-    return Long.BYTES;
+    buf.put(BYTE_ID).putLong(l.toEpochDay());
+    return 1 + Long.BYTES;
   }
   
   @Override
   public LocalDate unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a LocalDate buffer (%d)", id, BYTE_ID));
     return LocalDate.ofEpochDay(buf.getLong());
   }
   

@@ -45,25 +45,32 @@ public class PolymorphEntryTransform implements BitTransform<Map.Entry>{
     return Optional.of(Map.Entry.class);
   }
   
+  /**
+   * [byte][int][Class][object][Class][object]
+   * @param e
+   * @param b
+   * @return 
+   */
   @Override
   public int box(Map.Entry e, BitBuffer b) {
+    int startPos = b.position();
+    int len = 1 + Integer.BYTES;
+    b.put(BYTE_ID);
     Objects.requireNonNull(e, "Bad null Map.Entry");
     Objects.requireNonNull(e.getKey(), "Bad null Map.Entry.KEY");
-    int startPos = b.position();
-    int len = Integer.BYTES;
     Class kclass = e.getKey().getClass();
     Class vclass = e.getValue() != null ? e.getValue().getClass() : Void.class;
     //System.out.printf("!!  box< %s, %s > !!%n", kclass, vclass);
     BitTransform ktran = cfg.getTransform(kclass);
     BitTransform vtran = cfg.getTransform(vclass);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
-    b.position(startPos + Integer.BYTES);
+    b.position(startPos + len);
     len += ctran.box((Class)ktran.serialType().orElse(kclass), b);
     len += ktran.box(e.getKey(), b);
     int vpos = b.position();
     len += ctran.box((Class)vtran.serialType().orElse(vclass), b);
     len += vtran.box(e.getValue(), b);
-    b.putInt(startPos, vpos);
+    b.putInt(startPos + 1, vpos);
     b.position(startPos + len);
     return len;
   }
@@ -71,12 +78,15 @@ public class PolymorphEntryTransform implements BitTransform<Map.Entry>{
 
   @Override
   public Map.Entry unbox(BitBuffer b) {
+    byte id = b.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a PolymorphEntry buffer (%d)", id, BYTE_ID));
+    int kpos = b.position();
     int vpos = b.getInt();
     //Logger.debug("vpos = {}", vpos);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     Class kclass = ctran.unbox(b);
     //Logger.debug("Entry< {}, Y >", kclass);
-    int kpos = b.position();
     Class vclass = ctran.unbox(b.position(vpos));
     //Logger.debug("Entry< {}, {} >", kclass, vclass);
     vpos = b.position();

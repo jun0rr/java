@@ -36,15 +36,24 @@ public class LongArrayTransform implements BitTransform<long[]> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][int][long*(length)]
+   * @param ls
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(long[] ls, BitBuffer buf) {
-    buf.putInt(ls.length);
+    buf.put(BYTE_ID).putInt(ls.length);
     LongStream.of(ls).forEach(buf::putLong);
-    return Integer.BYTES + Long.BYTES * ls.length;
+    return 1 + Integer.BYTES + Long.BYTES * ls.length;
   }
   
   @Override
   public long[] unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a long array buffer (%d)", id, BYTE_ID));
     int len = buf.getInt();
     long[] ls = new long[len];
     IntStream.range(0, len).forEach(i -> ls[i] = buf.getLong());

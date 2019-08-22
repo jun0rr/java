@@ -36,15 +36,24 @@ public class DoubleArrayTransform implements BitTransform<double[]> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][int][double*(length)]
+   * @param ds
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(double[] ds, BitBuffer buf) {
-    buf.putInt(ds.length);
+    buf.put(BYTE_ID).putInt(ds.length);
     DoubleStream.of(ds).forEach(buf::putDouble);
-    return Integer.BYTES + ds.length * Double.BYTES;
+    return 1 + Integer.BYTES + ds.length * Double.BYTES;
   }
   
   @Override
   public double[] unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a double array buffer (%d)", id, BYTE_ID));
     int len = buf.getInt();
     double[] ds = new double[len];
     IntStream.range(0, len).forEach(i -> ds[i] = buf.getDouble());

@@ -23,6 +23,7 @@ package us.pserver.bitbox;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import java.util.function.ToIntBiFunction;
 import us.pserver.bitbox.type.SerializedType;
@@ -37,19 +38,21 @@ rver.us
  */
 public interface BitTransform<T> extends TypeMatching, SerializedType {
   
-  public boolean match(Class c);
-  
   public int box(T obj, BitBuffer buf);
   
   public T unbox(BitBuffer buf);
   
   
   
-  public static <U> BitTransform of(Predicate<Class> prd, ToIntBiFunction<U, BitBuffer> box, Function<BitBuffer,U> unbox) {
+  public static <U> BitTransform of(Predicate<Class> prd, IntPredicate bid, ToIntBiFunction<U, BitBuffer> box, Function<BitBuffer,U> unbox) {
     return new BitTransform<U>() {
       @Override
       public boolean match(Class c) {
         return prd.test(c);
+      }
+      @Override
+      public boolean match(byte id) {
+        return bid.test(id);
       }
       @Override
       public Optional<Class> serialType() {
@@ -67,11 +70,15 @@ public interface BitTransform<T> extends TypeMatching, SerializedType {
   }
   
   
-  public static <U> BitTransform of(Predicate<Class> prd, Class serialClass, ToIntBiFunction<U, BitBuffer> box, Function<BitBuffer,U> unbox) {
+  public static <U> BitTransform of(Predicate<Class> prd, IntPredicate bid, Class serialClass, ToIntBiFunction<U, BitBuffer> box, Function<BitBuffer,U> unbox) {
     return new BitTransform<U>() {
       @Override
       public boolean match(Class c) {
         return prd.test(c);
+      }
+      @Override
+      public boolean match(byte id) {
+        return bid.test(id);
       }
       @Override
       public Optional<Class> serialType() {

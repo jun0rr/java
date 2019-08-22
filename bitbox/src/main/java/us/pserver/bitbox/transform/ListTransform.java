@@ -34,14 +34,24 @@ public class ListTransform<T> implements BitTransform<List<T>> {
     return Optional.of(List.class);
   }
   
+  /**
+   * [byte][Collection]
+   * @param l
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(List<T> l, BitBuffer buf) {
     BitTransform<Collection> trans = cfg.getTransform(Collection.class);
-    return trans.box(l, buf);
+    buf.put(BYTE_ID);
+    return 1 + trans.box(l, buf);
   }
   
   @Override
   public List<T> unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a List buffer (%d)", id, BYTE_ID));
     BitTransform<Collection> trans = cfg.getTransform(Collection.class);
     return (List<T>) trans.unbox(buf);
   }

@@ -35,15 +35,24 @@ public class FloatArrayTransform implements BitTransform<float[]> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][int][float*(length)]
+   * @param ds
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(float[] ds, BitBuffer buf) {
-    buf.putInt(ds.length);
+    buf.put(BYTE_ID).putInt(ds.length);
     IntStream.range(0, ds.length).forEach(i -> buf.putFloat(ds[i]));
-    return Integer.BYTES + ds.length * Float.BYTES;
+    return 1 + Integer.BYTES + ds.length * Float.BYTES;
   }
   
   @Override
   public float[] unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a float array buffer (%d)", id, BYTE_ID));
     int len = buf.getInt();
     float[] ds = new float[len];
     IntStream.range(0, len).forEach(i -> ds[i] = buf.getFloat());

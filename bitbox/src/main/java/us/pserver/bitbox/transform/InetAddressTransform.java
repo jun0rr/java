@@ -33,14 +33,24 @@ public class InetAddressTransform implements BitTransform<InetAddress> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][CharSequence]
+   * @param a
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(InetAddress a, BitBuffer buf) {
     BitTransform<String> stran = cfg.getTransform(String.class);
-    return stran.box(a.getHostAddress(), buf);
+    buf.put(BYTE_ID);
+    return 1 + stran.box(a.getHostAddress(), buf);
   }
   
   @Override
   public InetAddress unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not an InetAddress buffer (%d)", id, BYTE_ID));
     BitTransform<String> stran = cfg.getTransform(String.class);
     return Unchecked.call(() ->
         InetAddress.getByName(stran.unbox(buf).toString())

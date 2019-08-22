@@ -54,14 +54,23 @@ public class DoubleTransform implements BitTransform<Double> {
     return Double.BYTES;
   }
   
+  /**
+   * [byte][double]
+   * @param d
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Double d, BitBuffer buf) {
-    buf.putDouble(d);
-    return Double.BYTES;
+    buf.put(BYTE_ID).putDouble(d);
+    return 1 + Double.BYTES;
   }
   
   @Override
   public Double unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a double buffer (%d)", id, BYTE_ID));
     return buf.getDouble();
   }
   

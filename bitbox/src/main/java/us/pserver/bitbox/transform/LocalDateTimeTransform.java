@@ -55,14 +55,23 @@ public class LocalDateTimeTransform implements BitTransform<LocalDateTime> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][long]
+   * @param l
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(LocalDateTime l, BitBuffer buf) {
-    buf.putLong(l.toInstant(ZoneOffset.UTC).toEpochMilli());
-    return Long.BYTES;
+    buf.put(BYTE_ID).putLong(l.toInstant(ZoneOffset.UTC).toEpochMilli());
+    return 1 + Long.BYTES;
   }
   
   @Override
   public LocalDateTime unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a LocalDateTime buffer (%d)", id, BYTE_ID));
     return LocalDateTime.ofInstant(Instant.ofEpochMilli(buf.getLong()), ZID);
   }
   

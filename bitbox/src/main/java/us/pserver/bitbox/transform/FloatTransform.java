@@ -54,14 +54,23 @@ public class FloatTransform implements BitTransform<Float> {
     return Float.BYTES;
   }
   
+  /**
+   * [byte][float]
+   * @param f
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Float f, BitBuffer buf) {
-    buf.putFloat(f);
-    return Float.BYTES;
+    buf.put(BYTE_ID).putFloat(f);
+    return 1 + Float.BYTES;
   }
   
   @Override
   public Float unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a float buffer (%d)", id, BYTE_ID));
     return buf.getFloat();
   }
   

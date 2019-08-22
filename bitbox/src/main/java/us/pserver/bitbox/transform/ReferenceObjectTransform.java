@@ -20,6 +20,7 @@ import us.pserver.bitbox.ReferenceService;
 import us.pserver.bitbox.spec.GetterTarget;
 import us.pserver.bitbox.spec.ObjectSpec;
 import us.pserver.tools.Indexed;
+import us.pserver.tools.Pair;
 import us.pserver.tools.io.BitBuffer;
 
 
@@ -68,6 +69,12 @@ public class ReferenceObjectTransform implements BitTransform<Object> {
     return opt.get();
   }
   
+  /**
+   * [byte][
+   * @param o
+   * @param b
+   * @return 
+   */
   @Override
   public int box(Object o, BitBuffer b) {
     BitTransform<Reference> rtran = cfg.getTransform(Reference.class);
@@ -77,16 +84,21 @@ public class ReferenceObjectTransform implements BitTransform<Object> {
     Class c = o.getClass();
     ObjectSpec spec = getOrCreateSpec(c);
     Reference ref = service.allocate(spec.serialType().orElse(c));
-    Map<String,Object> m = new TreeMap<>();
-    Set<GetterTarget> getters = spec.getters();
-    getters.stream()
-        .map(g -> new AbstractMap.SimpleEntry<>(g.getName(), g.apply(o)))
-        .filter(e -> e.getKey() != null && e.getValue() != null)
-        .forEach(e -> m.put(e.getKey(), e.getValue()));
+    Map<String,Object> m = obj2map(o, spec);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     ctran.box(spec.serialType().orElse(c), ref.getBuffer());
     dtran.box(m, ref.getBuffer());
     return rtran.box(ref, b);
+  }
+  
+  private Map<String,Object> obj2map(Object obj, ObjectSpec spec) {
+    Map<String,Object> m = new TreeMap<>();
+    Set<GetterTarget> getters = spec.getters();
+    getters.stream()
+        .map(g -> new Pair<String,Object>(g.getName(), g.apply(obj)))
+        .filter(p -> p.a != null && p.b != null)
+        .forEach(p -> m.put(p.a, p.b));
+    return m;
   }
   
   @Override

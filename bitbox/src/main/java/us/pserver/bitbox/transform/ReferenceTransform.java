@@ -41,13 +41,20 @@ public class ReferenceTransform implements BitTransform<Reference> {
     return Reference.class.isAssignableFrom(c);
   }
   
+  /**
+   * [byte][long][Class]
+   * @param obj
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Reference obj, BitBuffer buf) {
+    buf.put(BYTE_ID);
     if(obj == null || Reference.BAD_REFERENCE.equals(obj)) {
       buf.putLong(Long.MIN_VALUE);
       return Long.BYTES;
     }
-    int len = Long.BYTES;
+    int len = 1 + Long.BYTES;
     buf.putLong(obj.getId());
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     len += ctran.box(obj.getType(), buf);
@@ -56,6 +63,9 @@ public class ReferenceTransform implements BitTransform<Reference> {
   
   @Override
   public Reference unbox(BitBuffer buf) {
+    byte bid = buf.get();
+    if(BYTE_ID != bid) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a Reference buffer (%d)", bid, BYTE_ID));
     long id = buf.getLong();
     if(Long.MIN_VALUE == id) {
       return Reference.BAD_REFERENCE;

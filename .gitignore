@@ -280,3 +280,6 @@
 /micron/target/
 /screept/target/
 /toolbox-pom/tools-io-jmh/target/
+/jmh-test/target/
+/toolbox-io-jmh/target/
+/toolbox-pom/tools-compile/target/

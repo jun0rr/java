@@ -50,23 +50,37 @@ public class LongTransform implements BitTransform<Long> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][long]
+   * @param l
+   * @param buf
+   * @return 
+   */
   public int longBox(long l, BitBuffer buf) {
-    buf.putLong(l);
-    return Long.BYTES;
+    buf.put(BYTE_ID).putLong(l);
+    return 1 + Long.BYTES;
   }
   
+  /**
+   * [byte][long]
+   * @param l
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Long l, BitBuffer buf) {
-    buf.putLong(l);
-    return Long.BYTES;
+    return longBox(l, buf);
   }
   
   @Override
   public Long unbox(BitBuffer buf) {
-    return buf.getLong();
+    return longUnbox(buf);
   }
   
   public long longUnbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a long buffer (%d)", id, BYTE_ID));
     return buf.getLong();
   }
   

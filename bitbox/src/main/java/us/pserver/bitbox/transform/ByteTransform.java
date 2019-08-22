@@ -49,14 +49,23 @@ public class ByteTransform implements BitTransform<Byte> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][byte]
+   * @param b
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Byte b, BitBuffer buf) {
-    buf.put(b);
-    return 1;
+    buf.put(BYTE_ID).put(b);
+    return 2;
   }
   
   @Override
   public Byte unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a byte buffer (%d)", id, BYTE_ID));
     return buf.get();
   }
   

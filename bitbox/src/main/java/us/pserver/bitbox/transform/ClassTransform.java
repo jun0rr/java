@@ -33,14 +33,24 @@ public class ClassTransform implements BitTransform<Class> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][CharSequence]
+   * @param c
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Class c, BitBuffer buf) {
     //Logger.debug(c);
-    return cfg.getTransform(String.class).box(c.getName(), buf);
+    buf.put(BYTE_ID);
+    return 1 + cfg.getTransform(String.class).box(c.getName(), buf);
   }
   
   @Override
   public Class unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a class buffer (%d)", id, BYTE_ID));
     String sc = cfg.getTransform(String.class).unbox(buf);
     //Logger.debug(sc);
     Class c = Unchecked.call(() -> cfg.lookup().findClass(sc));

@@ -50,22 +50,30 @@ public class IntTransform implements BitTransform<Integer> {
   }
   
   public int intBox(int i, BitBuffer buf) {
-    buf.putInt(i);
-    return Integer.BYTES;
+    buf.put(BYTE_ID).putInt(i);
+    return 1 + Integer.BYTES;
   }
   
+  /**
+   * [byte][int]
+   * @param i
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Integer i, BitBuffer buf) {
-    buf.putInt(i);
-    return Integer.BYTES;
+    return intBox(i, buf);
   }
   
   @Override
   public Integer unbox(BitBuffer buf) {
-    return buf.getInt();
+    return intUnbox(buf);
   }
   
   public int intUnbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not an int buffer (%d)", id, BYTE_ID));
     return buf.getInt();
   }
   

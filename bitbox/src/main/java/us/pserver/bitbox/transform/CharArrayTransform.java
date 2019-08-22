@@ -35,13 +35,23 @@ public class CharArrayTransform implements BitTransform<char[]> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][CharSequence]
+   * @param cs
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(char[] cs, BitBuffer buf) {
-    return stran.box(new String(cs), buf);
+    buf.put(BYTE_ID);
+    return 1 + stran.box(new String(cs), buf);
   }
   
   @Override
   public char[] unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a char array buffer (%d)", id, BYTE_ID));
     return stran.unbox(buf).toString().toCharArray();
   }
   

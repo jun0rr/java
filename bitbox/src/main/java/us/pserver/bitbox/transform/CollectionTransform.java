@@ -45,19 +45,26 @@ public class CollectionTransform<T> implements BitTransform<Collection<T>> {
     return Optional.of(Collection.class);
   }
   
+  /**
+   * [byte][int*(length+1)][Class][object*(length)]
+   * @param c
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Collection<T> c, BitBuffer buf) {
+    int pos = buf.position();
+    buf.put(BYTE_ID);
     if(c == null || c.isEmpty()) {
       buf.putInt(0);
-      return Integer.BYTES;
+      return 1 + Integer.BYTES;
     }
     Class<T> cls = (Class<T>) c.stream()
         .map(Object::getClass)
         .findAny().get();
     BitTransform<T> trans = cfg.getTransform(cls);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
-    int pos = buf.position();
-    int len = Integer.BYTES * (c.size() + 1);
+    int len = 1 + Integer.BYTES * (c.size() + 1);
     buf.position(pos + len);
     len += ctran.box(trans.serialType().orElse(cls), buf);
     int[] idx = new int[c.size()];
@@ -80,6 +87,9 @@ public class CollectionTransform<T> implements BitTransform<Collection<T>> {
   @Override
   public Collection<T> unbox(BitBuffer buf) {
     int pos = buf.position();
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a collection buffer (%d)", id, BYTE_ID));
     int size = buf.getInt();
     if(size == 0) {
       return Collections.EMPTY_LIST;

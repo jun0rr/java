@@ -43,13 +43,19 @@ public class ArrayTransform<T> implements BitTransform<T[]> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][int*(elts + 1)][class][object*(length)]
+   * @param ts
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(T[] ts, BitBuffer buf) {
     Class<T> cls = (Class<T>) ts.getClass().getComponentType();
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     BitTransform<T> trans = cfg.getTransform(cls);
     int pos = buf.position();
-    int len = Integer.BYTES * (ts.length + 1);
+    int len = 1 + Integer.BYTES * (ts.length + 1);
     buf.position(pos + len);
     len += ctran.box(trans.serialType().orElse(cls), buf);
     int[] idx = new int[ts.length];
@@ -58,7 +64,7 @@ public class ArrayTransform<T> implements BitTransform<T[]> {
       idx[i++] = buf.position();
       len += trans.box(o, buf);
     }
-    buf.position(pos).putInt(ts.length);
+    buf.position(pos).put(BYTE_ID).putInt(ts.length);
     IntStream.of(idx).forEach(buf::putInt);
     buf.position(pos + len);
     return len;
@@ -67,8 +73,11 @@ public class ArrayTransform<T> implements BitTransform<T[]> {
   @Override
   public T[] unbox(BitBuffer buf) {
     int pos = buf.position();
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not an array buffer (%d)", id, BYTE_ID));
     int size = buf.getInt();
-    buf.position(pos + Integer.BYTES * (size + 1));
+    buf.position(pos + 1 + Integer.BYTES * (size + 1));
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     Class<T> cls = ctran.unbox(buf);
     BitTransform<T> trans = cfg.getTransform(cls);

@@ -42,8 +42,13 @@ public class TestBitBuffersPerformance {
     public static final DevNull INSTANCE = new DevNull();
     private final StringBuilder sb = new StringBuilder();
     public void add(Object o) {
-      String ste = Thread.currentThread().getStackTrace()[3].toString();
-      sb.append("* ").append(ste.substring(ste.indexOf("test_"))).append(" :: ").append(o).append("\n");
+      sb.append("* ").append(o).append("\n");
+    }
+    public void add(int o) {
+      sb.append("* ").append(o).append("\n");
+    }
+    public void add(long o) {
+      sb.append("* ").append(o).append("\n");
     }
     public String toString() {
       return sb.toString();
@@ -51,30 +56,43 @@ public class TestBitBuffersPerformance {
     public static void set(Object o) {
       INSTANCE.add(o);
     }
+    public static void set(int o) {
+      INSTANCE.add(o);
+    }
+    public static void set(long o) {
+      INSTANCE.add(o);
+    }
   }
   
   @RepeatedTest(5)
   public void test_direct_DynamicBuffer_performance() {
     try {
-      System.out.println(Thread.currentThread().getStackTrace()[1]);
+      System.out.println("************************************************************************");
       DynamicBuffer db = new DynamicBuffer(1024, true);
       Logger.debug("Writing ints to direct DynamicBuffer...");
       Timer tm = new Timer.Nanos().start();
-      IntStream.range(0, RANDOM_INTS_SIZE)
-          .forEach(i -> db.putInt(RANDOM_INTS[i]));
+      long sum = IntStream.range(0, RANDOM_INTS_SIZE)
+          .map(i -> RANDOM_INTS[i])
+          .peek(DevNull::set)
+          .peek(i -> db.putInt(i))
+          .mapToLong(i -> (long)i)
+          .sum();
+      DevNull.set(sum);
       tm.stop();
       DevNull.set(db);
       Logger.debug("PUT Done {}", tm);
       db.flip();
       Logger.debug("Reading ints from direct DynamicBuffer...");
-      long total = 0;
+      sum = 0;
       tm.clear().start();
       while(db.hasRemaining()) {
-        total += db.getInt();
+        int r = db.getInt();
+        DevNull.set(r);
+        sum += r;
       }
       tm.stop();
-      DevNull.set(total);
-      Logger.debug("GET Done {} - {}", total, tm);
+      DevNull.set(sum);
+      Logger.debug("GET Done {} - {}", sum, tm);
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -85,25 +103,32 @@ public class TestBitBuffersPerformance {
   @RepeatedTest(5)
   public void test_heap_DynamicBuffer_performance() {
     try {
-      System.out.println(Thread.currentThread().getStackTrace()[1]);
+      System.out.println("************************************************************************");
       DynamicBuffer db = new DynamicBuffer(1024, false);
       Logger.debug("Writing ints to heap DynamicBuffer...");
       Timer tm = new Timer.Nanos().start();
-      IntStream.range(0, RANDOM_INTS_SIZE)
-          .forEach(i -> db.putInt(RANDOM_INTS[i]));
+      long sum = IntStream.range(0, RANDOM_INTS_SIZE)
+          .map(i -> RANDOM_INTS[i])
+          .peek(DevNull::set)
+          .peek(i -> db.putInt(i))
+          .mapToLong(i -> (long)i)
+          .sum();
+      DevNull.set(sum);
       tm.stop();
       DevNull.set(db);
       Logger.debug("PUT Done {}", tm);
       db.flip();
       Logger.debug("Reading ints from heap DynamicBuffer...");
-      long total = 0;
+      sum = 0;
       tm.clear().start();
       while(db.hasRemaining()) {
-        total += db.getInt();
+        int r = db.getInt();
+        DevNull.set(r);
+        sum += r;
       }
       tm.stop();
-      DevNull.set(total);
-      Logger.debug("GET Done {} - {}", total, tm);
+      DevNull.set(sum);
+      Logger.debug("GET Done {} - {}", sum, tm);
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -114,27 +139,34 @@ public class TestBitBuffersPerformance {
   @RepeatedTest(5)
   public void test_direct_MultiBuffer1_performance() {
     try {
-      System.out.println(Thread.currentThread().getStackTrace()[1]);
+      System.out.println("************************************************************************");
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocateDirect(1024);
       MultiBuffer db = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(db, MethodHandles.lookup()).withPrivateLookup();
       Logger.debug("Writing ints to direct MultiBuffer1...");
       Timer tm = new Timer.Nanos().start();
-      IntStream.range(0, RANDOM_INTS_SIZE)
-          .forEach(i -> db.putInt(RANDOM_INTS[i]));
+      long sum = IntStream.range(0, RANDOM_INTS_SIZE)
+          .map(i -> RANDOM_INTS[i])
+          .peek(DevNull::set)
+          .peek(i -> db.putInt(i))
+          .mapToLong(i -> (long)i)
+          .sum();
+      DevNull.set(sum);
       tm.stop();
       DevNull.set(db);
       Logger.debug("PUT Done {}", tm);
       db.flip();
       Logger.debug("Reading ints from direct MultiBuffer1...");
-      long total = 0;
+      sum = 0;
       tm.clear().start();
       while(db.hasRemaining()) {
-        total += db.getInt();
+        int r = db.getInt();
+        DevNull.set(r);
+        sum += r;
       }
       tm.stop();
-      DevNull.set(total);
-      Logger.debug("GET Done {} - {}", total, tm);
+      DevNull.set(sum);
+      Logger.debug("GET Done {} - {}", sum, tm);
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -145,27 +177,34 @@ public class TestBitBuffersPerformance {
   @RepeatedTest(5)
   public void test_heap_MultiBuffer1_performance() {
     try {
-      System.out.println(Thread.currentThread().getStackTrace()[1]);
+      System.out.println("************************************************************************");
       Supplier<ByteBuffer> sup = () -> ByteBuffer.allocate(1024);
       MultiBuffer db = new MultiBuffer(sup);
       Reflect<MultiBuffer> ref = Reflect.of(db, MethodHandles.lookup()).withPrivateLookup();
       Logger.debug("Writing ints to heap MultiBuffer1...");
       Timer tm = new Timer.Nanos().start();
-      IntStream.range(0, RANDOM_INTS_SIZE)
-          .forEach(i -> db.putInt(RANDOM_INTS[i]));
+      long sum = IntStream.range(0, RANDOM_INTS_SIZE)
+          .map(i -> RANDOM_INTS[i])
+          .peek(DevNull::set)
+          .peek(i -> db.putInt(i))
+          .mapToLong(i -> (long)i)
+          .sum();
+      DevNull.set(sum);
       tm.stop();
       DevNull.set(db);
       Logger.debug("PUT Done {}", tm);
       db.flip();
       Logger.debug("Reading ints from heap MultiBuffer1...");
-      long total = 0;
+      sum = 0;
       tm.clear().start();
       while(db.hasRemaining()) {
-        total += db.getInt();
+        int r = db.getInt();
+        DevNull.set(r);
+        sum += r;
       }
       tm.stop();
-      DevNull.set(total);
-      Logger.debug("GET Done {} - {}", total, tm);
+      DevNull.set(sum);
+      Logger.debug("GET Done {} - {}", sum, tm);
     }
     catch(Exception e) {
       e.printStackTrace();

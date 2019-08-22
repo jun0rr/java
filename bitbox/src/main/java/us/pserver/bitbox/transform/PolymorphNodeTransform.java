@@ -52,31 +52,40 @@ public class PolymorphNodeTransform implements BitTransform<Object> {
     return false;
   }
   
+  /**
+   * [byte][int][Class][object]
+   * @param obj
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Object obj, BitBuffer buf) {
-    if(obj == null) {
-      buf.putInt(-1);
-      return Integer.BYTES;
-    }
     int pos = buf.position();
+    int len = 1 + Integer.BYTES;
+    if(obj == null) {
+      buf.putInt(0);
+      return len;
+    }
     Class c = obj.getClass();
     //Logger.debug("Node({}: {})", c.getSimpleName(), obj);
     BitTransform trans = cfg.getTransform(c);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
-    int len = Integer.BYTES;
     buf.position(pos + len);
     len += ctran.box(trans.serialType().orElse(c), buf);
     int vpos = buf.position();
     len += trans.box(obj, buf);
-    buf.putInt(pos, vpos);
+    buf.putInt(pos + 1, vpos);
     buf.position(pos + len);
     return len;
   }
   
   @Override
   public Object unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a PolymorphNode buffer (%d)", id, BYTE_ID));
     int vpos = buf.getInt();
-    if(vpos < 0) return null;
+    if(vpos == 0) return null;
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     Class c = ctran.unbox(buf);
     BitTransform trans = cfg.getTransform(c);

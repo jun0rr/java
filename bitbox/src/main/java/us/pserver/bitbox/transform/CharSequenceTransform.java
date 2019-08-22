@@ -25,6 +25,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import us.pserver.bitbox.BitTransform;
+import static us.pserver.bitbox.transform.ClassTransform.BYTE_ID;
 import us.pserver.tools.io.BitBuffer;
 
 /**
@@ -51,17 +52,28 @@ public class CharSequenceTransform implements BitTransform<CharSequence> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][int][byte*(length)]
+   * @param s
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(CharSequence s, BitBuffer buf) {
     ByteBuffer bs = StandardCharsets.UTF_8.encode(s.toString());
     //Logger.debug("[{}][{}]", bs.remaining(), s);
-    int len = bs.remaining() + Integer.BYTES;
-    buf.putInt(bs.remaining()).put(bs);
+    int len = 1 + bs.remaining() + Integer.BYTES;
+    buf.put(BYTE_ID)
+        .putInt(bs.remaining())
+        .put(bs);
     return len;
   }
   
   @Override
   public CharSequence unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a CharSequence buffer (%d)", id, BYTE_ID));
     int lim = buf.limit();
     int len = buf.getInt();
     //Logger.debug("[{}]", len);

@@ -50,14 +50,23 @@ public class InstantTransform implements BitTransform<Instant> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][long]
+   * @param i
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Instant i, BitBuffer buf) {
-    buf.putLong(i.toEpochMilli());
-    return Long.BYTES;
+    buf.put(BYTE_ID).putLong(i.toEpochMilli());
+    return 1 + Long.BYTES;
   }
   
   @Override
   public Instant unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not an Instant buffer (%d)", id, BYTE_ID));
     return Instant.ofEpochMilli(buf.getLong());
   }
   

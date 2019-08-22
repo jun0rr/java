@@ -632,7 +632,7 @@ public class Reflect<T> {
     MethodType actualMethType = MethodType.methodType(cls, cct.getParameterTypes());
     MethodType lambdaType = MethodType.methodType(lambda);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, lmth.get().getName(), lambdaType, methodType, handle, actualMethType));
-    return lambda.cast(Unchecked.call(() -> cs.getTarget().invokeExact()));
+    return lambda.cast(Unchecked.call(() -> cs.getTarget().invoke()));
   }
 	
   
@@ -964,9 +964,4 @@ public class Reflect<T> {
     return lambda.cast(invokeHandle(cs.getTarget()));
   }
   
-  
-  public static ClassDefinition defineClass(String cname) {
-    return new ClassDefinition(cname);
-  }
-
 }

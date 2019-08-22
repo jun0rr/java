@@ -33,15 +33,24 @@ public class ByteArrayTransform implements BitTransform<byte[]> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][int][byte*(length)]
+   * @param bs
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(byte[] bs, BitBuffer buf) {
-    buf.putInt(bs.length);
+    buf.put(BYTE_ID).putInt(bs.length);
     buf.put(bs);
-    return bs.length + Integer.BYTES;
+    return 1 + bs.length + Integer.BYTES;
   }
   
   @Override
   public byte[] unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a byte array buffer (%d)", id, BYTE_ID));
     int len = buf.getInt();
     byte[] bs = new byte[len];
     buf.get(bs);

@@ -41,21 +41,31 @@ public class EnumTransform<T extends Enum> implements BitTransform<T>{
     return Optional.empty();
   }
   
+  /**
+   * [byte][Class][CharSequence]
+   * @param e
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(T e, BitBuffer buf) {
     BitTransform<String> stran = cfg.getTransform(String.class);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
     Class<T> c = (Class<T>) e.getClass();
-    return stran.box(e.name(), buf) + ctran.box(c, buf);
+    buf.put(BYTE_ID);
+    return 1 + ctran.box(c, buf) + stran.box(e.name(), buf);
   }
 
 
   @Override
   public T unbox(BitBuffer buf) {
+    byte id = buf.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not an enum buffer (%d)", id, BYTE_ID));
     BitTransform<String> stran = cfg.getTransform(String.class);
     BitTransform<Class> ctran = cfg.getTransform(Class.class);
-    String name = stran.unbox(buf);
     Class<T> c = (Class<T>) ctran.unbox(buf);
+    String name = stran.unbox(buf);
     return (T) Enum.valueOf(c, name);
   }
   

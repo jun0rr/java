@@ -49,14 +49,23 @@ public class BooleanTransform implements BitTransform<Boolean> {
     return Optional.empty();
   }
   
+  /**
+   * [byte][byte]
+   * @param b
+   * @param buf
+   * @return 
+   */
   @Override
   public int box(Boolean b, BitBuffer buf) {
-    buf.put((byte) (b ? 1 : 0));
-    return 1;
+    buf.put(BYTE_ID).put((byte) (b ? 1 : 0));
+    return 2;
   }
   
   @Override
   public Boolean unbox(BitBuffer b) {
+    byte id = b.get();
+    if(BYTE_ID != id) throw new IllegalStateException(String.format(
+        "Bad byte id: %d. Not a boolean buffer (%d)", id, BYTE_ID));
     return b.get() == 1;
   }
   
