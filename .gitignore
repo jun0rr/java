@@ -283,3 +283,9 @@
 /jmh-test/target/
 /toolbox-io-jmh/target/
 /toolbox-pom/tools-compile/target/
+/robotnic_nb/robotnic/build/
+/robotnic_nb/robotnic/dist/
+/robotnic_nb/robotnic/nbproject/private/
+/robotnic/build/
+/robotnic/dist/
+/robotnic/nbproject/private/
