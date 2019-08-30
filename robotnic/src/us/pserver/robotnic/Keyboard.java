@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.robot;
+package us.pserver.robotnic;
 
 import java.awt.event.KeyEvent;
 
@@ -16,6 +16,7 @@ public enum Keyboard implements Key {
   
   A(KeyEvent.VK_A, 'a'),
   
+  ACUTE(KeyEvent.VK_DEAD_ACUTE, '\''),
   ALT(KeyEvent.VK_ALT, "ALT"),
   ALT_GRAPH(KeyEvent.VK_ALT_GRAPH, "ALTGR"),
   AMPERSAND(KeyEvent.VK_AMPERSAND, '&'),
@@ -34,6 +35,7 @@ public enum Keyboard implements Key {
   C(KeyEvent.VK_C, 'c'),
   
   CAPSLOCK(KeyEvent.VK_CAPS_LOCK, "CAPSLOCK"),
+  CLOSE_BRACE(KeyEvent.VK_BRACERIGHT, '}'),
   CLOSE_BRACKET(KeyEvent.VK_CLOSE_BRACKET, ']'),
   CLOSE_PARENTHESIS(KeyEvent.VK_RIGHT_PARENTHESIS, ')'),
   COLON(KeyEvent.VK_COLON, ':'),
@@ -71,6 +73,7 @@ public enum Keyboard implements Key {
   
   G(KeyEvent.VK_G, 'g'),
   
+  GRAVE(KeyEvent.VK_DEAD_GRAVE, '>'),
   GREATER(KeyEvent.VK_GREATER, '>'),
   
   H(KeyEvent.VK_H, 'h'),
@@ -105,6 +108,7 @@ public enum Keyboard implements Key {
   
   O(KeyEvent.VK_O, 'o'),
   
+  OPEN_BRACE(KeyEvent.VK_BRACELEFT, '{'),
   OPEN_BRACKET(KeyEvent.VK_OPEN_BRACKET, '['),
   OPEN_PARENTHESIS(KeyEvent.VK_OPEN_BRACKET, '['),
   
@@ -132,6 +136,7 @@ public enum Keyboard implements Key {
   
   T(KeyEvent.VK_T, 't'),
   
+  TILDE(KeyEvent.VK_DEAD_TILDE, '~'),
   TAB(KeyEvent.VK_TAB, "TAB"),
   
   U(KeyEvent.VK_U, 'u'),

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.robot;
+package us.pserver.robotnic;
 
 
 /**
@@ -33,6 +33,29 @@ public interface KeyAction extends Script {
   
   
   
-  public
+  public static KeyAction of(Key k, Action a) {
+    return new KeyAction() {
+      @Override
+      public Key getKey() {
+        return k;
+      }
+      @Override
+      public Action getAction() {
+        return a;
+      }
+    };
+  }
+  
+  public static KeyAction type(Key k) {
+    return of(k, Action.TYPE);
+  }
+  
+  public static KeyAction press(Key k) {
+    return of(k, Action.PRESS);
+  }
+  
+  public static KeyAction release(Key k) {
+    return of(k, Action.RELEASE);
+  }
   
 }

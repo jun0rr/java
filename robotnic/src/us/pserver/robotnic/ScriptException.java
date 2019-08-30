@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.robot;
+package us.pserver.robotnic;
 
 
 /**
@@ -48,7 +48,7 @@ public class ScriptException extends RuntimeException {
   }
   
   
-  public static void call(ThrowableRun r) {
+  public static void run(ThrowableRun r) {
     try {
       r.run();
     }

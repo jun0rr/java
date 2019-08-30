@@ -19,13 +19,16 @@
  * endereço 59 Temple Street, Suite 330, Boston, MA 02111-1307 USA.
  */
 
-package us.pserver.robot;
+package us.pserver.robotnic;
 
 import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Label;
 import java.awt.Panel;
@@ -42,6 +45,7 @@ import java.awt.event.MouseEvent;
 import static java.awt.event.MouseEvent.BUTTON1;
 import static java.awt.event.MouseEvent.BUTTON2;
 import static java.awt.event.MouseEvent.BUTTON3;
+import java.util.Arrays;
 
 /**
  *
@@ -111,10 +115,20 @@ public class ScreenPoint {
 
   
   public static void main(String[] args) throws AWTException {
-    Frame f = new Frame();
+    Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).forEach(System.out::println);
+    Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).forEach(g -> System.out.println(g.getIDstring()));
+    System.out.println(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
+    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
+    GraphicsConfiguration gc = gd.getDefaultConfiguration();
+    System.out.println(gc.getBounds());
+    
+    Frame f = new Frame(gc);
     f.setUndecorated(true);
     f.setLayout(null);
-    f.setBounds(0, 0, screenSize.width, screenSize.height);
+    f.setSize(gc.getBounds().width, gc.getBounds().height);
+    f.setLocation(gc.getBounds().x, f.getY());
+    //gd.setFullScreenWindow(f);
+    //f.setBounds(0, 0, screenSize.width, screenSize.height);
     
     Label lbl = new Label();
     lbl.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
@@ -123,7 +137,7 @@ public class ScreenPoint {
     
     ImagePanel pnl = new ImagePanel(getScreenCapture());
     pnl.setLayout(null);
-    pnl.setBounds(f.getBounds());
+    pnl.setBounds(new Rectangle(0, 0, f.getWidth(), f.getHeight()));
     pnl.addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {
@@ -201,6 +215,7 @@ public class ScreenPoint {
     
     pnl.add(lbl);
     f.add(pnl);
+    gd.setFullScreenWindow(f);
     f.setVisible(true);
     pnl.requestFocus();
     pnl.requestFocusInWindow();

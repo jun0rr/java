@@ -3,20 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.robot;
+package us.pserver.robotnic;
 
 
 /**
  *
  * @author juno
  */
-public enum MButton {
+public enum MouseButton {
   
   BUTTON1(1024),
   BUTTON2(2048),
   BUTTON3(4096);
   
-  private MButton(int mask) {
+  private MouseButton(int mask) {
     this.mask = mask;
   }
   
