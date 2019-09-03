@@ -22,7 +22,6 @@
 package us.pserver.screept.action;
 
 import java.awt.Robot;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -44,7 +43,7 @@ public class StringTypeAction implements Consumer<Robot> {
     }
     this.str = str;
     this.actions = str.chars()
-        .mapToObj(c -> KeyboardAction.getKeyboardAction((char)c))
+        .mapToObj(c -> KeyboardAction.getKeyboardAction(c))
         .map(o -> o.orElse(KeyboardAction.QUESTION))
         .peek(System.out::println)
         .collect(Collectors.toList());

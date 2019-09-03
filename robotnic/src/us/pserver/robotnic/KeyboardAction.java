@@ -10,7 +10,7 @@ package us.pserver.robotnic;
  *
  * @author juno
  */
-public enum Shortcut implements Script {
+public enum KeyboardAction implements Script {
   
   COPY(KeyAction.press(Keyboard.CTRL), 
       KeyAction.press(Keyboard.C), 
@@ -40,49 +40,49 @@ public enum Shortcut implements Script {
       KeyAction.release(Keyboard.CTRL)
   ),
   
-  PIPE_ABNT(KeyAction.press(Keyboard.SHIFT), 
+  PIPE(KeyAction.press(Keyboard.SHIFT), 
       KeyAction.press(Keyboard.BACKSLASH), 
       Delay.fixed(50), 
       KeyAction.release(Keyboard.BACKSLASH), 
       KeyAction.release(Keyboard.SHIFT)
   ),
   
-  LESSER_ABNT(KeyAction.press(Keyboard.SHIFT), 
+  LESSER(KeyAction.press(Keyboard.SHIFT), 
       KeyAction.press(Keyboard.COMMA), 
       Delay.fixed(50), 
       KeyAction.release(Keyboard.COMMA), 
       KeyAction.release(Keyboard.SHIFT)
   ),
   
-  GREATER_ABNT(KeyAction.press(Keyboard.SHIFT), 
+  GREATER(KeyAction.press(Keyboard.SHIFT), 
       KeyAction.press(Keyboard.PERIOD), 
       Delay.fixed(50), 
       KeyAction.release(Keyboard.PERIOD), 
       KeyAction.release(Keyboard.SHIFT)
   ),
   
-  SHARP_ABNT(KeyAction.press(Keyboard.SHIFT), 
-      KeyAction.press(Keyboard.N3), 
+  SHARP(KeyAction.press(Keyboard.SHIFT), 
+      KeyAction.press(Keyboard._3), 
       Delay.fixed(50), 
-      KeyAction.release(Keyboard.N3), 
+      KeyAction.release(Keyboard._3), 
       KeyAction.release(Keyboard.SHIFT)
   ),
   
-  PERCENT_ABNT(KeyAction.press(Keyboard.SHIFT), 
-      KeyAction.press(Keyboard.N5), 
+  PERCENT(KeyAction.press(Keyboard.SHIFT), 
+      KeyAction.press(Keyboard._5), 
       Delay.fixed(50), 
-      KeyAction.release(Keyboard.N5), 
+      KeyAction.release(Keyboard._5), 
       KeyAction.release(Keyboard.SHIFT)
   ),
   
-  DEGREES_ABNT(KeyAction.press(Keyboard.ALT_GRAPH), 
+  DEGREES(KeyAction.press(Keyboard.ALT_GRAPH), 
       KeyAction.press(Keyboard.SLASH), 
       Delay.fixed(50), 
       KeyAction.release(Keyboard.SLASH), 
       KeyAction.release(Keyboard.ALT_GRAPH)
   );
   
-  private Shortcut(Script... ss) {
+  private KeyboardAction(Script... ss) {
     this.script = new ScriptCombo(ss);
   }
   

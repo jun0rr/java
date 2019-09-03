@@ -24,7 +24,7 @@ import us.pserver.robotnic.Robotnic;
 import us.pserver.robotnic.Script;
 import us.pserver.robotnic.ScriptCombo;
 import us.pserver.robotnic.ScriptException;
-import us.pserver.robotnic.Shortcut;
+import us.pserver.robotnic.KeyboardAction;
 
 
 /**
@@ -187,7 +187,7 @@ public class DefaultRobotnic implements Robotnic {
   public Robotnic waitFor(String s, Rectangle r) {
     while(true) {
       mdrag(MouseButton.BUTTON1, new Point(r.x, r.y), new Point(r.x + r.width, r.y + r.height));
-      script(Shortcut.COPY);
+      script(KeyboardAction.COPY);
       String str = getClipboardString();
       if(s.equals(str)) break;
       delay(50);

@@ -23,25 +23,30 @@ package us.pserver.screept.action;
 
 import java.awt.Robot;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import us.pserver.robotnic.OS;
 
 /**
  *
  * @author Juno Roesler - juno@pserver.us
  * @version 0.0 - 23 de mai de 2019
  */
-public class KeyTypeAction implements Consumer<Robot> {
+public class NumpadComboAction implements Consumer<Robot> {
   
-  private final int key;
+  private final int[] keys;
   
-  public KeyTypeAction(int key) {
-    this.key = key;
+  public NumpadComboAction(int... keys) {
+    this.keys = keys;
   }
   
   @Override
   public void accept(Robot r) {
-    r.keyPress(key);
-    r.delay(30);
-    r.keyRelease(key);
+    boolean state = OS.isNumLockEnabled();
+    OS.setNumLockEnabled(true);
+    IntStream.of(keys)
+        .mapToObj(k -> new KeyTypeAction(k))
+        .forEach(k -> k.accept(r));
+    OS.setNumLockEnabled(state);
   }
 
 }

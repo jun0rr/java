@@ -22,26 +22,37 @@
 package us.pserver.screept.action;
 
 import java.awt.Robot;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author Juno Roesler - juno@pserver.us
  * @version 0.0 - 23 de mai de 2019
  */
-public class KeyTypeAction implements Consumer<Robot> {
+public class StringTypeAction implements Consumer<Robot> {
   
-  private final int key;
+  private final String str;
   
-  public KeyTypeAction(int key) {
-    this.key = key;
+  private final List<KeyboardAction> actions;
+  
+  public StringTypeAction(String str) {
+    if(str == null || str.isBlank()) {
+      throw new IllegalArgumentException("Bad null/empty string");
+    }
+    this.str = str;
+    this.actions = str.chars()
+        .mapToObj(c -> KeyboardAction.getKeyboardAction(c))
+        .map(o -> o.orElse(KeyboardAction.QUESTION))
+        .peek(System.out::println)
+        .collect(Collectors.toList());
   }
   
   @Override
   public void accept(Robot r) {
-    r.keyPress(key);
-    r.delay(30);
-    r.keyRelease(key);
+    this.actions.forEach(a -> a.accept(r));
   }
 
 }

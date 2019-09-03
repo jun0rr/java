@@ -35,16 +35,18 @@ import java.awt.Panel;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import static java.awt.event.KeyEvent.VK_F5;
 import static java.awt.event.KeyEvent.VK_F6;
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_RIGHT;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import static java.awt.event.MouseEvent.BUTTON1;
 import static java.awt.event.MouseEvent.BUTTON2;
 import static java.awt.event.MouseEvent.BUTTON3;
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 
 /**
@@ -58,7 +60,18 @@ public class ScreenPoint {
   
   private static final Robot robot = getRobot();
   
-  private static final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+  private static GraphicsDevice gdevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+  
+  private static final Rectangle screenArea = getScreenArea();
+  
+  
+  private static Rectangle getScreenArea() {
+    Rectangle2D res = new Rectangle2D.Double();
+    Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices())
+        .stream().map(d -> d.getDefaultConfiguration().getBounds())
+        .forEach(r -> res.union(res, r, res));
+    return res.getBounds();
+  }
   
   
   private static Robot getRobot() {
@@ -70,8 +83,10 @@ public class ScreenPoint {
     }
   }
   
-  private static Image getScreenCapture() {
-    return robot.createScreenCapture(new Rectangle(screenSize));
+  private static Image getScreenCapture(GraphicsDevice gd) {
+    Image img = robot.createScreenCapture(gd.getDefaultConfiguration().getBounds());
+    robot.delay(50);
+    return img;
   }
   
   private static int getMouseButtonMask(int btn) {
@@ -115,29 +130,22 @@ public class ScreenPoint {
 
   
   public static void main(String[] args) throws AWTException {
-    Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).forEach(System.out::println);
-    Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).forEach(g -> System.out.println(g.getIDstring()));
-    System.out.println(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
-    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()[0];
-    GraphicsConfiguration gc = gd.getDefaultConfiguration();
-    System.out.println(gc.getBounds());
-    
+    System.out.printf("-- GraphicsDevice{name=%s, bounds=%s}\n", gdevice.getIDstring(), gdevice.getDefaultConfiguration().getBounds());
+    GraphicsConfiguration gc = gdevice.getDefaultConfiguration();
     Frame f = new Frame(gc);
     f.setUndecorated(true);
     f.setLayout(null);
-    f.setSize(gc.getBounds().width, gc.getBounds().height);
-    f.setLocation(gc.getBounds().x, f.getY());
-    //gd.setFullScreenWindow(f);
-    //f.setBounds(0, 0, screenSize.width, screenSize.height);
+    Dimension screenSize = gdevice.getDefaultConfiguration().getBounds().getSize();
+    f.setSize(screenSize);
     
     Label lbl = new Label();
     lbl.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
     lbl.setBounds(screenSize.width / 2 - 50, screenSize.height / 2 - 15, 100, 30);
     lbl.setText("0000 x 0000");
     
-    ImagePanel pnl = new ImagePanel(getScreenCapture());
+    ImagePanel pnl = new ImagePanel(getScreenCapture(gdevice));
     pnl.setLayout(null);
-    pnl.setBounds(new Rectangle(0, 0, f.getWidth(), f.getHeight()));
+    pnl.setBounds(0, 0, screenSize.width, screenSize.height);
     pnl.addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {
@@ -149,7 +157,7 @@ public class ScreenPoint {
           case VK_F5:
             System.out.println("VK_F5");
             f.setVisible(false);
-            pnl.setImage(getScreenCapture());
+            pnl.setImage(getScreenCapture(gdevice));
             f.setVisible(true);
             break;
           case VK_F6:
@@ -162,6 +170,50 @@ public class ScreenPoint {
             f.setVisible(true);
             pnl.requestFocus();
             pnl.requestFocusInWindow();
+            break;
+          case VK_RIGHT:
+            if(!e.isControlDown()) break;
+            System.out.println("VK_RIGHT →");
+            var devs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+            for(int i = 0; i < devs.length; i++) {
+              if(devs[i] == gdevice) {
+                if(i < devs.length -1) {
+                  gdevice = devs[i+1];
+                }
+                else {
+                  gdevice = devs[0];
+                }
+                break;
+              }
+            }
+            System.out.printf("-- GraphicsDevice{name=%s, bounds=%s}\n", gdevice.getIDstring(), gdevice.getDefaultConfiguration().getBounds());
+            pnl.setImage(getScreenCapture(gdevice));
+            gdevice.setFullScreenWindow(f);
+            f.setBounds(gdevice.getDefaultConfiguration().getBounds());
+            f.repaint();
+            //f.setVisible(true);
+            //f.requestFocus();
+            break;
+          case VK_LEFT:
+            if(!e.isControlDown()) break;
+            System.out.println("VK_LEFT ←");
+            var devs2 = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+            for(int i = 0; i < devs2.length; i++) {
+              if(devs2[i] == gdevice) {
+                if(i < devs2.length -1) {
+                  gdevice = devs2[i+1];
+                }
+                else {
+                  gdevice = devs2[0];
+                }
+                break;
+              }
+            }
+            System.out.printf("-- GraphicsDevice{name=%s, bounds=%s}\n", gdevice.getIDstring(), gdevice.getDefaultConfiguration().getBounds());
+            pnl.setImage(getScreenCapture(gdevice));
+            gdevice.setFullScreenWindow(f);
+            f.setBounds(gdevice.getDefaultConfiguration().getBounds());
+            f.repaint();
             break;
           default:
             System.out.println(e);
@@ -181,6 +233,7 @@ public class ScreenPoint {
         event = e;
         switch(e.getButton()) {
           case BUTTON1:
+            //Point p = e.getLocationOnScreen();
             Point p = e.getPoint();
             lbl.setText(String.format("%d x %d", p.x, p.y));
             lbl.repaint();
@@ -215,8 +268,8 @@ public class ScreenPoint {
     
     pnl.add(lbl);
     f.add(pnl);
-    gd.setFullScreenWindow(f);
-    f.setVisible(true);
+    gdevice.setFullScreenWindow(f);
+    //f.setVisible(true);
     pnl.requestFocus();
     pnl.requestFocusInWindow();
   }

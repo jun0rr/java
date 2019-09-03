@@ -25,7 +25,7 @@ import java.awt.Robot;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
-import us.pserver.screept.OS;
+import us.pserver.robotnic.OS;
 
 /**
  *
