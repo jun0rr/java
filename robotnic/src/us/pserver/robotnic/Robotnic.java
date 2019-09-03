@@ -5,12 +5,13 @@
  */
 package us.pserver.robotnic;
 
-import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.datatransfer.Transferable;
+import us.pserver.robotnic.impl.DefaultRobotnic;
 
 
 /**
@@ -27,7 +28,9 @@ public interface Robotnic {
   
   public Robotnic setClipboardContent(Transferable t);
   
-  public Robotnic mouse(MouseAction... mas);
+  public boolean getKeyLockState(Key k);
+  
+  public Robotnic setKeyLockState(Key k, boolean state);
   
   public Robotnic mmove(Point p);
   
@@ -45,8 +48,6 @@ public interface Robotnic {
   
   public Robotnic mscroll(int n);
   
-  public Robotnic key(KeyAction... kas);
-  
   public Robotnic kpress(Key k);
   
   public Robotnic krelease(Key k);
@@ -61,10 +62,6 @@ public interface Robotnic {
   
   public Robotnic mixDelay(int fixed, int random);
   
-  public default Dimension screenSize() {
-    return Toolkit.getDefaultToolkit().getScreenSize();
-  }
-  
   public Image screenshot();
   
   public Image screenshot(Rectangle r);
@@ -73,6 +70,18 @@ public interface Robotnic {
   
   public Robotnic waitFor(Image i, Point p);
   
+  public Point find(Image i);
+  
   public Robotnic script(Script... ss);
+  
+  
+  
+  public static Robotnic of(GraphicsDevice gdev) {
+    return new DefaultRobotnic(gdev);
+  }
+  
+  public static Robotnic getDefault() {
+    return new DefaultRobotnic(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice());
+  }
   
 }

@@ -30,7 +30,7 @@ public class Robotnic2 {
       Random rdm = new Random();
       while(true) {
         script(rb, rdm);
-        Sleeper.of(rdm.nextInt(2000*60) + 3000*60).sleep();
+        ScriptException.run(() -> Thread.sleep(rdm.nextInt(2000*60) + 5000*60));
       }
     }
   }

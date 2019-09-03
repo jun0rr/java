@@ -94,18 +94,6 @@ public enum OS {
     return Toolkit.getDefaultToolkit().getLockingKeyState(KeyEvent.VK_SCROLL_LOCK);
   }
   
-  public static void setNumLockEnabled(boolean enabled) {
-    Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_NUM_LOCK, enabled);
-  }
-  
-  public static void setCapsLockEnabled(boolean enabled) {
-    Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_CAPS_LOCK, enabled);
-  }
-  
-  public static void setScrollLockEnabled(boolean enabled) {
-    Toolkit.getDefaultToolkit().setLockingKeyState(KeyEvent.VK_SCROLL_LOCK, enabled);
-  }
-  
   public static Dimension getScreenSize() {
     return Toolkit.getDefaultToolkit().getScreenSize();
   }

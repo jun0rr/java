@@ -5,6 +5,7 @@
  */
 package us.pserver.robotnic.impl;
 
+import java.awt.GraphicsDevice;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -17,14 +18,13 @@ import java.util.Objects;
 import java.util.Random;
 import us.pserver.robotnic.Delay;
 import us.pserver.robotnic.Key;
-import us.pserver.robotnic.KeyAction;
 import us.pserver.robotnic.MouseAction;
 import us.pserver.robotnic.MouseButton;
 import us.pserver.robotnic.Robotnic;
 import us.pserver.robotnic.Script;
 import us.pserver.robotnic.ScriptCombo;
 import us.pserver.robotnic.ScriptException;
-import us.pserver.robotnic.KeyboardAction;
+import us.pserver.robotnic.Keyboard;
 
 
 /**
@@ -33,27 +33,23 @@ import us.pserver.robotnic.KeyboardAction;
  */
 public class DefaultRobotnic implements Robotnic {
   
+  private final GraphicsDevice device;
+  
   private final Robot robot;
   
   private final Random rdm;
   
   
-  public DefaultRobotnic(Robot rbt, Random rdm) {
-    this.robot = Objects.requireNonNull(rbt);
-    this.rdm = Objects.requireNonNull(rdm);
-  }
-  
-  public DefaultRobotnic() {
-    this(ScriptException.call(() -> new Robot()), new Random());
+  public DefaultRobotnic(GraphicsDevice gdev) {
+    this.device = Objects.requireNonNull(gdev);
+    this.robot = ScriptException.call(()->new Robot(device));
+    this.rdm = new Random();
   }
   
   
-  @Override
-  public Robotnic mouse(MouseAction... mas) {
-    return script(new ScriptCombo(mas));
-  }
-
-
+  public 
+  
+  
   @Override
   public Robotnic mmove(Point p) {
     robot.mouseMove(p.x, p.y);
@@ -64,7 +60,7 @@ public class DefaultRobotnic implements Robotnic {
   @Override
   public Robotnic mclick(MouseButton b) {
     robot.mousePress(b.getMask());
-    robot.delay(50);
+    robot.delay(30);
     robot.mouseRelease(b.getMask());
     return this;
   }
@@ -87,7 +83,7 @@ public class DefaultRobotnic implements Robotnic {
 
   @Override
   public Robotnic mdrag(MouseButton b, Point from, Point to) {
-    return script(MouseAction.press(b, from), Delay.fixed(50), MouseAction.release(b, to));
+    return script(MouseAction.press(b, from), Delay.fixed(30), MouseAction.release(b, to));
   }
 
 
@@ -113,12 +109,6 @@ public class DefaultRobotnic implements Robotnic {
 
 
   @Override
-  public Robotnic key(KeyAction... kas) {
-    return script(new ScriptCombo(kas));
-  }
-
-
-  @Override
   public Robotnic kpress(Key k) {
     robot.keyPress(k.getCode());
     return this;
@@ -135,7 +125,7 @@ public class DefaultRobotnic implements Robotnic {
   @Override
   public Robotnic ktype(Key k) {
     robot.keyPress(k.getCode());
-    robot.delay(50);
+    robot.delay(30);
     robot.keyRelease(k.getCode());
     return this;
   }
@@ -173,7 +163,7 @@ public class DefaultRobotnic implements Robotnic {
 
   @Override
   public Image screenshot() {
-    return robot.createScreenCapture(new Rectangle(screenSize()));
+    return robot.createScreenCapture(device.getDefaultConfiguration().getBounds());
   }
 
 
@@ -187,7 +177,7 @@ public class DefaultRobotnic implements Robotnic {
   public Robotnic waitFor(String s, Rectangle r) {
     while(true) {
       mdrag(MouseButton.BUTTON1, new Point(r.x, r.y), new Point(r.x + r.width, r.y + r.height));
-      script(KeyboardAction.COPY);
+      Keyboard.COPY.exec(this);
       String str = getClipboardString();
       if(s.equals(str)) break;
       delay(50);
@@ -202,6 +192,12 @@ public class DefaultRobotnic implements Robotnic {
   }
 
 
+  @Override
+  public Point find(Image i) {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+  
+  
   @Override
   public Robotnic script(Script... ss) {
     new ScriptCombo(ss).exec(this);
@@ -234,5 +230,5 @@ public class DefaultRobotnic implements Robotnic {
   public static void main(String[] args) {
     
   }
-  
+
 }

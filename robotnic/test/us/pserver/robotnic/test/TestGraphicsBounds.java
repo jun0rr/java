@@ -9,9 +9,11 @@ import java.awt.AWTException;
 import java.awt.GraphicsEnvironment;
 import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
+import us.pserver.robotnic.Key;
 
 
 /**
@@ -20,8 +22,10 @@ import java.util.Arrays;
  */
 public class TestGraphicsBounds {
   
+  //[
   
   public static void main(String[] args) throws AWTException {
+    int vk = KeyEvent.VK_0;
     System.out.println(Toolkit.getDefaultToolkit().getScreenSize());
     var ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
     var gds = ge.getScreenDevices();
@@ -36,10 +40,10 @@ public class TestGraphicsBounds {
     System.out.println(res.getBounds());
     
     Robot robot = new Robot();
-    robot.mouseMove(1919, 843);
-    robot.mousePress(MouseEvent.BUTTON3_DOWN_MASK);
-    robot.delay(50);
-    robot.mouseRelease(MouseEvent.BUTTON3_DOWN_MASK);
+    robot.delay(5000);
+    robot.keyPress(KeyEvent.VK_OPEN_BRACKET);
+    robot.delay(30);
+    robot.keyRelease(KeyEvent.VK_OPEN_BRACKET);
   }
   
 }
