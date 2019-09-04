@@ -17,9 +17,14 @@ import java.awt.event.KeyEvent;
  */
 public class TestLockingKeys {
   
+  //]
   
   public static void main(String[] args) throws AWTException {
     Robot r = new Robot();
+    r.delay(5000);
+    r.keyPress(KeyEvent.VK_D);
+    r.delay(30);
+    r.keyRelease(KeyEvent.VK_D);
     r.keyPress(KeyEvent.VK_NUM_LOCK);
     r.delay(30);
     r.keyRelease(KeyEvent.VK_NUM_LOCK);

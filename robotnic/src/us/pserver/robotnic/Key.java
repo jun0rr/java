@@ -40,15 +40,13 @@ public enum Key {
   B(KeyEvent.VK_B, 'b'),
   BACKSLASH(KeyEvent.VK_BACK_SLASH, '\\'),
   BACKSPACE(KeyEvent.VK_BACK_SPACE, "BACKSPACE"),
-  BRACELEFT(KeyEvent.VK_BRACELEFT, '['),
-  BRACERIGHT(KeyEvent.VK_BRACERIGHT, ']'),
+  BRACELEFT(KeyEvent.VK_OPEN_BRACKET, '['),
+  BRACERIGHT(KeyEvent.VK_CLOSE_BRACKET, ']'),
   
   C(KeyEvent.VK_C, 'c'),
   CAPSLOCK(KeyEvent.VK_CAPS_LOCK, "CAPSLOCK"),
-  COLON(KeyEvent.VK_COLON, ':'),
   COMMA(KeyEvent.VK_COMMA, ','),
   CTRL(KeyEvent.VK_CONTROL, "CTRL"),
-  CCEDIL(KeyEvent.VK_DEAD_CEDILLA, 'ç'),
   
   D(KeyEvent.VK_D, 'd'),
   DELETE(KeyEvent.VK_DELETE, "DEL"),

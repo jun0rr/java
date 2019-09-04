@@ -54,8 +54,7 @@ public class NumpadCombo implements Script {
   
   @Override
   public void exec(Robotnic r) throws ScriptException {
-    boolean state = OS.isNumLockEnabled();
-    OS.setNumLockEnabled(true);
+    r.setKeyLockState(Key.NUM_LOCK, true);
     switch(action) {
       case PRESS:
         pressCombo(r);
@@ -69,7 +68,6 @@ public class NumpadCombo implements Script {
       default:
         throw new IllegalArgumentException("Bad KeyCombo Action: " + action);
     }
-    OS.setNumLockEnabled(state);
   }
   
   @Override

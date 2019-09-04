@@ -85,4 +85,10 @@ public class ScriptCombo implements Script {
     return sb.append("]").toString();
   }
   
+  
+  
+  public static ScriptCombo of(Script... ss) {
+    return new ScriptCombo(ss);
+  }
+  
 }

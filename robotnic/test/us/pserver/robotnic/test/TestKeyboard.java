@@ -16,12 +16,18 @@ import us.pserver.robotnic.Robotnic;
  */
 public class TestKeyboard {
   
-  //
+  //©{}dD
   
   public static void main(String[] args) {
     Robotnic r = Robotnic.getDefault();
-    r.delay(5000);
-    Stream.of(Keyboard.values()).forEach(k -> k.exec(r));
+    Keyboard.COPYRIGHT.exec(r);
+    Keyboard.CURLY_BRACE_LEFT.exec(r);
+    Keyboard.CURLY_BRACE_RIGHT.exec(r);
+    Keyboard.D_LOWER.exec(r);
+    Keyboard.D_UPPER.exec(r);
+    
+    //r.delay(5000);
+    //Stream.of(Keyboard.values()).forEach(k -> k.exec(r));
   }
   
 }

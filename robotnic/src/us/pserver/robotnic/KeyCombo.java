@@ -21,6 +21,7 @@ public class KeyCombo implements Script {
   
   private final Key[] keys;
   
+  
   public KeyCombo(Action a, Key... ks) {
     this.action = Objects.requireNonNull(a);
     this.keys = Objects.requireNonNull(ks);

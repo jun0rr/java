@@ -37,6 +37,8 @@ public class DefaultRobotnic implements Robotnic {
   
   private final Robot robot;
   
+  private final Toolkit toolkit;
+  
   private final Random rdm;
   
   
@@ -44,10 +46,8 @@ public class DefaultRobotnic implements Robotnic {
     this.device = Objects.requireNonNull(gdev);
     this.robot = ScriptException.call(()->new Robot(device));
     this.rdm = new Random();
+    this.toolkit = Toolkit.getDefaultToolkit();
   }
-  
-  
-  public 
   
   
   @Override
@@ -124,12 +124,13 @@ public class DefaultRobotnic implements Robotnic {
 
   @Override
   public Robotnic ktype(Key k) {
+    System.out.printf("* robotnic.ktype( Key{name=%s,char=%s,code=%d} )%n", k.name(), k.getChar(), k.getCode());
     robot.keyPress(k.getCode());
     robot.delay(30);
     robot.keyRelease(k.getCode());
     return this;
   }
-
+  
 
   @Override
   public Robotnic ktype(String s) {
@@ -177,7 +178,7 @@ public class DefaultRobotnic implements Robotnic {
   public Robotnic waitFor(String s, Rectangle r) {
     while(true) {
       mdrag(MouseButton.BUTTON1, new Point(r.x, r.y), new Point(r.x + r.width, r.y + r.height));
-      Keyboard.COPY.exec(this);
+      //Keyboard.COPY.exec(this);
       String str = getClipboardString();
       if(s.equals(str)) break;
       delay(50);
@@ -226,9 +227,25 @@ public class DefaultRobotnic implements Robotnic {
     return this;
   }
   
+  @Override
+  public boolean getKeyLockState(Key k) {
+    return toolkit.getLockingKeyState(k.getCode());
+  }
+  
+
+  @Override
+  public Robotnic setKeyLockState(Key k, boolean state) {
+    if(toolkit.getLockingKeyState(k.getCode()) != state) {
+      this.ktype(k);
+      this.delay(30);
+    }
+    return this;
+  }
+
   
   public static void main(String[] args) {
     
   }
+
 
 }
