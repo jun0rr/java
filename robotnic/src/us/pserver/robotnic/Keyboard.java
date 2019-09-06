@@ -15,6 +15,17 @@ import java.util.stream.Stream;
  */
 public enum Keyboard implements Script {
   
+  _0('0', KeyAction.press(Key._0)),
+  _1('1', KeyAction.press(Key._1)),
+  _2('2', KeyAction.press(Key._2)),
+  _3('3', KeyAction.press(Key._3)),
+  _4('4', KeyAction.press(Key._4)),
+  _5('5', KeyAction.press(Key._5)),
+  _6('6', KeyAction.press(Key._6)),
+  _0('7', KeyAction.press(Key._7)),
+  _0('8', KeyAction.press(Key._8)),
+  _0('9', KeyAction.press(Key._9)),
+  
   A_LOWER('a', 
       r->r.setKeyLockState(Key.CAPSLOCK, false), 
       KeyAction.type(Key.A)
@@ -183,7 +194,7 @@ public enum Keyboard implements Script {
       KeyCombo.press(Key.SHIFT, Key._6),
       KeyAction.type(Key.E)
   ),
-  //ENTER('\n', KeyAction.type(Key.ENTER)),
+  ENTER('\n', KeyAction.type(Key.ENTER)),
   EQUALS('=', KeyAction.type(Key.EQUALS)),
   EUR('€', OS.isWindows() ? ScriptCombo.of(r->r.setKeyLockState(Key.NUM_LOCK, true), KeyCombo.press(Key.ALT, Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_2, Key.NUMPAD_8)) : KeyCombo.press(Key.ALTGR, Key.E)),
   EXCLAMATION('!', KeyCombo.press(Key.SHIFT, Key._1)),
@@ -608,35 +619,35 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.Z)
   ),
 
-  //INSERT((char)-1, KeyAction.type(Key.INSERT)),
-  //HOME((char)-2, KeyAction.type(Key.HOME)),
-  //PAGE_UP((char)-3, KeyAction.type(Key.PG_UP)),
-  //DELETE((char)-4, KeyAction.type(Key.DELETE)),
-  //END((char)-5, KeyAction.type(Key.END)),
-  //PAGE_DOWN((char)-6, KeyAction.type(Key.PG_DOWN)),
+  INSERT((char)-1, KeyAction.type(Key.INSERT)),
+  HOME((char)-2, KeyAction.type(Key.HOME)),
+  PAGE_UP((char)-3, KeyAction.type(Key.PG_UP)),
+  DELETE((char)-4, KeyAction.type(Key.DELETE)),
+  END((char)-5, KeyAction.type(Key.END)),
+  PAGE_DOWN((char)-6, KeyAction.type(Key.PG_DOWN)),
   
-  //SHIFT((char)-10, KeyAction.type(Key.SHIFT)),
-  //CONTROL((char)-11, KeyAction.type(Key.CTRL)),
-  //ALT((char)-12, KeyAction.type(Key.ALT)),
-  //ALTGR((char)-13, KeyAction.type(Key.ALTGR)),
+  SHIFT((char)-10, KeyAction.type(Key.SHIFT)),
+  CONTROL((char)-11, KeyAction.type(Key.CTRL)),
+  ALT((char)-12, KeyAction.type(Key.ALT)),
+  ALTGR((char)-13, KeyAction.type(Key.ALTGR)),
   
-  //NUM_LOCK((char)-15, KeyAction.type(Key.NUM_LOCK)),
-  //NUM_LOCK_ENABLED((char)-16, r->r.setKeyLockState(Key.NUM_LOCK, true)),
-  //NUM_LOCK_DISABLED((char)-17, r->r.setKeyLockState(Key.NUM_LOCK, false)),
-  //SCROLL_LOCK((char)-18, KeyAction.type(Key.SCROLL_LOCK)),
-  //SCROLL_LOCK_ENABLED((char)-19, r->r.setKeyLockState(Key.SCROLL_LOCK, true)),
-  //SCROLL_LOCK_DISABLED((char)-20, r->r.setKeyLockState(Key.SCROLL_LOCK, false)),
-  //CAPS_LOCK((char)-21, KeyAction.type(Key.CAPSLOCK)),
-  //CAPS_LOCK_ENABLED((char)-22, r->r.setKeyLockState(Key.CAPSLOCK, true)),
-  //CAPS_LOCK_DISABLED((char)-23, r->r.setKeyLockState(Key.CAPSLOCK, false)),
-  //PRINT_SCREEN((char)-24, KeyAction.type(Key.PRINTSCREEN)),
-  //ESCAPE((char)-26, KeyAction.type(Key.ESCAPE)),
-  //WINDOWS((char)-27, KeyAction.type(Key.WIN)),
+  NUM_LOCK((char)-15, KeyAction.type(Key.NUM_LOCK)),
+  NUM_LOCK_ENABLED((char)-16, r->r.setKeyLockState(Key.NUM_LOCK, true)),
+  NUM_LOCK_DISABLED((char)-17, r->r.setKeyLockState(Key.NUM_LOCK, false)),
+  SCROLL_LOCK((char)-18, KeyAction.type(Key.SCROLL_LOCK)),
+  SCROLL_LOCK_ENABLED((char)-19, r->r.setKeyLockState(Key.SCROLL_LOCK, true)),
+  SCROLL_LOCK_DISABLED((char)-20, r->r.setKeyLockState(Key.SCROLL_LOCK, false)),
+  CAPS_LOCK((char)-21, KeyAction.type(Key.CAPSLOCK)),
+  CAPS_LOCK_ENABLED((char)-22, r->r.setKeyLockState(Key.CAPSLOCK, true)),
+  CAPS_LOCK_DISABLED((char)-23, r->r.setKeyLockState(Key.CAPSLOCK, false)),
+  PRINT_SCREEN((char)-24, KeyAction.type(Key.PRINTSCREEN)),
+  ESCAPE((char)-26, KeyAction.type(Key.ESCAPE)),
+  WINDOWS((char)-27, KeyAction.type(Key.WIN)),
 
-  //COPY((char)-28, KeyCombo.press(Key.CTRL, Key.C)),
-  //CUT((char)-29, KeyCombo.press(Key.CTRL, Key.X)),
-  //PASTE((char)-30, KeyCombo.press(Key.CTRL, Key.V)),
-  //UNDO((char)-31, KeyCombo.press(Key.CTRL, Key.Z));
+  COPY((char)-28, KeyCombo.press(Key.CTRL, Key.C)),
+  CUT((char)-29, KeyCombo.press(Key.CTRL, Key.X)),
+  PASTE((char)-30, KeyCombo.press(Key.CTRL, Key.V)),
+  UNDO((char)-31, KeyCombo.press(Key.CTRL, Key.Z));
   ;
   
   private Keyboard(char c, Script... ss) {

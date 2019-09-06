@@ -5,10 +5,12 @@
  */
 package us.pserver.robotnic;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 
 /**
@@ -17,15 +19,18 @@ import java.util.Set;
  */
 public class ScriptCombo implements Script {
   
-  private final Set<Script> actions;
+  private final List<Script> actions;
   
   public ScriptCombo() {
-    this.actions = new HashSet<>();
+    this(Collections.EMPTY_LIST);
   }
   
   public ScriptCombo(Script... ss) {
-    this();
-    Arrays.asList(ss).forEach(this::add);
+    this(Arrays.asList(ss));
+  }
+  
+  public ScriptCombo(Collection<Script> ss) {
+    this.actions = new ArrayList<>(ss);
   }
   
   public ScriptCombo add(Script s) {
