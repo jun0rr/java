@@ -66,6 +66,8 @@ public interface Robotnic {
   
   public Image screenshot(Rectangle r);
   
+  public Robotnic stringType(String s);
+  
   public Robotnic waitFor(String s, Rectangle r);
   
   public Robotnic waitFor(Image i, Point p);

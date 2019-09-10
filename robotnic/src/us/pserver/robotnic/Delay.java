@@ -16,7 +16,7 @@ public interface Delay extends Script {
   public static Delay fixed(int ms) {
     return new Delay() {
       @Override
-      public void exec(Robotnic r) throws ScriptException {
+      public void accept(Robotnic r) throws ScriptException {
         r.delay(ms);
       }
     };
@@ -25,7 +25,7 @@ public interface Delay extends Script {
   public static Delay random(int until) {
     return new Delay() {
       @Override
-      public void exec(Robotnic r) throws ScriptException {
+      public void accept(Robotnic r) throws ScriptException {
         r.randomDelay(until);
       }
     };
@@ -34,7 +34,7 @@ public interface Delay extends Script {
   public static Delay mix(int fixed, int random) {
     return new Delay() {
       @Override
-      public void exec(Robotnic r) throws ScriptException {
+      public void accept(Robotnic r) throws ScriptException {
         r.mixDelay(fixed, random);
       }
     };

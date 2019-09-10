@@ -24,10 +24,12 @@ public class RepeatingCombo implements Script {
     this.times = n;
   }
   
-  public void exec(Robotnic r) {
+  @Override
+  public void accept(Robotnic r) {
     IntStream.range(0, times)
+        .peek(k -> System.out.printf("* typing: %s%n", k))
         .mapToObj(i -> KeyAction.type(key))
-        .forEach(k -> k.exec(r));
+        .forEach(k -> k.accept(r));
   }
   
   @Override

@@ -46,6 +46,7 @@ public enum Key {
   C(KeyEvent.VK_C, 'c'),
   CAPSLOCK(KeyEvent.VK_CAPS_LOCK, "CAPSLOCK"),
   COMMA(KeyEvent.VK_COMMA, ','),
+  COMPOSE(KeyEvent.VK_COMPOSE, "COMPOSE"),
   CTRL(KeyEvent.VK_CONTROL, "CTRL"),
   
   D(KeyEvent.VK_D, 'd'),
@@ -125,6 +126,7 @@ public enum Key {
   SCROLL_LOCK(KeyEvent.VK_SCROLL_LOCK, "SCROLL_LOCK"),
   SEMICOLON(KeyEvent.VK_SEMICOLON, ';'),
   SHIFT(KeyEvent.VK_SHIFT, "SHIFT"),
+  //SLASH(KeyEvent.VK_DIVIDE, '/'),
   SLASH(KeyEvent.VK_SLASH, '/'),
   SPACE(KeyEvent.VK_SPACE, ' '),
   

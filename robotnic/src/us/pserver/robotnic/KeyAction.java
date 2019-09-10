@@ -17,7 +17,7 @@ public interface KeyAction extends Script {
   public Action getAction();
   
   @Override
-  public default void exec(Robotnic r) throws ScriptException {
+  public default void accept(Robotnic r) throws ScriptException {
     switch(getAction()) {
       case PRESS:
         r.kpress(getKey());

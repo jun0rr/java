@@ -15,6 +15,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import us.pserver.robotnic.Delay;
 import us.pserver.robotnic.Key;
@@ -172,6 +173,18 @@ public class DefaultRobotnic implements Robotnic {
   public Image screenshot(Rectangle r) {
     return robot.createScreenCapture(r);
   }
+  
+  
+  @Override
+  public Robotnic stringType(String s) {
+    s.chars()
+        .mapToObj(i->Keyboard.getByChar((char)i))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .peek(k->System.out.println(k.name()))
+        .forEach(k->k.accept(this));
+    return this;
+  }
 
 
   @Override
@@ -201,7 +214,7 @@ public class DefaultRobotnic implements Robotnic {
   
   @Override
   public Robotnic script(Script... ss) {
-    new ScriptCombo(ss).exec(this);
+    new ScriptCombo(ss).accept(this);
     return this;
   }
   

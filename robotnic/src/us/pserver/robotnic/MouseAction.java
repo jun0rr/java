@@ -23,7 +23,7 @@ public interface MouseAction extends Script {
   public int getAmount();
   
   @Override
-  public default void exec(Robotnic r) throws ScriptException {
+  public default void accept(Robotnic r) throws ScriptException {
     if(getPoint() != null) {
       r.mmove(getPoint());
     }

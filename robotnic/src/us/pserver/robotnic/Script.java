@@ -5,14 +5,21 @@
  */
 package us.pserver.robotnic;
 
+import java.util.function.Consumer;
+
 
 /**
  *
  * @author juno
  */
 @FunctionalInterface
-public interface Script {
+public interface Script extends Consumer<Robotnic> {
 
-  public void exec(Robotnic r) throws ScriptException;
+  /**
+   * {@inheritDoc}
+   * @throws ScriptException in case of error executing script.
+   */
+  @Override
+  public void accept(Robotnic r) throws ScriptException;
   
 }

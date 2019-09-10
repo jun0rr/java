@@ -49,8 +49,8 @@ public class ScriptCombo implements Script {
   }
   
   @Override
-  public void exec(Robotnic r) throws ScriptException {
-    actions.forEach(s -> s.exec(r));
+  public void accept(Robotnic r) throws ScriptException {
+    actions.forEach(s -> s.accept(r));
   }
 
 

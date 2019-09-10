@@ -36,25 +36,25 @@ public class KeyCombo implements Script {
   }
   
   private void pressCombo(Robotnic r) {
-    Stream.of(keys).map(KeyAction::press).forEach(a->a.exec(r));
+    Stream.of(keys).map(KeyAction::press).forEach(a->a.accept(r));
     r.delay(30);
     Stream.of(keys).map(Indexed.builder())
         .sorted(Comparator.reverseOrder())
         .map(Indexed::value)
         .map(KeyAction::release)
-        .forEach(a -> a.exec(r));
+        .forEach(a -> a.accept(r));
   }
   
   private void typeCombo(Robotnic r) {
-    Stream.of(keys).map(KeyAction::type).forEach(a->a.exec(r));
+    Stream.of(keys).map(KeyAction::type).forEach(a->a.accept(r));
   }
   
   private void releaseCombo(Robotnic r) {
-    Stream.of(keys).map(KeyAction::release).forEach(a->a.exec(r));
+    Stream.of(keys).map(KeyAction::release).forEach(a->a.accept(r));
   }
   
   @Override
-  public void exec(Robotnic r) throws ScriptException {
+  public void accept(Robotnic r) throws ScriptException {
     switch(action) {
       case PRESS:
         pressCombo(r);
