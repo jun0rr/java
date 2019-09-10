@@ -24,7 +24,6 @@ public class PressedKeyCombo implements Script {
   public void accept(Robotnic r) throws ScriptException {
     KeyAction.press(keys[0]).accept(r);
     Stream.of(keys).skip(1).map(k->KeyAction.type(k)).forEach(a->a.accept(r));
-    r.delay(30);
     KeyAction.release(keys[0]).accept(r);
   }
   

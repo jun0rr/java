@@ -30,60 +30,60 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.A)
   ),
   A_UPPER('A', 
-      KeyCombo.press(Key.SHIFT, Key.A)
+      PressedKeyCombo.of(Key.SHIFT, Key.A)
   ),
   A_ACUTE_LOWER('á', 
       KeyCombo.type(Key.ACUTE, Key.A)
   ),
   A_ACUTE_UPPER('Á', 
       KeyAction.type(Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.A)
+      PressedKeyCombo.of(Key.SHIFT, Key.A)
   ),
   A_CIRC_LOWER('â', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.A)
   ),
   A_CIRC_UPPER('Â', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.A)
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.A)
   ),
   A_GRAVE_LOWER('à', 
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
       KeyAction.type(Key.A)
   ),
   A_GRAVE_UPPER('À', 
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.A)
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.A)
   ),
   A_TILDE_LOWER('ã', 
       KeyCombo.type(Key.TILDE, Key.A)
   ),
   A_TILDE_UPPER('Ã', 
       KeyAction.type(Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.A)
+      PressedKeyCombo.of(Key.SHIFT, Key.A)
   ),
   A_UMBRA_LOWER('ä', 
-      KeyCombo.press(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
       KeyAction.type(Key.A)
   ),
   A_UMBRA_UPPER('Ä', 
-      KeyCombo.press(Key.SHIFT, Key._6),
-      KeyCombo.press(Key.SHIFT, Key.A)
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key.A)
   ),
   ACUTE('\'', KeyCombo.type(Key.ACUTE, Key.SPACE)),
-  AMPERSAND('&', KeyCombo.press(Key.SHIFT, Key._7)),
+  AMPERSAND('&', PressedKeyCombo.of(Key.SHIFT, Key._7)),
   ARROW_DOWN('↓', KeyAction.type(Key.ARROW_DOWN)),
   ARROW_LEFT('←', KeyAction.type(Key.ARROW_LEFT)),
   ARROW_RIGHT('→', KeyAction.type(Key.ARROW_RIGHT)),
   ARROW_UP('↑', KeyAction.type(Key.ARROW_UP)),
-  ASTERISC('*', KeyCombo.press(Key.SHIFT, Key._8)),
-  AT('@', KeyCombo.press(Key.SHIFT, Key._2)),
+  ASTERISC('*', PressedKeyCombo.of(Key.SHIFT, Key._8)),
+  AT('@', PressedKeyCombo.of(Key.SHIFT, Key._2)),
   
   B_LOWER('b', 
       KeyAction.type(Key.B)
   ),
   B_UPPER('B', 
-      KeyCombo.press(Key.SHIFT, Key.B)
+      PressedKeyCombo.of(Key.SHIFT, Key.B)
   ),
   BACKSLASH('\\', KeyAction.type(Key.BACKSLASH)),
   BACKSPACE('\b', KeyAction.type(Key.BACKSPACE)),
@@ -94,7 +94,7 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.C)
   ),
   C_UPPER('C', 
-      KeyCombo.press(Key.SHIFT, Key.C)
+      PressedKeyCombo.of(Key.SHIFT, Key.C)
   ),
   CCEDIL_LOWER('ç', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_2, Key.NUMPAD_3, Key.NUMPAD_1) 
@@ -105,23 +105,23 @@ public enum Keyboard implements Script {
       : ComposeKeyCombo.of(KeyAction.type(Key.COMMA), PressedKeyCombo.of(Key.SHIFT, Key.C))
   ),
   CIRC('^', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.SPACE)
   ),
-  COLON(':', KeyCombo.press(Key.SHIFT, Key.SEMICOLON)),
+  COLON(':', PressedKeyCombo.of(Key.SHIFT, Key.SEMICOLON)),
   COMMA(',', KeyAction.type(Key.COMMA)),
   COPYRIGHT('©', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_6, Key.NUMPAD_9) 
       : ComposeKeyCombo.of(Key.O, Key.C)
   ),
-  CURLY_BRACE_LEFT('{', KeyCombo.press(Key.SHIFT, Key.BRACELEFT)),
-  CURLY_BRACE_RIGHT('}', KeyCombo.press(Key.SHIFT, Key.BRACERIGHT)),
+  CURLY_BRACE_LEFT('{', PressedKeyCombo.of(Key.SHIFT, Key.BRACELEFT)),
+  CURLY_BRACE_RIGHT('}', PressedKeyCombo.of(Key.SHIFT, Key.BRACERIGHT)),
 
   D_LOWER('d',
       KeyAction.type(Key.D)
   ),
   D_UPPER('D',
-      KeyCombo.press(Key.SHIFT, Key.D)
+      PressedKeyCombo.of(Key.SHIFT, Key.D)
   ),
   DEGREES('°', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_7, Key.NUMPAD_6) 
@@ -131,51 +131,51 @@ public enum Keyboard implements Script {
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_2, Key.NUMPAD_4, Key.NUMPAD_7) 
       : ComposeKeyCombo.of(PressedKeyCombo.of(Key.SHIFT, Key.SEMICOLON), KeyAction.type(Key.MINUS))
   ),
-  DOLLAR('$', KeyCombo.press(Key.SHIFT, Key._4)),
+  DOLLAR('$', PressedKeyCombo.of(Key.SHIFT, Key._4)),
 
   E_LOWER('e',
       KeyAction.type(Key.E)
   ),
   E_UPPER('E',
-      KeyCombo.press(Key.SHIFT, Key.E)
+      PressedKeyCombo.of(Key.SHIFT, Key.E)
   ),
   E_GRAVE_LOWER('è',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
       KeyAction.type(Key.E)
   ),
   E_GRAVE_UPPER('È',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.E)
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.E)
   ),
   E_ACUTE_LOWER('é', 
       KeyCombo.type(Key.ACUTE, Key.E)
   ),
   E_ACUTE_UPPER('É', 
       KeyAction.type(Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.E)
+      PressedKeyCombo.of(Key.SHIFT, Key.E)
   ),
   E_CIRC_LOWER('ê', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.E)
   ),
   E_CIRC_UPPER('Ê', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.E)
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.E)
   ),
   E_TILDE_LOWER('ẽ', 
       KeyCombo.press(Key.TILDE, Key.E)
   ),
   E_TILDE_UPPER('Ẽ', 
       KeyAction.type(Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.E)
+      PressedKeyCombo.of(Key.SHIFT, Key.E)
   ),
   E_UMBRA_LOWER('ë', 
-      KeyCombo.press(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
       KeyAction.type(Key.E)
   ),
   E_UMBRA_UPPER('Ë', 
-      KeyCombo.press(Key.SHIFT, Key._6),
-      KeyCombo.press(Key.SHIFT, Key.E)
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key.E)
   ),
   ENTER('\n', KeyAction.type(Key.ENTER)),
   EQUALS('=', KeyAction.type(Key.EQUALS)),
@@ -183,13 +183,13 @@ public enum Keyboard implements Script {
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_2, Key.NUMPAD_8) 
       : ComposeKeyCombo.of(Key.EQUALS, Key.C)
   ),
-  EXCLAMATION('!', KeyCombo.press(Key.SHIFT, Key._1)),
+  EXCLAMATION('!', PressedKeyCombo.of(Key.SHIFT, Key._1)),
 
   F_LOWER('f',
       KeyAction.type(Key.F)
   ),
   F_UPPER('F',
-      KeyCombo.press(Key.SHIFT, Key.F)
+      PressedKeyCombo.of(Key.SHIFT, Key.F)
   ),
   FRACTION_1_2('½', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_8, Key.NUMPAD_9) 
@@ -208,94 +208,94 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.G)
   ),
   G_UPPER('G',
-      KeyCombo.press(Key.SHIFT, Key.G)
+      PressedKeyCombo.of(Key.SHIFT, Key.G)
   ),
-  GRAVE('`', KeyCombo.press(Key.SHIFT, Key.ACUTE), KeyAction.type(Key.SPACE)),
-  GREATER('>', KeyCombo.press(Key.SHIFT, Key.PERIOD)),
+  GRAVE('`', PressedKeyCombo.of(Key.SHIFT, Key.ACUTE), KeyAction.type(Key.SPACE)),
+  GREATER('>', PressedKeyCombo.of(Key.SHIFT, Key.PERIOD)),
   
   H_LOWER('h',
       KeyAction.type(Key.H)
   ),
   H_UPPER('H',
-      KeyCombo.press(Key.SHIFT, Key.H)
+      PressedKeyCombo.of(Key.SHIFT, Key.H)
   ),
   
   I_LOWER('i',
       KeyAction.type(Key.I)
   ),
   I_UPPER('I',
-      KeyCombo.press(Key.SHIFT, Key.I)
+      PressedKeyCombo.of(Key.SHIFT, Key.I)
   ),
   I_GRAVE_LOWER('ì',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
       KeyAction.type(Key.I)
   ),
   I_GRAVE_UPPER('Ì',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.I)
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.I)
   ),
   I_ACUTE_LOWER('í', 
       KeyCombo.type(Key.ACUTE, Key.I)
   ),
   I_ACUTE_UPPER('Í', 
       KeyCombo.type(Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.I)
+      PressedKeyCombo.of(Key.SHIFT, Key.I)
   ),
   I_CIRC_LOWER('î', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.I)
   ),
   I_CIRC_UPPER('Î', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.I)
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.I)
   ),
   I_TILDE_LOWER('ĩ', 
       KeyCombo.type(Key.TILDE, Key.I)
   ),
   I_TILDE_UPPER('Ĩ', 
       KeyCombo.type(Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.I)
+      PressedKeyCombo.of(Key.SHIFT, Key.I)
   ),
   I_UMBRA_LOWER('ï', 
-      KeyCombo.press(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
       KeyAction.type(Key.I)
   ),
   I_UMBRA_UPPER('Ï', 
-      KeyCombo.press(Key.SHIFT, Key._6),
-      KeyCombo.press(Key.SHIFT, Key.I)
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key.I)
   ),
 
   J_LOWER('j',
       KeyAction.type(Key.J)
   ),
   J_UPPER('J',
-      KeyCombo.press(Key.SHIFT, Key.J)
+      PressedKeyCombo.of(Key.SHIFT, Key.J)
   ),
   
   K_LOWER('k',
       KeyAction.type(Key.K)
   ),
   K_UPPER('K',
-      KeyCombo.press(Key.SHIFT, Key.K)
+      PressedKeyCombo.of(Key.SHIFT, Key.K)
   ),
   
   L_LOWER('l',
       KeyAction.type(Key.L)
   ),
   L_UPPER('L',
-      KeyCombo.press(Key.SHIFT, Key.L)
+      PressedKeyCombo.of(Key.SHIFT, Key.L)
   ),
   LEFTDBL('«', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_7, Key.NUMPAD_1) 
       : ComposeKeyCombo.of(PressedKeyCombo.of(Key.SHIFT, Key.COMMA, Key.COMMA))
   ),
-  LESSER('<', KeyCombo.press(Key.SHIFT, Key.COMMA)),
+  LESSER('<', PressedKeyCombo.of(Key.SHIFT, Key.COMMA)),
   
   M_LOWER('m',
       KeyAction.type(Key.M)
   ),
   M_UPPER('M',
-      KeyCombo.press(Key.SHIFT, Key.M)
+      PressedKeyCombo.of(Key.SHIFT, Key.M)
   ),
   MINUS('-', KeyAction.type(Key.MINUS)),
   MORE_OR_LESS('±', OS.isWindows() 
@@ -311,7 +311,7 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.N)
   ),
   N_UPPER('N',
-      KeyCombo.press(Key.SHIFT, Key.N)
+      PressedKeyCombo.of(Key.SHIFT, Key.N)
   ),
   NUMPAD_0('0', KeyAction.type(Key.NUMPAD_0)),
   NUMPAD_1('1', KeyAction.type(Key.NUMPAD_1)),
@@ -328,63 +328,63 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.O)
   ),
   O_UPPER('O',
-      KeyCombo.press(Key.SHIFT, Key.O)
+      PressedKeyCombo.of(Key.SHIFT, Key.O)
   ),
   O_GRAVE_LOWER('ò',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
       KeyAction.type(Key.O)
   ),
   O_GRAVE_UPPER('Ò',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.O)
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.O)
   ),
   O_ACUTE_LOWER('ó', 
       KeyCombo.type(Key.ACUTE, Key.O)
   ),
   O_ACUTE_UPPER('Ó', 
       KeyCombo.type(Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.O)
+      PressedKeyCombo.of(Key.SHIFT, Key.O)
   ),
   O_CIRC_LOWER('ô', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.O)
   ),
   O_CIRC_UPPER('Ô', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
-     KeyCombo.press(Key.SHIFT, Key.O)
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
+     PressedKeyCombo.of(Key.SHIFT, Key.O)
   ),
   O_TILDE_LOWER('õ', 
       KeyCombo.press(Key.TILDE, Key.O)
   ),
   O_TILDE_UPPER('Ô', 
       KeyCombo.type(Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.O)
+      PressedKeyCombo.of(Key.SHIFT, Key.O)
   ),
   O_UMBRA_LOWER('ö', 
-      KeyCombo.press(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
       KeyAction.type(Key.O)
   ),
   O_UMBRA_UPPER('Ö', 
-      KeyCombo.press(Key.SHIFT, Key._6),
-      KeyCombo.press(Key.SHIFT, Key.O)
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key.O)
   ),
   
   P_LOWER('p',
       KeyAction.type(Key.P)
   ),
   P_UPPER('P',
-      KeyCombo.press(Key.SHIFT, Key.P)
+      PressedKeyCombo.of(Key.SHIFT, Key.P)
   ),
   PARAGRAPH('—', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_1, Key.NUMPAD_9, Key.NUMPAD_6) 
       : ComposeKeyCombo.of(Key.MINUS, Key.MINUS, Key.MINUS)
   ),
-  PARENTHESIS_LEFT('(', KeyCombo.press(Key.SHIFT, Key._9)),  
-  PARENTHESIS_RIGHT(')', KeyCombo.press(Key.SHIFT, Key._0)),  
-  PERCENT('%', KeyCombo.press(Key.SHIFT, Key._5)),
+  PARENTHESIS_LEFT('(', PressedKeyCombo.of(Key.SHIFT, Key._9)),  
+  PARENTHESIS_RIGHT(')', PressedKeyCombo.of(Key.SHIFT, Key._0)),  
+  PERCENT('%', PressedKeyCombo.of(Key.SHIFT, Key._5)),
   PERIOD('.', KeyAction.type(Key.PERIOD)),
-  PIPE('|', KeyCombo.press(Key.SHIFT, Key.BACKSLASH)),
-  PLUS('+', KeyCombo.press(Key.SHIFT, Key.EQUALS)),
+  PIPE('|', PressedKeyCombo.of(Key.SHIFT, Key.BACKSLASH)),
+  PLUS('+', PressedKeyCombo.of(Key.SHIFT, Key.EQUALS)),
   POUND('£', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_6, Key.NUMPAD_3) 
       : ComposeKeyCombo.of(Key.L, Key.MINUS)
@@ -394,10 +394,10 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.Q)
   ),
   Q_UPPER('Q',
-      KeyCombo.press(Key.SHIFT, Key.Q)
+      PressedKeyCombo.of(Key.SHIFT, Key.Q)
   ),
   QUOTE('\'', KeyAction.type(Key.QUOTE)),
-  QUOTEDBL('"', KeyCombo.press(Key.SHIFT, Key.QUOTE)),
+  QUOTEDBL('"', PressedKeyCombo.of(Key.SHIFT, Key.QUOTE)),
   QUESTION('?', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_6, Key.NUMPAD_3) 
       : PressedKeyCombo.of(Key.SHIFT, Key.SLASH)
@@ -407,7 +407,7 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.R)
   ),
   R_UPPER('R',
-      KeyCombo.press(Key.SHIFT, Key.R)
+      PressedKeyCombo.of(Key.SHIFT, Key.R)
   ),
   REGISTERED('®', OS.isWindows() 
       ? WindowsAltCombo.of(Key.NUMPAD_0, Key.NUMPAD_1, Key.NUMPAD_7, Key.NUMPAD_4) 
@@ -422,10 +422,10 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.S)
   ),
   S_UPPER('S',
-      KeyCombo.press(Key.SHIFT, Key.S)
+      PressedKeyCombo.of(Key.SHIFT, Key.S)
   ),
   SEMICOLON(';', KeyAction.type(Key.SEMICOLON)),
-  SHARP('#', KeyCombo.press(Key.SHIFT, Key._3)),
+  SHARP('#', PressedKeyCombo.of(Key.SHIFT, Key._3)),
   SLASH('/', KeyAction.type(Key.SLASH)),
   SPACE(' ', KeyAction.type(Key.SPACE)),
   SUPER_1('¹', KeyCombo.press(Key.ALTGR, Key._1)),
@@ -452,7 +452,7 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.T)
   ),
   T_UPPER('T',
-      KeyCombo.press(Key.SHIFT, Key.T)
+      PressedKeyCombo.of(Key.SHIFT, Key.T)
   ),
   TAB('\t', KeyAction.type(Key.TAB)),
   TILDE('~', KeyAction.type(Key.TILDE), KeyAction.type(Key.SPACE)),
@@ -465,119 +465,119 @@ public enum Keyboard implements Script {
       KeyAction.type(Key.U)
   ),
   U_UPPER('U',
-      KeyCombo.press(Key.SHIFT, Key.U)
+      PressedKeyCombo.of(Key.SHIFT, Key.U)
   ),
   U_GRAVE_LOWER('ù',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
       KeyAction.type(Key.U)
   ),
   U_GRAVE_UPPER('Ù',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.U)
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.U)
   ),
   U_ACUTE_LOWER('ú', 
       KeyCombo.type(Key.ACUTE, Key.U)
   ),
   U_ACUTE_UPPER('Ú', 
       KeyCombo.type(Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.U)
+      PressedKeyCombo.of(Key.SHIFT, Key.U)
   ),
   U_CIRC_LOWER('û', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.U)
   ),
   U_CIRC_UPPER('Û', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.U)
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.U)
   ),
   U_TILDE_LOWER('ũ', 
       KeyCombo.press(Key.TILDE, Key.U)
   ),
   U_TILDE_UPPER('Ũ', 
       KeyCombo.type(Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.U)
+      PressedKeyCombo.of(Key.SHIFT, Key.U)
   ),
   U_UMBRA_LOWER('ü', 
-      KeyCombo.press(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
       KeyAction.type(Key.U)
   ),
   U_UMBRA_UPPER('Ü', 
-      KeyCombo.press(Key.SHIFT, Key._6),
-      KeyCombo.press(Key.SHIFT, Key.U)
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key.U)
   ),
-  UNDERSCORE('_', KeyCombo.press(Key.SHIFT, Key.MINUS)),
+  UNDERSCORE('_', PressedKeyCombo.of(Key.SHIFT, Key.MINUS)),
 
   V_LOWER('v',
       KeyAction.type(Key.V)
   ),
   V_UPPER('V',
-      KeyCombo.press(Key.SHIFT, Key.V)
+      PressedKeyCombo.of(Key.SHIFT, Key.V)
   ),
 
   W_LOWER('w',
       KeyAction.type(Key.W)
   ),
   W_UPPER('W',
-      KeyCombo.press(Key.SHIFT, Key.W)
+      PressedKeyCombo.of(Key.SHIFT, Key.W)
   ),
 
   X_LOWER('x',
       KeyAction.type(Key.X)
   ),
   X_UPPER('X',
-      KeyCombo.press(Key.SHIFT, Key.X)
+      PressedKeyCombo.of(Key.SHIFT, Key.X)
   ),
 
   Y_LOWER('y',
       KeyAction.type(Key.Y)
   ),
   Y_UPPER('Y',
-      KeyCombo.press(Key.SHIFT, Key.Y)
+      PressedKeyCombo.of(Key.SHIFT, Key.Y)
   ),
   Y_GRAVE_LOWER('ỳ',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
       KeyAction.type(Key.Y)
   ),
   Y_GRAVE_UPPER('Ỳ',
-      KeyCombo.press(Key.SHIFT, Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.Y)
+      PressedKeyCombo.of(Key.SHIFT, Key.ACUTE),
+      PressedKeyCombo.of(Key.SHIFT, Key.Y)
   ),
   Y_ACUTE_LOWER('ý', 
       KeyCombo.type(Key.ACUTE, Key.Y)
   ),
   Y_ACUTE_UPPER('Ý', 
       KeyCombo.type(Key.ACUTE),
-      KeyCombo.press(Key.SHIFT, Key.Y)
+      PressedKeyCombo.of(Key.SHIFT, Key.Y)
   ),
   Y_CIRC_LOWER('ŷ', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
       KeyAction.type(Key.Y)
   ),
   Y_CIRC_UPPER('Ŷ', 
-      KeyCombo.press(Key.SHIFT, Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.Y)
+      PressedKeyCombo.of(Key.SHIFT, Key.TILDE),
+      PressedKeyCombo.of(Key.SHIFT, Key.Y)
   ),
   Y_TILDE_LOWER('ỹ', 
       KeyCombo.press(Key.TILDE, Key.Y)
   ),
   Y_TILDE_UPPER('Ỹ', 
       KeyCombo.type(Key.TILDE),
-      KeyCombo.press(Key.SHIFT, Key.Y)
+      PressedKeyCombo.of(Key.SHIFT, Key.Y)
   ),
   Y_UMBRA_LOWER('ÿ', 
-      KeyCombo.press(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
       KeyAction.type(Key.Y)
   ),
   Y_UMBRA_UPPER('Ÿ', 
-      KeyCombo.press(Key.SHIFT, Key._6),
-      KeyCombo.press(Key.SHIFT, Key.Y)
+      PressedKeyCombo.of(Key.SHIFT, Key._6),
+      PressedKeyCombo.of(Key.SHIFT, Key.Y)
   ),
 
   Z_LOWER('z',
       KeyAction.type(Key.Z)
   ),
   Z_UPPER('Z',
-      KeyCombo.press(Key.SHIFT, Key.Z)
+      PressedKeyCombo.of(Key.SHIFT, Key.Z)
   ),
 
   INSERT((char)-1, KeyAction.type(Key.INSERT)),

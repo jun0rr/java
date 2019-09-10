@@ -19,7 +19,8 @@ import us.pserver.robotnic.ScriptCombo;
 public class TestSymbols {
   
   //'&*@\[]çÇ^:,©{}°÷$=€!
-  //½¼¾`>«<-±×—()%.|+£'"®»;#/ ¹²³↓←→↑ ~™_
+  //½¼¾`>«<-±×—()%.|+£
+  //'"®»;#/ ¹²³
   
   public static void main(String[] args) {
     Robotnic r = Robotnic.getDefault();
@@ -68,7 +69,11 @@ public class TestSymbols {
         Keyboard.PERIOD,
         Keyboard.PIPE,
         Keyboard.PLUS,
-        Keyboard.POUND,
+        Keyboard.POUND
+    );
+    symbols2.accept(r);
+    nl.accept(r);
+    ScriptCombo symbols3 = ScriptCombo.of(
         Keyboard.QUOTE,
         Keyboard.QUOTEDBL,
         Keyboard.REGISTERED,
@@ -79,17 +84,17 @@ public class TestSymbols {
         Keyboard.SPACE,
         Keyboard.SUPER_1,
         Keyboard.SUPER_2,
-        Keyboard.SUPER_3,
-        Keyboard.SYMBOL_DOWN,
+        Keyboard.SUPER_3/*,
+        Keyboard.SYMBOL_DOWN/*,
         Keyboard.SYMBOL_LEFT,
         Keyboard.SYMBOL_RIGHT,
         Keyboard.SYMBOL_UP,
         Keyboard.TAB,
         Keyboard.TILDE,
         Keyboard.TM,
-        Keyboard.UNDERSCORE
+        Keyboard.UNDERSCORE*/
     );
-    symbols2.accept(r);
+    symbols3.accept(r);
   }
   
 }
