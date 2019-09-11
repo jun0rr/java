@@ -20,17 +20,15 @@ public class TestConditional {
   public void test_conditional() {
     try {
       Conditional<Integer,String> cond = Conditional.<Integer,String>eval(i->i > 0)
-          .ifTrueReturns("Positive number!")
-          .elseReturns("Negative number!")
-          .elseThrows(new IOException("Bad number"))
-          .and(i->i % 2 == 0)
-          .ifTrueReturns("Positive EVEN number!")
-          .elseReturns("Positive ODD number!")
-          .buildAnd()
-          .or(i->i == 0)
-          .ifTrueReturns("ZERO!")
-          .elseThrows(new IOException("Never gets HERE!"))
-          .buildOr()
+          .ifTrueEval(i->i % 2 == 0)
+          .ifTrueApply(i->String.format("[%d] Positive EVEN number!", i))
+          .elseApply(i->String.format("[%d] Positive ODD number!", i))
+          .endTrueConditional()
+          .elseEval(i->i == 0)
+          .ifTrueApply(i->String.format("[%d] ZERO!", i))
+          .elseApply(i->String.format("[%d] Negative number!", i))
+          .endElseConditional()
+          .elseThrows(i->new IOException("Bad number: " + i))
           .build();
       System.out.println(cond);
       System.out.println(cond.apply(0));

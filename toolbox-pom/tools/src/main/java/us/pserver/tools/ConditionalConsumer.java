@@ -7,43 +7,41 @@ package us.pserver.tools;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 
 /**
  *
  * @author juno
  */
-public interface Conditional<A,B> extends Function<A,B>, Predicate<A> {
+public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
   
-  public <C> Conditional<A,C> andThen(Conditional<B,C> after);
-  
-  public <Z> Conditional<Z,B> compose(Conditional<Z,A> before);
+  public <Z> ConditionalConsumer<Z> compose(Function<T,Z> fn);
   
   
   
-  public static <X,Y> ConditionalBuilder<X,Y> eval(Predicate<X> test) {
-    return new ConditionalBuilder(Objects.requireNonNull(test));
+  public static <X> ConditionalConsumerBuilder<X> eval(Predicate<X> test) {
+    return new ConditionalConsumerBuilder(Objects.requireNonNull(test));
   }
   
   
   
-  static class ConditionalImpl<X,Y> implements Conditional<X,Y> {
+  static class ConditionalConsumerImpl<X> implements ConditionalConsumer<X> {
     
     private final Predicate<X> test;
     
-    private final Function<X,Y> trueValue; 
+    private final Consumer<X> trueValue; 
     
-    private final Optional<Function<X,Y>> elseValue;
+    private final Optional<Consumer<X>> elseValue;
     
     private final Optional<Function<X,Throwable>> elseThrow;
     
-    private ConditionalImpl(
+    private ConditionalConsumerImpl(
         Predicate<X> test,
-        Function<X,Y> trueValue,
-        Optional<Function<X,Y>> elseValue,
+        Consumer<X> trueValue,
+        Optional<Consumer<X>> elseValue,
         Optional<Function<X,Throwable>> elseThrow
     ) {
       this.test = test;
@@ -53,12 +51,12 @@ public interface Conditional<A,B> extends Function<A,B>, Predicate<A> {
     }
     
     @Override
-    public Y apply(X x) {
+    public void accept(X x) {
       if(test.test(x)) {
-        return trueValue.apply(x);
+        trueValue.accept(x);
       }
       else if(elseValue.isPresent()) {
-        return elseValue.get().apply(x);
+        elseValue.get().accept(x);
       }
       else {
         throw Unchecked.<RuntimeException>unchecked(elseThrow.get().apply(x));
@@ -71,25 +69,7 @@ public interface Conditional<A,B> extends Function<A,B>, Predicate<A> {
     }
     
     @Override
-    public <R> Conditional<X,R> andThen(Conditional<Y,R> after) {
-      Predicate<X> then = x->test.test(x) && after.test(apply(x));
-      ConditionalImpl<Y,R> afteri = (ConditionalImpl)after;
-      Optional<Function<X,R>> elseValue = this.elseValue.isPresent() && afteri.elseValue.isPresent() 
-          ? Optional.of(this.elseValue.get().andThen(afteri.elseValue.get())) 
-          : Optional.empty();
-      Optional<Function<X,Throwable>> elseThrow = afteri.elseThrow.isPresent() 
-          ? Optional.of(x->afteri.elseThrow.get().apply(this.apply(x))) 
-          : this.elseThrow;
-      return new ConditionalImpl<X,R>(
-          then, 
-          this.trueValue.andThen(afteri.trueValue), 
-          elseValue, 
-          elseThrow
-      );
-    }
-    
-    @Override
-    public <Z> Conditional<Z,Y> compose(Conditional<Z,X> before) {
+    public <Z> ConditionalConsumer<Z,Y> compose(ConditionalConsumer<Z,X> before) {
       Predicate<Z> then = v->before.test(v) && test(before.apply(v));
       ConditionalImpl<Z,X> beforei = (ConditionalImpl)before;
       Function<Z,Y> trueValue = beforei.trueValue.andThen(this.trueValue);
@@ -200,7 +180,7 @@ public interface Conditional<A,B> extends Function<A,B>, Predicate<A> {
       );
     }
     
-    public Conditional<X,Y> build() {
+    public ConditionalConsumer<X,Y> build() {
       if(trueValue.isEmpty()) {
         throw new IllegalStateException("No Function to apply on true");
       }
