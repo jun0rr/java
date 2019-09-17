@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 
 /**
@@ -18,7 +19,7 @@ import java.util.function.Predicate;
  */
 public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
   
-  public <Z> ConditionalConsumer<Z> compose(Function<T,Z> fn);
+  public <Z> ConditionalConsumer<Z> compose(Function<Z,T> fn);
   
   
   
@@ -69,22 +70,15 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
     }
     
     @Override
-    public <Z> ConditionalConsumer<Z,Y> compose(ConditionalConsumer<Z,X> before) {
-      Predicate<Z> then = v->before.test(v) && test(before.apply(v));
-      ConditionalImpl<Z,X> beforei = (ConditionalImpl)before;
-      Function<Z,Y> trueValue = beforei.trueValue.andThen(this.trueValue);
-      Optional<Function<Z,Y>> elseValue = beforei.elseValue.isPresent() && this.elseValue.isPresent() 
-          ? Optional.of(beforei.elseValue.get().andThen(this.elseValue.get())) 
+    public <Z> ConditionalConsumer<Z> compose(Function<Z,X> fn) {
+      Consumer<Z> trueValue = z->this.trueValue.accept(fn.apply(z));
+      Optional<Consumer<Z>> elseValue = this.elseValue.isPresent() 
+          ? Optional.of(z->this.elseValue.get().accept(fn.apply(z)))
           : Optional.empty();
-      Optional<Function<Z,Throwable>> elseThrow = beforei.elseThrow.isPresent() 
-          ? beforei.elseThrow : this.elseThrow.isPresent() 
-          ? Optional.of( z->this.elseThrow.get().apply(beforei.apply(z)) ) : Optional.empty();
-      return new ConditionalImpl<Z,Y>(
-          then, 
-          trueValue, 
-          elseValue, 
-          elseThrow
-      );
+      Optional<Function<Z,Throwable>> elseThrow = this.elseThrow.isPresent()
+          ? Optional.of(z->this.elseThrow.get().compose(fn).apply(z))
+          : Optional.empty();
+      return new ConditionalConsumerImpl(test, trueValue, elseValue, elseThrow);
     }
     
     @Override
@@ -96,23 +90,23 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
   
   
   
-  public static class ConditionalBuilder<X,Y> {
+  public static class ConditionalConsumerBuilder<X> {
     
-    private Optional<ConditionalBuilder<X,Y>> parent;
+    private Optional<ConditionalConsumerBuilder<X>> parent;
     
     private final Predicate<X> test;
     
-    private final Optional<Function<X,Y>> trueValue; 
+    private final Optional<Consumer<X>> trueValue; 
     
-    private final Optional<Function<X,Y>> elseValue;
+    private final Optional<Consumer<X>> elseValue;
     
     private final Optional<Function<X,Throwable>> elseThrow;
     
-    private ConditionalBuilder(
-        Optional<ConditionalBuilder<X,Y>> parent,
+    private ConditionalConsumerBuilder(
+        Optional<ConditionalConsumerBuilder<X>> parent,
         Predicate<X> test,
-        Optional<Function<X,Y>> trueValue,
-        Optional<Function<X,Y>> elseValue,
+        Optional<Consumer<X>> trueValue,
+        Optional<Consumer<X>> elseValue,
         Optional<Function<X,Throwable>> elseThrow
     ) {
       this.parent = parent;
@@ -122,7 +116,7 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
       this.elseThrow = elseThrow;
     }
     
-    private ConditionalBuilder(ConditionalBuilder<X,Y> parent, Predicate<X> test) {
+    private ConditionalConsumerBuilder(ConditionalConsumerBuilder<X> parent, Predicate<X> test) {
       this(
           Optional.of(parent),
           test,
@@ -132,7 +126,7 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
       );
     }
     
-    protected ConditionalBuilder(Predicate<X> test) {
+    protected ConditionalConsumerBuilder(Predicate<X> test) {
       this(
           Optional.empty(),
           test,
@@ -142,36 +136,36 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
       );
     }
     
-    public ConditionalBuilder<X,Y> ifTrueApply(Function<X,Y> fn) {
-      return new ConditionalBuilder(
+    public ConditionalConsumerBuilder<X> ifTrueAccept(Consumer<X> cs) {
+      return new ConditionalConsumerBuilder(
           parent,
           test, 
-          Optional.ofNullable(fn),
+          Optional.ofNullable(cs),
           elseValue,
           elseThrow
       );
     }
     
-    public ConditionalBuilder<X,Y> ifTrueEval(Predicate<X> test) {
-      return new ConditionalBuilder(this, test);
+    public ConditionalConsumerBuilder<X> ifTrueEval(Predicate<X> test) {
+      return new ConditionalConsumerBuilder(this, test);
     }
     
-    public ConditionalBuilder<X,Y> elseApply(Function<X,Y> fn) {
-      return new ConditionalBuilder(
+    public ConditionalConsumerBuilder<X> elseAccept(Consumer<X> cs) {
+      return new ConditionalConsumerBuilder(
           parent,
           test, 
           trueValue,
-          Optional.ofNullable(fn),
+          Optional.ofNullable(cs),
           elseThrow
       );
     }
     
-    public ConditionalBuilder<X,Y> elseEval(Predicate<X> test) {
-      return new ConditionalBuilder(this, test);
+    public ConditionalConsumerBuilder<X> elseEval(Predicate<X> test) {
+      return new ConditionalConsumerBuilder(this, test);
     }
     
-    public ConditionalBuilder<X,Y> elseThrows(Function<X,Throwable> fn) {
-      return new ConditionalBuilder(
+    public ConditionalConsumerBuilder<X> elseThrows(Function<X,Throwable> fn) {
+      return new ConditionalConsumerBuilder(
           parent,
           test, 
           trueValue,
@@ -180,21 +174,21 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
       );
     }
     
-    public ConditionalConsumer<X,Y> build() {
+    public ConditionalConsumer<X> build() {
       if(trueValue.isEmpty()) {
         throw new IllegalStateException("No Function to apply on true");
       }
       if(elseValue.isEmpty() && elseThrow.isEmpty()) {
         throw new IllegalStateException("No Function to apply on else");
       }
-      return new ConditionalImpl<X,Y>(test, trueValue.get(), elseValue, elseThrow);
+      return new ConditionalConsumerImpl<X>(test, trueValue.get(), elseValue, elseThrow);
     }
     
-    public ConditionalBuilder<X,Y> endTrueConditional() {
+    public ConditionalConsumerBuilder<X> endTrueConditional() {
       if(parent.isEmpty()) {
         throw new IllegalStateException("Not in appendable ConditionalBuilder");
       }
-      return new ConditionalBuilder(
+      return new ConditionalConsumerBuilder(
           parent.get().parent,
           parent.get().test, 
           Optional.of(build()),
@@ -203,11 +197,11 @@ public interface ConditionalConsumer<T> extends Consumer<T>, Predicate<T> {
       );
     }
     
-    public ConditionalBuilder<X,Y> endElseConditional() {
+    public ConditionalConsumerBuilder<X> endElseConditional() {
       if(parent.isEmpty()) {
         throw new IllegalStateException("Not in appendable ConditionalBuilder");
       }
-      return new ConditionalBuilder(
+      return new ConditionalConsumerBuilder(
           parent.get().parent,
           parent.get().test, 
           parent.get().trueValue,

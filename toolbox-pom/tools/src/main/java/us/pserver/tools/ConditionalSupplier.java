@@ -7,6 +7,7 @@ package us.pserver.tools;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -15,20 +16,20 @@ import java.util.function.Supplier;
  *
  * @author juno
  */
-public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
+public interface ConditionalSupplier<T> extends Supplier<T>, BooleanSupplier {
   
-  public <S> ConditionalSupplier<S> andThen(Function<T,S> fn);
+  public <S> ConditionalSupplier<S> map(Function<T,S> fn);
   
   
   
-  public static <X> ConditionalSupplierBuilder<X> eval(Evaluable test) {
+  public static <X> ConditionalSupplierBuilder<X> eval(BooleanSupplier test) {
     return new ConditionalSupplierBuilder(Objects.requireNonNull(test));
   }
   
   
   static class ConditionalSupplierImpl<X> implements ConditionalSupplier<X> {
     
-    private final Evaluable test;
+    private final BooleanSupplier test;
     
     private final Supplier<X> trueValue; 
     
@@ -37,7 +38,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
     private final Optional<Supplier<Throwable>> elseThrow;
     
     private ConditionalSupplierImpl(
-        Evaluable test,
+        BooleanSupplier test,
         Supplier<X> trueValue,
         Optional<Supplier<X>> elseValue,
         Optional<Supplier<Throwable>> elseThrow
@@ -50,7 +51,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
     
     @Override
     public X get() {
-      if(test.eval()) {
+      if(test.getAsBoolean()) {
         return trueValue.get();
       }
       else if(elseValue.isPresent()) {
@@ -62,8 +63,8 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
     }
     
     @Override
-    public boolean eval() {
-      return test.eval();
+    public boolean getAsBoolean() {
+      return test.getAsBoolean();
     }
     
     @Override
@@ -88,7 +89,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
     
     private Optional<ConditionalSupplierBuilder<X>> parent;
     
-    private final Evaluable test;
+    private final BooleanSupplier test;
     
     private final Optional<Supplier<X>> trueValue; 
     
@@ -98,7 +99,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
     
     private ConditionalSupplierBuilder(
         Optional<ConditionalSupplierBuilder<X>> parent,
-        Evaluable test,
+        BooleanSupplier test,
         Optional<Supplier<X>> trueValue,
         Optional<Supplier<X>> elseValue,
         Optional<Supplier<Throwable>> elseThrow
@@ -110,7 +111,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
       this.elseThrow = elseThrow;
     }
     
-    private ConditionalSupplierBuilder(ConditionalSupplierBuilder<X> parent, Evaluable test) {
+    private ConditionalSupplierBuilder(ConditionalSupplierBuilder<X> parent, BooleanSupplier test) {
       this(
           Optional.of(parent),
           test,
@@ -120,7 +121,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
       );
     }
     
-    protected ConditionalSupplierBuilder(Evaluable test) {
+    protected ConditionalSupplierBuilder(BooleanSupplier test) {
       this(
           Optional.empty(),
           test,
@@ -140,7 +141,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
       );
     }
     
-    public ConditionalSupplierBuilder<X> ifTrueEval(Evaluable test) {
+    public ConditionalSupplierBuilder<X> ifTrueEval(BooleanSupplier test) {
       return new ConditionalSupplierBuilder(this, test);
     }
     
@@ -154,7 +155,7 @@ public interface ConditionalSupplier<T> extends Supplier<T>, Evaluable {
       );
     }
     
-    public ConditionalSupplierBuilder<X> elseEval(Evaluable test) {
+    public ConditionalSupplierBuilder<X> elseEval(BooleanSupplier test) {
       return new ConditionalSupplierBuilder(this, test);
     }
     
