@@ -35,15 +35,34 @@ public class ClassCompilation {
   
   private final StringBuilder code;
   
+  private final CompilingClassLoader loader;
+  
   private final AtomicReference<Class> clazz;
   
   
-  public ClassCompilation(String name) {
+  public ClassCompilation(String name, CompilingClassLoader ldr) {
     this.name = Objects.requireNonNull(name);
     this.code = new StringBuilder();
     this.clazz = new AtomicReference();
+    this.loader = ldr;
+    this.loader.add(this);
   }
   
+  public ClassCompilation(String name) {
+    this(name, new CompilingClassLoader());
+  }
+  
+  public ClassCompilation newClass(String name) {
+    return new ClassCompilation(name, loader);
+  }
+  
+  public String getClassName() {
+    return name;
+  }
+  
+  public CompilingClassLoader getClassLoader() {
+    return loader;
+  }
   
   public ClassCompilation append(String s) {
     this.code.append(s);
@@ -110,10 +129,7 @@ public class ClassCompilation {
   }
   
   
-  public <T> Class<T> compile() {
-    if(clazz.get() != null) {
-      return clazz.get();
-    }
+  public byte[] compileToBytes() {
     if(code.indexOf(LOOKUP_CODE) < 0) {
       this.insertLookupCode();
     }
@@ -122,13 +138,14 @@ public class ClassCompilation {
     compiler.getTask(null, manager, null, null, null, 
         Arrays.asList(new CharSequenceJavaFileObject(name, getSourceCode()))
     ).call();
-    ClassLoader loader = new ClassLoader() {
-      @Override
-      protected Class<?> findClass(String name) throws ClassNotFoundException {
-        byte[] b = manager.getCompiledBytes();
-        return defineClass(name, b, 0, b.length);
-      }
-    };
+    return manager.getCompiledBytes();
+  }
+  
+  
+  public <T> Class<T> compile() {
+    if(clazz.get() != null) {
+      return clazz.get();
+    }
     clazz.compareAndSet(null, Unchecked.call(() -> loader.loadClass(name)));
     return clazz.get();
   }
