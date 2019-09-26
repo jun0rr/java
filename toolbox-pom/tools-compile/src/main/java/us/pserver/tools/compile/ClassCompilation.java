@@ -11,8 +11,10 @@ import java.io.OutputStream;
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 import us.pserver.tools.Reflect;
 import us.pserver.tools.Unchecked;
@@ -138,7 +140,7 @@ public class ClassCompilation {
     compiler.getTask(null, manager, null, null, null, 
         Arrays.asList(new CharSequenceJavaFileObject(name, getSourceCode()))
     ).call();
-    return manager.getCompiledBytes();
+    return manager.getCompiledBytes(name);
   }
   
   
@@ -165,12 +167,9 @@ public class ClassCompilation {
     private final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
     JavaFileObject(String name, JavaFileObject.Kind kind) {
-      super(URI.create("string:///" 
-          + name.replace('.', '/') 
-          + kind.extension), kind
-      );
+      super(URI.create("string:///" + name.replace('.', '/') + kind.extension), kind);
     }
-
+    
     byte[] getBytes() {
       return os.toByteArray();
     }
@@ -188,8 +187,11 @@ public class ClassCompilation {
 
     private JavaFileObject fileobj;
     
+    private final Map<String,JavaFileObject> objects;
+    
     ClassFileManager(StandardJavaFileManager m) {
       super(m);
+      this.objects = new TreeMap<>();
     }
     
     @Override
@@ -197,11 +199,20 @@ public class ClassCompilation {
         JavaFileManager.Location location, String className, 
         JavaFileObject.Kind kind, FileObject sibling
     ) {
-      return fileobj = new JavaFileObject(className, kind);
+      JavaFileObject obj = objects.get(className);
+      if(obj == null) {
+        obj = new JavaFileObject(className, kind);
+        objects.put(className, obj);
+      }
+      return obj;
     }
     
-    public byte[] getCompiledBytes() {
-      return Objects.requireNonNull(fileobj).getBytes();
+    public byte[] getCompiledBytes(String className) {
+      JavaFileObject obj = objects.get(className);
+      if(obj == null) {
+        throw new IllegalArgumentException("No such JavaFileObject: " + className);
+      }
+      return obj.getBytes();
     }
     
   }
@@ -215,7 +226,8 @@ public class ClassCompilation {
     public CharSequenceJavaFileObject(String className, CharSequence content) {
       super(URI.create("string:///" 
           + className.replace('.', '/') 
-          + JavaFileObject.Kind.SOURCE.extension), JavaFileObject.Kind.SOURCE
+          + JavaFileObject.Kind.SOURCE.extension), 
+          JavaFileObject.Kind.SOURCE
       );
       this.content = content;
     }
