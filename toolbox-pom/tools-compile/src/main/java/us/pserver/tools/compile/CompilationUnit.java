@@ -9,13 +9,14 @@ import java.net.URI;
 import java.util.Objects;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
+import us.pserver.tools.Reflect;
 
 
 /**
  *
  * @author juno
  */
-public class CompilationUnit extends SimpleJavaFileObject {
+public class CompilationUnit extends SimpleJavaFileObject implements SourceCode {
   
   public static final String LOOKUP_CODE = "public static MethodHandles.Lookup _lookup_() { return MethodHandles.lookup(); }";
   
@@ -73,6 +74,7 @@ public class CompilationUnit extends SimpleJavaFileObject {
     return this;
   }
   
+  @Override
   public String getSourceCode() {
     return this.code.toString();
   }

@@ -22,6 +22,8 @@
 package us.pserver.tools.io;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
@@ -171,6 +173,49 @@ public interface BitBuffer {
   public int readFrom(ByteBuffer buf);
   
   public int readFrom(BitBuffer buf);
+  
+  
+  public default OutputStream getOutputStream() {
+    return new OutputStream() {
+      @Override
+      public void write(int b) throws IOException {
+        put((byte)b);
+      }
+      @Override
+      public void write(byte[] bs) throws IOException {
+        write(bs, 0, bs.length);
+      }
+      @Override
+      public void write(byte[] bs, int off, int len) throws IOException {
+        put(bs, off, len);
+      }
+    };
+  }
+  
+  public default InputStream getInputStream() {
+    return new InputStream() {
+      @Override
+      public int read() throws IOException {
+        if(!BitBuffer.this.hasRemaining()) return -1;
+        return BitBuffer.this.get();
+      }
+      @Override
+      public int read(byte[] bs) throws IOException {
+        return read(bs, 0, bs.length);
+      }
+      @Override
+      public int read(byte[] bs, int off, int len) throws IOException {
+        if(!BitBuffer.this.hasRemaining()) return -1;
+        int min = Math.min(len, BitBuffer.this.remaining());
+        BitBuffer.this.get(bs, off, min);
+        return min;
+      }
+      @Override
+      public int available() {
+        return BitBuffer.this.remaining();
+      }
+    };
+  }
   
   
   

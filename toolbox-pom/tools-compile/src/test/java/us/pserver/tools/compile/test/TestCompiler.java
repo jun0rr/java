@@ -213,26 +213,27 @@ public class TestCompiler {
         .appendln("}");
     
     Compiler compiler = new Compiler();
-    compiler.add(cpoint).add(cdim).add(crect).compile();
+    compiler.addAll(cpoint, cdim, crect).compile();
 
-    Reflect<IPoint2D> r = cpoint.reflectCompiled();
+    Reflect<IPoint2D> r = compiler.reflectCompiled("CPoint");
     IntBiFunction<IPoint2D> cct = r.selectConstructor(int.class, int.class).constructorAsLambda(IntBiFunction.class);
     IPoint2D p = cct.apply(10, 20);
     System.out.println(p);
     
-
-    Reflect<IDimension2D> r2 = cdim.reflectCompiled();
+    
+    Reflect<IDimension2D> r2 = compiler.reflectInstanceOf(IDimension2D.class);
     IntBiFunction<IDimension2D> cct2 = r2.selectConstructor(int.class, int.class).constructorAsLambda(IntBiFunction.class);
     IDimension2D d = cct2.apply(10, 20);
     System.out.println(d);
+    System.out.println(d.scale(2.0, 0.5));
     
     
-    Reflect<IRectangle2D> r3 = crect.reflectCompiled();
+    Reflect<IRectangle2D> r3 = compiler.reflectCompiled("CRectangle");
     Int4Function<IRectangle2D> cct3 = r3.selectConstructor(int.class, int.class, int.class, int.class)
         .constructorAsLambda(Int4Function.class);
     IRectangle2D rect = cct3.apply(10, 20, 30, 40);
     System.out.println(rect);
-        
+    System.out.println(rect.translate(0.7).scale(1.3));
   }
   
 }

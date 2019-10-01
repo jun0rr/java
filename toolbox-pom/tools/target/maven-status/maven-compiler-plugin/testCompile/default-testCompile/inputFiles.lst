@@ -3,5 +3,6 @@
 /home/juno/java/toolbox-pom/tools/src/test/java/module-info.java
 /home/juno/java/toolbox-pom/tools/src/test/java/us/pserver/tools/test/TestIndexed.java
 /home/juno/java/toolbox-pom/tools/src/test/java/us/pserver/tools/test/TestStringEncode.java
+/home/juno/java/toolbox-pom/tools/src/test/java/us/pserver/tools/test/TestConditional.java
 /home/juno/java/toolbox-pom/tools/src/test/java/us/pserver/tools/test/ReflectTarget.java
 /home/juno/java/toolbox-pom/tools/src/test/java/us/pserver/tools/test/TestReflect.java

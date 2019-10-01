@@ -7,6 +7,7 @@
 module toolbox.tools.compile.test {
   requires java.base;
   requires java.compiler;
+  requires toolbox.tools;
   requires transitive toolbox.tools.compile;
   requires org.junit.jupiter.api;
   requires tinylog.api;
