@@ -5,6 +5,8 @@
  */
 package us.pserver.tools.compile;
 
+import java.lang.reflect.Modifier;
+
 
 /**
  *
@@ -14,4 +16,15 @@ public enum Scope {
   PRIVATE, 
   PROTECTED, 
   PUBLIC;
+  
+  public static Scope forMods(int mods) {
+    if(Modifier.isPublic(mods)) {
+      return PUBLIC;
+    }
+    else if(Modifier.isProtected(mods)) {
+      return PROTECTED;
+    }
+    else return PRIVATE;
+  }
+  
 }

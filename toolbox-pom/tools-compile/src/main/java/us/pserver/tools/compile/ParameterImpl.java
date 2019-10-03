@@ -5,6 +5,7 @@
  */
 package us.pserver.tools.compile;
 
+import java.lang.reflect.Parameter;
 import java.util.Objects;
 
 
@@ -22,6 +23,10 @@ public class ParameterImpl extends Annotated implements SourceCode {
     super();
     this.type = Objects.requireNonNull(type);
     this.name = Objects.requireNonNull(name);
+  }
+  
+  public ParameterImpl(Parameter p) {
+    this(p.getType(), p.getName());
   }
   
   public String getName() {

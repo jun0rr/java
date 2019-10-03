@@ -56,9 +56,24 @@ public class FunctionMethodImpl extends MethodImpl {
   @Override
   public String getSourceCode() {
     StringBuilder sb = new StringBuilder(super.getSourceCode());
-    //java.util.function.Function<String,java.util.function.Function> b2f = b64 -> { java.io.ByteArrayInputStream bis = new java.io.ByteArrayInputStream(java.util.Base64.getDecoder().decode(b64)); try (java.io.ObjectInputStream ois = new java.io.ObjectInputStream(bis)) { return (java.util.function.Function) ois.readObject(); } catch(Exception e) { throw new RuntimeException(e.toString(), e); }};
-    sb.append(" { ").append(B2F_CODE).append(" ");
-    
+    ParameterImpl p = parameters().get(0);
+    return sb.append(" { ")
+        .append(B2F_CODE)
+        .append(" ")
+        .append("java.util.function.Function fn = b2f.apply(\"")
+        .append(f2b(fn))
+        .append("\"); ")
+        .append("return (")
+        .append(getReturnType().get().getName())
+        .append(") fn.apply(")
+        .append(p.getName())
+        .append(");}")
+        .toString();
+  }
+  
+  @Override
+  public String toString() {
+    return getSourceCode();
   }
   
 }
