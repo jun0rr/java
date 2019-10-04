@@ -32,7 +32,25 @@ public class DummyMethodImpl extends MethodImpl {
   public String getSourceCode() {
     StringBuilder sb = new StringBuilder(super.getSourceCode()).append(" { ");
     if(getReturnType().isPresent()) {
-      sb.append("return null;");
+      if(getReturnType().get() == int.class
+          || getReturnType().get() == char.class
+          || getReturnType().get() == long.class) {
+        sb.append("return 0;");
+      }
+      else if(getReturnType().get() == byte.class
+          || getReturnType().get() == short.class) {
+        sb.append("return (byte)0;");
+      }
+      else if(getReturnType().get() == double.class
+          || getReturnType().get() == float.class) {
+        sb.append("return 0.0f;");
+      }
+      else if(getReturnType().get() == boolean.class) {
+        sb.append("return false;");
+      }
+      else {
+        sb.append("return null;");
+      }
     }
     return sb.append(" } ").toString();
   }

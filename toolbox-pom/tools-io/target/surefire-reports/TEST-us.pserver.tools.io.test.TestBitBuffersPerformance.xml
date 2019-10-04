@@ -1,82 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.659" tests="20" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.76" tests="20" errors="0" skipped="0" failures="0">
   <properties>
-    <property name="sun.desktop" value="gnome"/>
-    <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
+    <property name="sun.desktop" value="windows"/>
+    <property name="awt.toolkit" value="sun.awt.windows.WToolkit"/>
     <property name="java.specification.version" value="11"/>
-    <property name="sun.cpu.isalist" value=""/>
-    <property name="sun.jnu.encoding" value="UTF-8"/>
-    <property name="java.class.path" value="/home/juno/.m2/repository/org/apache/maven/surefire/surefire-booter/2.22.1/surefire-booter-2.22.1.jar:/home/juno/.m2/repository/org/apache/maven/surefire/surefire-api/2.22.1/surefire-api-2.22.1.jar:/home/juno/.m2/repository/org/apache/maven/surefire/surefire-logger-api/2.22.1/surefire-logger-api-2.22.1.jar:/home/juno/java/toolbox-pom/tools-io/target/test-classes:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.4.1/junit-jupiter-api-5.4.1.jar:/home/juno/.m2/repository/org/apiguardian/apiguardian-api/1.0.0/apiguardian-api-1.0.0.jar:/home/juno/.m2/repository/org/opentest4j/opentest4j/1.1.1/opentest4j-1.1.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-commons/1.4.1/junit-platform-commons-1.4.1.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.4.1/junit-jupiter-engine-5.4.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-engine/1.4.1/junit-platform-engine-1.4.1.jar:/home/juno/.m2/repository/org/tinylog/tinylog-api/2.0.0-M4.2/tinylog-api-2.0.0-M4.2.jar:/home/juno/.m2/repository/org/tinylog/tinylog-impl/2.0.0-M4.2/tinylog-impl-2.0.0-M4.2.jar:/home/juno/.m2/repository/org/apache/maven/surefire/surefire-junit-platform/2.22.1/surefire-junit-platform-2.22.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-launcher/1.3.1/junit-platform-launcher-1.3.1.jar"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\Juno\.m2\repository\org\apache\maven\surefire\surefire-booter\2.22.1\surefire-booter-2.22.1.jar;C:\Users\Juno\.m2\repository\org\apache\maven\surefire\surefire-api\2.22.1\surefire-api-2.22.1.jar;C:\Users\Juno\.m2\repository\org\apache\maven\surefire\surefire-logger-api\2.22.1\surefire-logger-api-2.22.1.jar;D:\java\toolbox-pom\tools-io\target\test-classes;C:\Users\Juno\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.4.1\junit-jupiter-api-5.4.1.jar;C:\Users\Juno\.m2\repository\org\apiguardian\apiguardian-api\1.0.0\apiguardian-api-1.0.0.jar;C:\Users\Juno\.m2\repository\org\opentest4j\opentest4j\1.1.1\opentest4j-1.1.1.jar;C:\Users\Juno\.m2\repository\org\junit\platform\junit-platform-commons\1.4.1\junit-platform-commons-1.4.1.jar;C:\Users\Juno\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.4.1\junit-jupiter-engine-5.4.1.jar;C:\Users\Juno\.m2\repository\org\junit\platform\junit-platform-engine\1.4.1\junit-platform-engine-1.4.1.jar;C:\Users\Juno\.m2\repository\org\tinylog\tinylog-api\2.0.0-M4.2\tinylog-api-2.0.0-M4.2.jar;C:\Users\Juno\.m2\repository\org\tinylog\tinylog-impl\2.0.0-M4.2\tinylog-impl-2.0.0-M4.2.jar;C:\Users\Juno\.m2\repository\org\apache\maven\surefire\surefire-junit-platform\2.22.1\surefire-junit-platform-2.22.1.jar;C:\Users\Juno\.m2\repository\org\junit\platform\junit-platform-launcher\1.3.1\junit-platform-launcher-1.3.1.jar"/>
     <property name="java.vm.vendor" value="Oracle Corporation"/>
     <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
     <property name="java.vendor.url" value="http://java.oracle.com/"/>
-    <property name="user.timezone" value=""/>
+    <property name="user.timezone" value="America/Sao_Paulo"/>
     <property name="java.vm.specification.version" value="11"/>
-    <property name="os.name" value="Linux"/>
+    <property name="os.name" value="Windows 10"/>
     <property name="user.country" value="BR"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
-    <property name="sun.boot.library.path" value="/opt/jdk-11.0.2/lib"/>
-    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter /home/juno/java/toolbox-pom/tools-io/target/surefire 2019-10-01T14-38-43_101-jvmRun1 surefire18409145364685732353tmp surefire_19993126833096346048tmp"/>
+    <property name="sun.boot.library.path" value="C:\Java\jdk-11\bin"/>
+    <property name="sun.java.command" value="org.apache.maven.surefire.booter.ForkedBooter C:\Users\Juno\AppData\Local\Temp\surefire10915475407126511808 2019-10-03T21-18-23_089-jvmRun1 surefire14601166889435126007tmp surefire_114962486085692767223tmp"/>
     <property name="jdk.debug" value="release"/>
-    <property name="surefire.test.class.path" value="/home/juno/java/toolbox-pom/tools-io/target/test-classes:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.4.1/junit-jupiter-api-5.4.1.jar:/home/juno/.m2/repository/org/apiguardian/apiguardian-api/1.0.0/apiguardian-api-1.0.0.jar:/home/juno/.m2/repository/org/opentest4j/opentest4j/1.1.1/opentest4j-1.1.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-commons/1.4.1/junit-platform-commons-1.4.1.jar:/home/juno/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.4.1/junit-jupiter-engine-5.4.1.jar:/home/juno/.m2/repository/org/junit/platform/junit-platform-engine/1.4.1/junit-platform-engine-1.4.1.jar:/home/juno/.m2/repository/org/tinylog/tinylog-api/2.0.0-M4.2/tinylog-api-2.0.0-M4.2.jar:/home/juno/.m2/repository/org/tinylog/tinylog-impl/2.0.0-M4.2/tinylog-impl-2.0.0-M4.2.jar:"/>
+    <property name="surefire.test.class.path" value="D:\java\toolbox-pom\tools-io\target\test-classes;C:\Users\Juno\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.4.1\junit-jupiter-api-5.4.1.jar;C:\Users\Juno\.m2\repository\org\apiguardian\apiguardian-api\1.0.0\apiguardian-api-1.0.0.jar;C:\Users\Juno\.m2\repository\org\opentest4j\opentest4j\1.1.1\opentest4j-1.1.1.jar;C:\Users\Juno\.m2\repository\org\junit\platform\junit-platform-commons\1.4.1\junit-platform-commons-1.4.1.jar;C:\Users\Juno\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.4.1\junit-jupiter-engine-5.4.1.jar;C:\Users\Juno\.m2\repository\org\junit\platform\junit-platform-engine\1.4.1\junit-platform-engine-1.4.1.jar;C:\Users\Juno\.m2\repository\org\tinylog\tinylog-api\2.0.0-M4.2\tinylog-api-2.0.0-M4.2.jar;C:\Users\Juno\.m2\repository\org\tinylog\tinylog-impl\2.0.0-M4.2\tinylog-impl-2.0.0-M4.2.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
-    <property name="user.home" value="/home/juno"/>
+    <property name="user.home" value="C:\Users\Juno"/>
     <property name="user.language" value="pt"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
-    <property name="jdk.module.path" value="/home/juno/java/toolbox-pom/tools-io/target/classes:/home/juno/java/toolbox-pom/tools/target/tools-1.2.jar"/>
-    <property name="java.version.date" value="2019-01-15"/>
-    <property name="java.home" value="/opt/jdk-11.0.2"/>
-    <property name="file.separator" value="/"/>
-    <property name="basedir" value="/home/juno/java/toolbox-pom/tools-io"/>
+    <property name="jdk.module.path" value="D:\java\toolbox-pom\tools-io\target\classes;D:\java\toolbox-pom\tools\target\tools-1.2.jar"/>
+    <property name="java.version.date" value="2018-09-25"/>
+    <property name="java.home" value="C:\Java\jdk-11"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="D:\java\toolbox-pom\tools-io"/>
     <property name="java.vm.compressedOopsMode" value="Zero based"/>
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.Win32GraphicsEnvironment"/>
+    <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
-    <property name="java.runtime.version" value="11.0.2+9"/>
-    <property name="user.name" value="juno"/>
-    <property name="path.separator" value=":"/>
-    <property name="os.version" value="4.15.0-20-generic"/>
+    <property name="java.runtime.version" value="11+28"/>
+    <property name="user.name" value="Juno"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="file.encoding" value="UTF-8"/>
     <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
     <property name="java.vendor.version" value="18.9"/>
-    <property name="maven.ext.class.path" value="/opt/netbeans-11.1/java/maven-nblib/netbeans-eventspy.jar"/>
-    <property name="localRepository" value="/home/juno/.m2/repository"/>
+    <property name="maven.ext.class.path" value="C:\Program Files\NetBeans-11.1\netbeans\java\maven-nblib\netbeans-eventspy.jar"/>
+    <property name="localRepository" value="C:\Users\Juno\.m2\repository"/>
     <property name="java.vendor.url.bug" value="http://bugreport.java.com/bugreport/"/>
-    <property name="java.io.tmpdir" value="/tmp"/>
-    <property name="java.version" value="11.0.2"/>
-    <property name="user.dir" value="/home/juno/java/toolbox-pom/tools-io"/>
+    <property name="java.io.tmpdir" value="C:\Users\Juno\AppData\Local\Temp\"/>
+    <property name="java.version" value="11"/>
+    <property name="user.dir" value="D:\java\toolbox-pom\tools-io"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"/>
-    <property name="sun.os.patch.level" value="unknown"/>
-    <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.awt.printerjob" value="sun.awt.windows.WPrinterJob"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="java.library.path" value="C:\Java\jdk-11\bin;C:\Windows\Sun\Java\bin;C:\Windows\system32;C:\Windows;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Java\jdk-11\bin;C:\Program Files\Git\cmd;C:\Java\apache-maven-3.6.1\bin;C:\Users\Juno\AppData\Local\Microsoft\WindowsApps;;."/>
     <property name="java.vendor" value="Oracle Corporation"/>
     <property name="java.vm.info" value="mixed mode"/>
-    <property name="java.vm.version" value="11.0.2+9"/>
+    <property name="java.vm.version" value="11+28"/>
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="55.0"/>
   </properties>
-  <testcase name="test_direct_DynamicBuffer_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.055"/>
-  <testcase name="test_direct_DynamicBuffer_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.03"/>
-  <testcase name="test_direct_DynamicBuffer_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.024"/>
-  <testcase name="test_direct_DynamicBuffer_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.021"/>
-  <testcase name="test_direct_DynamicBuffer_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.011"/>
-  <testcase name="test_heap_MultiBuffer1_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.046"/>
-  <testcase name="test_heap_MultiBuffer1_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.016"/>
-  <testcase name="test_heap_MultiBuffer1_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.028"/>
-  <testcase name="test_heap_MultiBuffer1_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.021"/>
-  <testcase name="test_heap_MultiBuffer1_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.026"/>
-  <testcase name="test_heap_DynamicBuffer_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.027"/>
-  <testcase name="test_heap_DynamicBuffer_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.015"/>
-  <testcase name="test_heap_DynamicBuffer_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.01"/>
-  <testcase name="test_heap_DynamicBuffer_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.013"/>
-  <testcase name="test_heap_DynamicBuffer_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.044"/>
-  <testcase name="test_direct_MultiBuffer1_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.061"/>
-  <testcase name="test_direct_MultiBuffer1_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.032"/>
-  <testcase name="test_direct_MultiBuffer1_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.03"/>
-  <testcase name="test_direct_MultiBuffer1_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.031"/>
-  <testcase name="test_direct_MultiBuffer1_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.023"/>
+  <testcase name="test_direct_DynamicBuffer_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.122"/>
+  <testcase name="test_direct_DynamicBuffer_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.043"/>
+  <testcase name="test_direct_DynamicBuffer_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.025"/>
+  <testcase name="test_direct_DynamicBuffer_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.032"/>
+  <testcase name="test_direct_DynamicBuffer_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.017"/>
+  <testcase name="test_heap_MultiBuffer1_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.231"/>
+  <testcase name="test_heap_MultiBuffer1_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_MultiBuffer1_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_MultiBuffer1_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_MultiBuffer1_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_DynamicBuffer_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.001"/>
+  <testcase name="test_heap_DynamicBuffer_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_DynamicBuffer_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_DynamicBuffer_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0"/>
+  <testcase name="test_heap_DynamicBuffer_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.051"/>
+  <testcase name="test_direct_MultiBuffer1_performance[1]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.044"/>
+  <testcase name="test_direct_MultiBuffer1_performance[2]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.034"/>
+  <testcase name="test_direct_MultiBuffer1_performance[3]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.033"/>
+  <testcase name="test_direct_MultiBuffer1_performance[4]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.035"/>
+  <testcase name="test_direct_MultiBuffer1_performance[5]" classname="us.pserver.tools.io.test.TestBitBuffersPerformance" time="0.044"/>
 </testsuite>

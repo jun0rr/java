@@ -20,7 +20,7 @@ public class TestConstructorImpl {
   @Test
   public void test_constructor_impl() {
     Constructor cct = Reflect.of(PointDef.class).selectConstructor(int.class, int.class).constructor().get();
-    ConstructorImpl ci = new ConstructorImpl(cct);
+    ConstructorImpl ci = new ConstructorImpl(cct, cct.getDeclaringClass().getSimpleName());
     System.out.println(ci);
   }
   

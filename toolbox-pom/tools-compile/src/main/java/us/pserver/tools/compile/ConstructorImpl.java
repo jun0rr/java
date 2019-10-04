@@ -19,25 +19,25 @@ import java.util.stream.Collectors;
  */
 public class ConstructorImpl extends ScopedImpl {
   
-  private final Class<?> classFor;
+  private final String name;
   
   private final List<ParameterImpl> parameters;
   
-  public ConstructorImpl(Scope s, Class<?> c) {
+  public ConstructorImpl(Scope s, String name) {
     super(s);
-    this.classFor = Objects.requireNonNull(c);
+    this.name = Objects.requireNonNull(name);
     this.parameters = new ArrayList<>();
   }
   
-  public ConstructorImpl(Scope s, Constructor c) {
-    this(s, c.getDeclaringClass());
+  public ConstructorImpl(Scope s, Constructor c, String name) {
+    this(s, name);
     Arrays.asList(c.getParameters()).stream()
         .map(p->new ParameterImpl(p))
         .forEach(parameters::add);
   }
   
-  public ConstructorImpl(Constructor c) {
-    this(Scope.forMods(c.getModifiers()), c);
+  public ConstructorImpl(Constructor c, String name) {
+    this(Scope.forMods(c.getModifiers()), c, name);
   }
   
   @Override
@@ -47,7 +47,7 @@ public class ConstructorImpl extends ScopedImpl {
     StringBuilder sb = new StringBuilder(super.getSourceCode())
         .append(scope.name().toLowerCase())
         .append(" ")
-        .append(classFor.getSimpleName())
+        .append(name)
         .append("(");
     parameters.forEach(p->sb.append(p.getSourceCode()).append(","));
     if(!parameters.isEmpty()) sb.deleteCharAt(sb.length() -1);
@@ -55,6 +55,40 @@ public class ConstructorImpl extends ScopedImpl {
     parameters.forEach(p->sb.append(p.getName()).append(","));
     if(!parameters.isEmpty()) sb.deleteCharAt(sb.length() -1);
     return sb.append("); }").toString();
+  }
+  
+  @Override
+  public int hashCode() {
+    int hash = 7;
+    hash = 97 * hash + Objects.hashCode(this.name);
+    hash = 97 * hash + Objects.hashCode(this.parameters);
+    return hash;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final ConstructorImpl other = (ConstructorImpl) obj;
+    if (!Objects.equals(this.name, other.name)) {
+      return false;
+    }
+    if (!Objects.equals(this.parameters, other.parameters)) {
+      return false;
+    }
+    return true;
+  }
+  
+  @Override
+  public String toString() {
+    return getSourceCode();
   }
   
 }

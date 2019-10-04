@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.function.Function;
@@ -31,11 +32,20 @@ public class FunctionMethodImpl extends MethodImpl {
     this.fn = Objects.requireNonNull(fn);
   }
   
+  public FunctionMethodImpl(Function fn, Method m) {
+    super(m);
+    this.fn = Objects.requireNonNull(fn);
+  }
+  
+  public FunctionMethodImpl(Function fn, Scope s, String n) {
+    super(s, n);
+    this.fn = Objects.requireNonNull(fn);
+  }
+  
   private String f2b(Function fn) {
-    Function fs = (Function & Serializable) x->fn.apply(x);
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-      oos.writeObject(fs);
+      oos.writeObject(fn);
     }
     catch(IOException e) {
       throw new RuntimeException(e.toString(), e);

@@ -575,7 +575,7 @@ public class Reflect<T> {
     MethodType actualMethType = MethodType.methodType(cls);
     MethodType lambdaType = MethodType.methodType(Supplier.class);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, "get", lambdaType, methodType, handle, actualMethType));
-    return (Supplier<T>) Unchecked.call(() -> cs.getTarget().invokeExact());
+    return (Supplier<T>) Unchecked.call(() -> cs.getTarget().invoke());
   }
 	
   

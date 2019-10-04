@@ -39,6 +39,11 @@ public class PersonDef implements IPerson {
   }
   
   @Override
+  public Integer str2int(String intString) {
+    return Integer.parseInt(intString);
+  }
+  
+  @Override
   public int hashCode() {
     int hash = 7;
     hash = 29 * hash + Objects.hashCode(this.name);

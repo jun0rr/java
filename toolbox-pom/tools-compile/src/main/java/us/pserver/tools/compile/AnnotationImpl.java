@@ -60,6 +60,35 @@ public class AnnotationImpl implements SourceCode, Typeable {
   }
   
   @Override
+  public int hashCode() {
+    int hash = 7;
+    hash = 19 * hash + Objects.hashCode(this.type);
+    hash = 19 * hash + Objects.hashCode(this.vals);
+    return hash;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final AnnotationImpl other = (AnnotationImpl) obj;
+    if (!Objects.equals(this.type, other.type)) {
+      return false;
+    }
+    if (!Objects.equals(this.vals, other.vals)) {
+      return false;
+    }
+    return true;
+  }
+  
+  @Override
   public String toString() {
     return getSourceCode();
   }

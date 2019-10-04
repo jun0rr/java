@@ -14,4 +14,6 @@ public interface IPerson {
   
   public int getAge();
   
+  public Integer str2int(String intString);
+  
 }
