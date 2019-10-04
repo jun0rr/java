@@ -451,7 +451,9 @@ public class Reflect<T> {
 	 */
 	public Object get() {
 		if(fld == null) throw new IllegalStateException("Field not selected");
-    if(obj == null) throw new IllegalStateException("Object owner not found");
+    if(!Modifier.isStatic(fld.getModifiers()) && obj == null) {
+      throw new IllegalStateException("Object owner not found");
+    }
     return Unchecked.call(() -> fld.get(obj));
 	}
 	
@@ -658,7 +660,9 @@ public class Reflect<T> {
         ? MethodType.methodType(Supplier.class)
         : MethodType.methodType(Supplier.class, cls);
     CallSite cs = Unchecked.call(() -> LambdaMetafactory.metafactory(lookup, "get", lambdaType, methodType, handle, actualMethType));
-    return (Supplier<S>) Unchecked.call(() -> cs.getTarget().invoke(obj));
+    return (Supplier<S>) (isStatic 
+        ? Unchecked.call(() -> cs.getTarget().invoke())
+        : Unchecked.call(() -> cs.getTarget().invoke(obj)));
   }
 	
   
@@ -674,7 +678,9 @@ public class Reflect<T> {
     boolean isStatic = Modifier.isStatic(fld.getModifiers());
     if(!isStatic && obj == null) throw new IllegalStateException("Target object not found");
     MethodHandle handle = Unchecked.call(() -> lookup.unreflectGetter(fld));
-    return () -> (S) Unchecked.call(() -> handle.invoke(obj));
+    return isStatic 
+        ? () -> (S) Unchecked.call(() -> handle.invoke()) 
+        : () -> (S) Unchecked.call(() -> handle.invoke(obj));
   }
 	
   

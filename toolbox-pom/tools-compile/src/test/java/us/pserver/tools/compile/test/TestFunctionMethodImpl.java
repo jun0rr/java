@@ -22,7 +22,7 @@ public class TestFunctionMethodImpl {
   @Test
   public void test_function_method_impl() {
     Function<String,Integer> fn = (Function<String,Integer> & Serializable) s->new Random().nextInt();
-    FunctionMethodImpl fi = new FunctionMethodImpl(fn, Reflect.of(IPerson.class).selectMethod("str2int").method().get());
+    FunctionMethodImpl fi = new FunctionMethodImpl(Reflect.of(IPerson.class).selectMethod("str2int").method().get());
     System.out.println(fi.getSourceCode());
   }
   

@@ -14,18 +14,16 @@ import java.lang.reflect.Method;
  */
 public class DummyMethodImpl extends MethodImpl {
   
-  public DummyMethodImpl(Scope s, Class r, String n) {
-    super(s, r, n);
+  public DummyMethodImpl(Class r, String n, int mods) {
+    super(r, n, mods);
   }
-
-
+  
   public DummyMethodImpl(Method m) {
     super(m);
   }
-
-
-  public DummyMethodImpl(Scope s, String n) {
-    super(s, n);
+  
+  public DummyMethodImpl(String n, int mods) {
+    super(n, mods);
   }
   
   @Override
