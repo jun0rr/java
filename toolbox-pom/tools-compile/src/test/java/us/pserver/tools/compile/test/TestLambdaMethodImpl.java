@@ -5,25 +5,30 @@
  */
 package us.pserver.tools.compile.test;
 
-import java.io.Serializable;
 import java.util.Random;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Reflect;
-import us.pserver.tools.compile.FunctionMethodImpl;
+import us.pserver.tools.compile.impl.LambdaMethodImpl;
 
 
 /**
  *
  * @author Juno
  */
-public class TestFunctionMethodImpl {
+public class TestLambdaMethodImpl {
   
   @Test
   public void test_function_method_impl() {
-    Function<String,Integer> fn = (Function<String,Integer> & Serializable) s->new Random().nextInt();
-    FunctionMethodImpl fi = new FunctionMethodImpl(Reflect.of(IPerson.class).selectMethod("str2int").method().get());
-    System.out.println(fi.getSourceCode());
+    try {
+      Function<String,Integer> fn = s->new Random().nextInt();
+      LambdaMethodImpl fi = new LambdaMethodImpl(fn.getClass(), Reflect.of(IPerson.class).selectMethod("str2int").method().get());
+      System.out.println(fi.getSourceCode());
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
   }
   
 }

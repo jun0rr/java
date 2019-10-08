@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -18,6 +18,7 @@ import java.util.Random;
 import java.util.function.Predicate;
 import us.pserver.tools.Hash;
 import us.pserver.tools.Reflect;
+import us.pserver.tools.compile.CompilationUnit;
 
 
 /**
@@ -28,7 +29,7 @@ public class ExtendedClassImpl extends Annotated {
   
   private final Class<?> base;
   
-  private final List<ConstructorImpl> constructors;
+  private final List<ConstructorImpl2> constructors;
   
   private final List<MethodImpl> methods;
   
@@ -50,8 +51,10 @@ public class ExtendedClassImpl extends Annotated {
         .put("$toolsImpl_")
         .put(String.valueOf(System.currentTimeMillis() + new Random().nextLong()));
     this.className = base.getName().concat("$toolsImpl_").concat(h.get());
-    this.lambdaMap = new FieldImpl(Map.class, "LAMBDA_MAP", Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL);
-    this.lambdaMap.setFieldInitializer(new DefaultFieldInitializer(lambdaMap, LinkedHashMap.class));
+    this.lambdaMap = new FieldImpl(Map.class, "LAMBDA_MAP", 
+        new DefaultFieldInitializer("LAMBDA_MAP", LinkedHashMap.class), 
+        Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL
+    );
     this.fields.add(lambdaMap);
   }
   
@@ -67,7 +70,7 @@ public class ExtendedClassImpl extends Annotated {
         .forEach(methods::add);
   }
   
-  public List<ConstructorImpl> constructors() {
+  public List<ConstructorImpl2> constructors() {
     return constructors;
   }
   
@@ -79,9 +82,9 @@ public class ExtendedClassImpl extends Annotated {
     return fields;
   }
   
-  public ExtendedClassImpl add(ConstructorImpl cct) {
+  public ExtendedClassImpl add(ConstructorImpl2 cct) {
     if(cct != null) {
-      Predicate<ConstructorImpl> match = m->m.parameters().equals(cct.parameters());
+      Predicate<ConstructorImpl2> match = m->m.parameters().equals(cct.parameters());
       constructors.stream().filter(match).findFirst().ifPresent(constructors::remove);
       constructors.add(cct);
     }
@@ -134,11 +137,11 @@ public class ExtendedClassImpl extends Annotated {
           .forEach(c->sb.append(c.getSourceCode()).append("\n"));
     }
     else if(base.isInterface()) {
-      sb.append(new ConstructorImpl(simpleName, Modifier.PUBLIC).getSourceCode()).append(" \n");
+      sb.append(new ConstructorImpl2(simpleName, Modifier.PUBLIC).getSourceCode()).append(" \n");
     }
     if(!base.isInterface()) {
       Reflect.of(base).streamConstructors()
-          .map(c->new ConstructorImpl(c, simpleName))
+          .map(c->new ConstructorImpl2(c, simpleName))
           .filter(c->constructors.stream().noneMatch(o->c.equals(o)))
           .forEach(c->sb.append(c.getSourceCode()).append(" \n"));
     }

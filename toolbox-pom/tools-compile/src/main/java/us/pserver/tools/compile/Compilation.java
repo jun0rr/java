@@ -25,26 +25,26 @@ import us.pserver.tools.Unchecked;
  *
  * @author juno
  */
-public class Compiler {
+public class Compilation {
   
   private final Map<String,CompilationUnit> units;
   
   private final Map<String,Class> classes;
   
   
-  public Compiler() {
+  public Compilation() {
     units = new TreeMap<>();
     classes = new TreeMap<>();
   }
   
-  public Compiler add(CompilationUnit cd) {
+  public Compilation add(CompilationUnit cd) {
     if(cd != null) {
       this.units.put(cd.getClassName(), cd);
     }
     return this;
   }
   
-  public Compiler addAll(CompilationUnit... cds) {
+  public Compilation addAll(CompilationUnit... cds) {
     if(cds != null && cds.length > 0) {
       Arrays.asList(cds).forEach(c->units.put(c.getClassName(), c));
     }

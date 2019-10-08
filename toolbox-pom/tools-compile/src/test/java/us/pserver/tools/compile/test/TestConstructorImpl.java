@@ -8,7 +8,8 @@ package us.pserver.tools.compile.test;
 import java.lang.reflect.Constructor;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Reflect;
-import us.pserver.tools.compile.ConstructorImpl;
+import us.pserver.tools.compile.builder.ConstructorBuilder;
+import us.pserver.tools.compile.impl.AnnotationImpl;
 
 
 /**
@@ -20,8 +21,7 @@ public class TestConstructorImpl {
   @Test
   public void test_constructor_impl() {
     Constructor cct = Reflect.of(PointDef.class).selectConstructor(int.class, int.class).constructor().get();
-    ConstructorImpl ci = new ConstructorImpl(cct, cct.getDeclaringClass().getSimpleName());
-    System.out.println(ci);
+    System.out.println(new ConstructorBuilder().from(cct).addAnnotation(new AnnotationImpl()).build());
   }
   
 }

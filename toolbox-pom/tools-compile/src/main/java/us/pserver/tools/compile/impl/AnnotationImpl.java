@@ -3,13 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import us.pserver.tools.compile.SourceCode;
 
 
 /**
@@ -18,17 +20,17 @@ import java.util.Objects;
  */
 public class AnnotationImpl implements SourceCode, Typeable {
   
-  private final Class type;
+  private final Class<? extends Annotation> type;
   
   private final Map<String,Object> vals;
   
-  public AnnotationImpl(Class type) {
+  public AnnotationImpl(Class<? extends Annotation> type, Map<String,Object> vals) {
     this.type = Objects.requireNonNull(type);
-    vals = new LinkedHashMap<>();
+    this.vals = Collections.unmodifiableMap(vals);
   }
   
   @Override
-  public Class getType() {
+  public Class<? extends Annotation> getType() {
     return type;
   }
   

@@ -1,4 +1,4 @@
-us/pserver/tools/io/test/TestMultiBuffer.class
-us/pserver/tools/io/test/TestBitBuffersPerformance.class
+us\pserver\tools\io\test\TestBitBuffersPerformance$DevNull.class
+us\pserver\tools\io\test\TestMultiBuffer.class
+us\pserver\tools\io\test\TestBitBuffersPerformance.class
 module-info.class
-us/pserver/tools/io/test/TestBitBuffersPerformance$DevNull.class

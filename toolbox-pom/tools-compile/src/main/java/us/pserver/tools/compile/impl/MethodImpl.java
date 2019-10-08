@@ -3,51 +3,43 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
  *
  * @author juno
  */
-public class MethodImpl extends ModifiableImpl {
+public abstract class MethodImpl extends ModifiableImpl implements Nameable {
   
-  private final Optional<Class> retype;
+  protected final Optional<Class<?>> retype;
   
-  private final String name;
+  protected final String name;
   
-  private final List<ParameterImpl> parameters;
+  protected final List<ParameterImpl> parameters;
   
   
-  public MethodImpl(Class r, String n, int mods) {
-    super(mods);
-    this.retype = Optional.ofNullable(r);
+  protected MethodImpl(Collection<AnnotationImpl> ans, Optional<Class<?>> r, String n, Collection<ParameterImpl> pars, int mods) {
+    super(ans, mods);
+    this.retype = r;
     this.name = Objects.requireNonNull(n);
-    this.parameters = new LinkedList<>();
+    this.parameters = Collections.unmodifiableList(new ArrayList<>(pars));
   }
   
-  public MethodImpl(Method m) {
-    this(m.getReturnType(), m.getName(), m.getModifiers());
-    Arrays.asList(m.getParameters()).stream()
-        .map(p->new ParameterImpl(p))
-        .forEach(parameters::add);
-  }
-  
-  public MethodImpl(String n, int mods) {
-    this(null, n, mods);
-  }
-  
-  public Optional<Class> getReturnType() {
+  public Optional<Class<?>> getReturnType() {
     return retype;
   }
   
+  @Override
   public String getName() {
     return name;
   }
@@ -56,12 +48,19 @@ public class MethodImpl extends ModifiableImpl {
     return parameters;
   }
   
+  public String getMethodSignature() {
+    List<Class> cpars = parameters.stream()
+        .map(ParameterImpl::getType)
+        .collect(Collectors.toList());
+    return name + cpars.toString();
+  }
+  
   @Override
   public String getSourceCode() {
     StringBuilder sb = new StringBuilder(super.getSourceCode());
-    sb.append(getScope().name().toLowerCase())
-        .append(" ")
-        .append(retype.map(Class::getName).orElse("void"))
+    sb.append(getScope().name().toLowerCase()).append(" ");
+    if(Modifier.isStatic(mods)) sb.append("static ");
+    sb.append(retype.map(Class::getName).orElse("void"))
         .append(" ")
         .append(name)
         .append("( ");

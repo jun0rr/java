@@ -8,7 +8,7 @@ package us.pserver.tools.compile.test;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Reflect;
 import us.pserver.tools.compile.CompilationUnit;
-import us.pserver.tools.compile.Compiler;
+import us.pserver.tools.compile.Compilation;
 
 
 /**
@@ -212,7 +212,7 @@ public class TestCompiler {
         .appendln("  }")
         .appendln("}");
     
-    Compiler compiler = new Compiler();
+    Compilation compiler = new Compilation();
     compiler.addAll(cpoint, cdim, crect).compile();
 
     Reflect<IPoint2D> r = compiler.reflectCompiled("CPoint");

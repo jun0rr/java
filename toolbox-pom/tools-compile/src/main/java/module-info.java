@@ -9,4 +9,5 @@ module toolbox.tools.compile {
   requires java.compiler;
   requires transitive toolbox.tools;
   exports us.pserver.tools.compile;
+  exports us.pserver.tools.compile.impl;
 }

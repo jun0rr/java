@@ -6,8 +6,8 @@
 package us.pserver.tools.compile.test;
 
 import org.junit.jupiter.api.Test;
-import us.pserver.tools.compile.AnnotationImpl;
-import us.pserver.tools.compile.ParameterImpl;
+import us.pserver.tools.compile.impl.AnnotationImpl;
+import us.pserver.tools.compile.impl.ParameterImpl;
 
 
 /**

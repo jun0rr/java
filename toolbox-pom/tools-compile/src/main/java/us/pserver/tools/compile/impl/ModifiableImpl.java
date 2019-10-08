@@ -3,21 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 
 
 /**
  *
  * @author juno
  */
-public abstract class ModifiableImpl extends Annotated implements SourceCode {
+public abstract class ModifiableImpl extends Annotated {
   
   protected final int mods;
   
-  public ModifiableImpl(int mods) {
-    super();
+  public ModifiableImpl(Collection<AnnotationImpl> ans, int mods) {
+    super(ans);
     this.mods = mods;
   }
   

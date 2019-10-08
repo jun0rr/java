@@ -3,15 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
 
 /**
  *
- * @author juno
+ * @author Juno
  */
-public class Implementation {
+@FunctionalInterface
+public interface VarConsumer {
   
-  
+  public void accept(Object... args);
   
 }

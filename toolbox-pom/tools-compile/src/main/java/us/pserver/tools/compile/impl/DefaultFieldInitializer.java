@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
 import java.util.Objects;
 
@@ -16,15 +16,15 @@ public class DefaultFieldInitializer implements FieldInitializer {
 
   private final Class initClass;
   
-  private final FieldImpl field;
+  private final String name;
   
-  public DefaultFieldInitializer(FieldImpl f, Class initClass) {
-    this.field = f;
+  public DefaultFieldInitializer(String name, Class initClass) {
+    this.name = name;
     this.initClass = initClass;
   }
   
   public DefaultFieldInitializer(FieldImpl f) {
-    this(f, f.getType());
+    this(f.getName(), f.getType());
   }
   
   @Override
@@ -33,14 +33,14 @@ public class DefaultFieldInitializer implements FieldInitializer {
   }
   
   @Override
-  public FieldImpl getField() {
-    return field;
+  public String getName() {
+    return name;
   }
   
   @Override
   public String getSourceCode() {
     return "this."
-        .concat(field.getName())
+        .concat(name)
         .concat(" = new ")
         .concat(initClass.getName())
         .concat("(); ");
@@ -50,7 +50,7 @@ public class DefaultFieldInitializer implements FieldInitializer {
   public int hashCode() {
     int hash = 3;
     hash = 89 * hash + Objects.hashCode(this.initClass);
-    hash = 89 * hash + Objects.hashCode(this.field);
+    hash = 89 * hash + Objects.hashCode(this.name);
     return hash;
   }
   
@@ -69,7 +69,7 @@ public class DefaultFieldInitializer implements FieldInitializer {
     if (!Objects.equals(this.initClass, other.initClass)) {
       return false;
     }
-    if (!Objects.equals(this.field, other.field)) {
+    if (!Objects.equals(this.name, other.name)) {
       return false;
     }
     return true;

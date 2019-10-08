@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -17,27 +17,14 @@ import java.util.Optional;
  */
 public class FieldImpl extends ParameterImpl {
   
-  private Optional<FieldInitializer> init;
+  private final Optional<FieldInitializer> init;
   
   private final int mods;
   
-  public FieldImpl(Class type, String name, int mods) {
-    super(type, name);
+  public FieldImpl(Collection<AnnotationImpl> ans, Class type, String name, FieldInitializer init, int mods) {
+    super(ans, type, name);
     this.mods = mods;
-    this.init = Optional.empty();
-  }
-  
-  public FieldImpl(Field f) {
-    this(f.getType(), f.getName(), f.getModifiers());
-  }
-  
-  public FieldImpl setFieldInitializer(FieldInitializer fi) {
-    this.init = Optional.ofNullable(fi);
-    return this;
-  }
-  
-  public Optional<FieldInitializer> getFieldInitializer() {
-    return init;
+    this.init = Optional.ofNullable(init);
   }
   
   @Override

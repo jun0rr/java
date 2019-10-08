@@ -3,36 +3,36 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
 import java.lang.reflect.Parameter;
+import java.util.Collection;
 import java.util.Objects;
+import us.pserver.tools.compile.SourceCode;
 
 
 /**
  *
  * @author juno
  */
-public class ParameterImpl extends Annotated implements SourceCode {
+public class ParameterImpl extends Annotated implements SourceCode, Typeable, Nameable {
   
   private final Class type;
   
   private final String name;
   
-  public ParameterImpl(Class type, String name) {
-    super();
+  public ParameterImpl(Collection<AnnotationImpl> ans, Class type, String name) {
+    super(ans);
     this.type = Objects.requireNonNull(type);
     this.name = Objects.requireNonNull(name);
   }
   
-  public ParameterImpl(Parameter p) {
-    this(p.getType(), p.getName());
-  }
-  
+  @Override
   public String getName() {
     return name;
   }
   
+  @Override
   public Class getType() {
     return type;
   }

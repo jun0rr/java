@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import us.pserver.tools.compile.SourceCode;
 
 
 /**
@@ -17,8 +20,8 @@ public abstract class Annotated implements SourceCode {
   
   protected final List<AnnotationImpl> annotations;
   
-  public Annotated() {
-    this.annotations = new LinkedList<>();
+  public Annotated(Collection<AnnotationImpl> ans) {
+    this.annotations = Collections.unmodifiableList(new ArrayList<>(ans));
   }
   
   public List<AnnotationImpl> annotations() {

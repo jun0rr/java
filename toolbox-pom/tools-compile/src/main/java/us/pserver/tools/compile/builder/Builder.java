@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.builder;
 
 
 /**
  *
- * @author juno
+ * @author Juno
  */
-public interface FieldInitializer extends SourceCode, Typeable {
+public interface Builder<T> {
   
-  public FieldImpl getField();
+  public T build();
   
 }

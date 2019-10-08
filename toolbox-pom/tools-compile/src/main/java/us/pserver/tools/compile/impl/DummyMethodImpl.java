@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package us.pserver.tools.compile;
+package us.pserver.tools.compile.impl;
 
-import java.lang.reflect.Method;
+import java.util.Collection;
 
 
 /**
@@ -14,16 +14,8 @@ import java.lang.reflect.Method;
  */
 public class DummyMethodImpl extends MethodImpl {
   
-  public DummyMethodImpl(Class r, String n, int mods) {
-    super(r, n, mods);
-  }
-  
-  public DummyMethodImpl(Method m) {
-    super(m);
-  }
-  
-  public DummyMethodImpl(String n, int mods) {
-    super(n, mods);
+  public DummyMethodImpl(Collection<AnnotationImpl> ans, Class r, String n, Collection<ParameterImpl> pars, int mods) {
+    super(ans, r, n, pars, mods);
   }
   
   @Override
