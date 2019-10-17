@@ -12,18 +12,18 @@ import java.util.Objects;
  *
  * @author juno
  */
-public class DefaultFieldInitializer implements FieldInitializer {
+public class NewFieldInitializer implements FieldInitializer {
 
   private final Class initClass;
   
   private final String name;
   
-  public DefaultFieldInitializer(String name, Class initClass) {
+  public NewFieldInitializer(String name, Class initClass) {
     this.name = name;
     this.initClass = initClass;
   }
   
-  public DefaultFieldInitializer(FieldImpl f) {
+  public NewFieldInitializer(FieldImpl f) {
     this(f.getName(), f.getType());
   }
   
@@ -65,7 +65,7 @@ public class DefaultFieldInitializer implements FieldInitializer {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final DefaultFieldInitializer other = (DefaultFieldInitializer) obj;
+    final NewFieldInitializer other = (NewFieldInitializer) obj;
     if (!Objects.equals(this.initClass, other.initClass)) {
       return false;
     }

@@ -94,6 +94,10 @@ public abstract class AbstractMethodBuilder<P extends Builder<?>, M extends Meth
     return this;
   }
   
+  public ParameterBuilder<? extends AbstractMethodBuilder> newParameter() {
+    return new ParameterBuilder<>(this, this::addParameter);
+  }
+  
   //@Override
   //public P buildStep() {
     //return super.buildStep();

@@ -52,7 +52,7 @@ public class ExtendedClassImpl extends Annotated {
         .put(String.valueOf(System.currentTimeMillis() + new Random().nextLong()));
     this.className = base.getName().concat("$toolsImpl_").concat(h.get());
     this.lambdaMap = new FieldImpl(Map.class, "LAMBDA_MAP", 
-        new DefaultFieldInitializer("LAMBDA_MAP", LinkedHashMap.class), 
+        new NewFieldInitializer("LAMBDA_MAP", LinkedHashMap.class), 
         Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL
     );
     this.fields.add(lambdaMap);

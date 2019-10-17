@@ -34,7 +34,7 @@ public abstract class AbstractNestedBuilder<P extends Builder<?>,T> implements N
   @Override
   public P buildStep() {
     onbuild.ifPresent(c->c.accept(this.build()));
-    return parent.orElseThrow(()->new IllegalStateException("Not in ProxyBuilder context"));
+    return parent.orElseThrow(()->new IllegalStateException("Not in NestedBuilder context"));
   }
   
 }

@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import us.pserver.tools.compile.impl.ConstructorImpl;
-import us.pserver.tools.compile.impl.DefaultFieldInitializer;
+import us.pserver.tools.compile.impl.NewFieldInitializer;
 import us.pserver.tools.compile.impl.FieldInitializer;
 import us.pserver.tools.compile.impl.ParameterImpl;
 import us.pserver.tools.compile.impl.SuperConstructorImpl;
@@ -90,6 +90,10 @@ public class ConstructorBuilder<P extends Builder<?>> extends AbstractMethodBuil
   public Optional<VarConsumer> getParametersConsumer() {
     return consumer;
   }
+  
+  public SuperConstructorBuilder<ConstructorBuilder<P>> newSuperConstructor() {
+    return new SuperConstructorBuilder<>(this, this::setSuperConstructor, this.params);
+  }
 
   public ConstructorBuilder<P> setSuperConstructor(SuperConstructorImpl sc) {
     this.superCall = Optional.ofNullable(sc);
@@ -142,7 +146,7 @@ public class ConstructorBuilder<P extends Builder<?>> extends AbstractMethodBuil
       Predicate<FieldInitializer> match = f->f.getName().equals(name)
           && f.getType().equals(type);
       inits.stream().filter(match).findAny().ifPresent(inits::remove);
-      inits.add(new DefaultFieldInitializer(name, type));
+      inits.add(new NewFieldInitializer(name, type));
     }
     return this;
   }

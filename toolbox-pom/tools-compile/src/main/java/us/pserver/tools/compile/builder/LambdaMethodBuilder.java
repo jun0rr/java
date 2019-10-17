@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import us.pserver.tools.Reflect;
+import us.pserver.tools.compile.impl.AnnotationImpl;
 import us.pserver.tools.compile.impl.LambdaMethodImpl;
 import us.pserver.tools.compile.impl.ParameterImpl;
 
@@ -64,6 +65,12 @@ public class LambdaMethodBuilder<P extends Builder<?>> extends AbstractMethodBui
   @Override
   public LambdaMethodBuilder<P> addParameter(Class<?> type, String name) {
     super.addParameter(type, name);
+    return this;
+  }
+  
+  @Override
+  public LambdaMethodBuilder<P> addAnnotation(AnnotationImpl a) {
+    super.addAnnotation(a);
     return this;
   }
   

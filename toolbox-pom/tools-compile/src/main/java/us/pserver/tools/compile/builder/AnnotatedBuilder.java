@@ -8,9 +8,7 @@ package us.pserver.tools.compile.builder;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
-import us.pserver.tools.compile.ProxyBuilder;
 import us.pserver.tools.compile.impl.Annotated;
 import us.pserver.tools.compile.impl.AnnotationImpl;
 
@@ -36,7 +34,14 @@ public abstract class AnnotatedBuilder<P extends Builder<?>, A extends Annotated
     return annots;
   }
   
-  public AnnotationBuilder<? extends AnnotatedBuilder<P,A>> newAnnotation(Class<? extends Annotation> type) {
+  public AnnotatedBuilder<P,A> addAnnotation(AnnotationImpl a) {
+    if(a != null) {
+      this.annots.add(a);
+    }
+    return this;
+  }
+  
+  public AnnotationBuilder<? extends AnnotatedBuilder> newAnnotation(Class<? extends Annotation> type) {
     return new AnnotationBuilder<>(this, annots::add).setType(type);
   }
   
