@@ -31,16 +31,16 @@ public abstract class AbstractMethodBuilder<P extends Builder<?>, M extends Meth
   protected final List<ParameterImpl> params;
   
 
-  public AbstractMethodBuilder(P parent, Consumer<M> onbuild) {
-    super(parent, onbuild);
+  public AbstractMethodBuilder(P parent, Consumer<M> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.name = Optional.empty();
     this.returnType = Optional.empty();
     this.params = new ArrayList<>();
     this.mods = 0;
   }
   
-  public AbstractMethodBuilder() {
-    this(null, null);
+  public AbstractMethodBuilder(ClassBuilderContext context) {
+    this(null, null, context);
   }
   
   public AbstractMethodBuilder<P,M> setName(String name) {
@@ -95,7 +95,7 @@ public abstract class AbstractMethodBuilder<P extends Builder<?>, M extends Meth
   }
   
   public ParameterBuilder<? extends AbstractMethodBuilder> newParameter() {
-    return new ParameterBuilder<>(this, this::addParameter);
+    return new ParameterBuilder<>(this, this::addParameter, context);
   }
   
   //@Override

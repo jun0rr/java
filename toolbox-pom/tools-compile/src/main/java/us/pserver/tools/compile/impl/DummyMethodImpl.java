@@ -5,7 +5,13 @@
  */
 package us.pserver.tools.compile.impl;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -14,8 +20,8 @@ import java.util.Collection;
  */
 public class DummyMethodImpl extends MethodImpl {
   
-  public DummyMethodImpl(Collection<AnnotationImpl> ans, Class r, String n, Collection<ParameterImpl> pars, int mods) {
-    super(ans, r, n, pars, mods);
+  public DummyMethodImpl(Collection<AnnotationImpl> ans, Class<?> r, String n, Collection<ParameterImpl> pars, int mods) {
+    super(ans, Optional.ofNullable(r), n, pars, mods);
   }
   
   @Override
@@ -48,6 +54,15 @@ public class DummyMethodImpl extends MethodImpl {
   @Override
   public String toString() {
     return getSourceCode();
+  }
+  
+  
+  public static DummyMethodImpl of(Method m) {
+    Class r = Void.class.isAssignableFrom(m.getReturnType()) || void.class == m.getReturnType() ? null : m.getReturnType();
+    List<ParameterImpl> pars = Stream.of(m.getParameters())
+        .map(ParameterImpl::of)
+        .collect(Collectors.toList());
+    return new DummyMethodImpl(Collections.EMPTY_LIST, r, m.getName(), pars, m.getModifiers());
   }
   
 }

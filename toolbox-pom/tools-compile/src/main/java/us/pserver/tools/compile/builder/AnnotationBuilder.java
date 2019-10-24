@@ -23,8 +23,8 @@ public class AnnotationBuilder<P extends Builder<?>> extends AbstractNestedBuild
   
   private final Map<String,Object> vals;
   
-  public AnnotationBuilder(P parent, Consumer<AnnotationImpl> onbuild) {
-    super(parent, onbuild);
+  public AnnotationBuilder(P parent, Consumer<AnnotationImpl> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     vals = new LinkedHashMap<>();
   }
   

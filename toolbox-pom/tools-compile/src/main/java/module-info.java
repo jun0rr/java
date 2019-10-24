@@ -10,4 +10,5 @@ module toolbox.tools.compile {
   requires transitive toolbox.tools;
   exports us.pserver.tools.compile;
   exports us.pserver.tools.compile.impl;
+  exports us.pserver.tools.compile.builder;
 }

@@ -5,6 +5,7 @@
  */
 package us.pserver.tools.compile.impl;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,14 +22,14 @@ public class ConstructorImpl extends MethodImpl {
   
   private final List<FieldInitializer> inits;
   
-  private final Optional<VarConsumer> consumer;
-  
   private final Optional<SuperConstructorImpl> superCall;
   
-  public ConstructorImpl(Collection<AnnotationImpl> ans, String name, Collection<ParameterImpl> pars, Optional<SuperConstructorImpl> superCall, Collection<FieldInitializer> inits, Optional<VarConsumer> cs, int mods) {
+  private final boolean consumer;
+  
+  public ConstructorImpl(String name, Collection<AnnotationImpl> ans, Collection<ParameterImpl> pars, Collection<FieldInitializer> inits, Optional<SuperConstructorImpl> superCall, boolean callConsumer, int mods) {
     super(ans, Optional.empty(), name, pars, mods);
     this.inits = Collections.unmodifiableList(new ArrayList<>(inits));
-    this.consumer = cs;
+    this.consumer = callConsumer;
     this.superCall = superCall;
   }
   
@@ -41,18 +42,10 @@ public class ConstructorImpl extends MethodImpl {
     StringBuilder sb = new StringBuilder(super.getSourceCode());
     int ri = sb.indexOf("void ");
     sb.delete(ri, ri+5);
-    //sb.append(getScope().name().toLowerCase())
-        //.append(" ")
-        //.append(name)
-        //.append("(");
-    //if(!parameters.isEmpty()) {
-      //parameters.forEach(p->sb.append(p.getSourceCode()).append(", "));
-      //sb.delete(sb.length() -2, sb.length());
-    //}
     sb.append(" { ");
     superCall.ifPresent(s->sb.append(s.getSourceCode()));
     inits.forEach(f->sb.append(f.getSourceCode()));
-    if(consumer.isPresent()) {
+    if(consumer) {
       sb.append(VarConsumer.class.getName())
           .append(" fn = (")
           .append(VarConsumer.class.getName())
@@ -108,6 +101,20 @@ public class ConstructorImpl extends MethodImpl {
   @Override
   public String toString() {
     return getSourceCode();
+  }
+  
+  
+  
+  public static ConstructorImpl empty(String name) {
+    return new ConstructorImpl(
+        name,
+        Collections.EMPTY_LIST, 
+        Collections.EMPTY_LIST, 
+        Collections.EMPTY_LIST, 
+        Optional.empty(), 
+        false, 
+        Modifier.PUBLIC
+    );
   }
 
 }

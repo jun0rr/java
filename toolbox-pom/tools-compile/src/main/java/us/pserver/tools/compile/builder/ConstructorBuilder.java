@@ -36,15 +36,15 @@ public class ConstructorBuilder<P extends Builder<?>> extends AbstractMethodBuil
   private Optional<SuperConstructorImpl> superCall;
 
 
-  public ConstructorBuilder(P parent, Consumer<ConstructorImpl> onbuild) {
-    super(parent, onbuild);
+  public ConstructorBuilder(P parent, Consumer<ConstructorImpl> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.inits = new ArrayList<>();
     this.consumer = Optional.empty();
     this.superCall = Optional.empty();
   }
   
-  public ConstructorBuilder() {
-    this(null, null);
+  public ConstructorBuilder(ClassBuilderContext context) {
+    this(null, null, context);
   }
 
   @Override
@@ -92,7 +92,7 @@ public class ConstructorBuilder<P extends Builder<?>> extends AbstractMethodBuil
   }
   
   public SuperConstructorBuilder<ConstructorBuilder<P>> newSuperConstructor() {
-    return new SuperConstructorBuilder<>(this, this::setSuperConstructor, this.params);
+    return new SuperConstructorBuilder<>(this, this::setSuperConstructor, this.params, context);
   }
 
   public ConstructorBuilder<P> setSuperConstructor(SuperConstructorImpl sc) {
@@ -155,12 +155,12 @@ public class ConstructorBuilder<P extends Builder<?>> extends AbstractMethodBuil
   public ConstructorImpl build() {
     if(mods == 0) throw new IllegalStateException("Modifiers not defined");
     return new ConstructorImpl(
-        annots, 
         name.orElseThrow(()->new IllegalStateException("Constructor name not defined")), 
+        annots, 
         params, 
-        superCall, 
         inits, 
-        consumer, 
+        superCall, 
+        consumer.isPresent(), 
         mods
     );
   }

@@ -5,6 +5,7 @@
  */
 package us.pserver.tools.compile.builder;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -19,13 +20,20 @@ public abstract class AbstractNestedBuilder<P extends Builder<?>,T> implements N
   
   protected final Optional<Consumer<T>> onbuild;
   
-  protected AbstractNestedBuilder(P parent, Consumer<T> onbuild) {
+  protected final ClassBuilderContext context;
+  
+  protected AbstractNestedBuilder(P parent, Consumer<T> onbuild, ClassBuilderContext context) {
     this.parent = Optional.ofNullable(parent);
     this.onbuild = Optional.ofNullable(onbuild);
+    this.context = Objects.requireNonNull(context, "Bad Null ClassBuilderContext");
   }
   
-  protected AbstractNestedBuilder() {
-    this(null, null);
+  protected AbstractNestedBuilder(ClassBuilderContext context) {
+    this(null, null, context);
+  }
+  
+  public ClassBuilderContext getClassBuilderContext() {
+    return context;
   }
   
   @Override

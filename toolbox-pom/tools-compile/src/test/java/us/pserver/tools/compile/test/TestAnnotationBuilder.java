@@ -5,25 +5,22 @@
  */
 package us.pserver.tools.compile.test;
 
-import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import us.pserver.tools.Reflect;
+import us.pserver.tools.compile.builder.AnnotatedBuilder;
+import us.pserver.tools.compile.builder.ClassBuilderContext;
+import us.pserver.tools.compile.impl.Annotated;
 
 
 /**
  *
  * @author Juno
  */
-public class TestAnnotationClass {
+public class TestAnnotationBuilder {
   
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
@@ -37,12 +34,19 @@ public class TestAnnotationClass {
   public static class MyClass {}
   
   @Test
-  public void test_annotation_generic_reference() {
-    List<Annotation> ans = Arrays.asList(MyClass.class.getAnnotations());
-    ans.stream()
-        .peek(a->System.out.printf("%s, isAnnotation=%s:%n", a.getClass().getName(), a.getClass().isAnnotation()))
-        .flatMap(a->Stream.of(a.getClass().getInterfaces()))
-        .forEach(c->System.out.printf("   - %s, isAnnotation=%s%n", c.getName(), c.isAnnotation()));
+  public void test_annotation_builder_from_annotation() {   
+    try {
+      ClassBuilderContext ctx = new ClassBuilderContext(TestAnnotationBuilder.class);
+      AnnotatedBuilder ab = new AnnotatedBuilder(ctx){
+        public Annotated build() { return null; }
+      };
+      Stream.of(MyClass.class.getAnnotations()).forEach(a->ab.addAnnotation(a));
+      ab.getAnnotations().forEach(System.out::println);
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw e;
+    }
   }
   
 }

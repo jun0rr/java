@@ -22,6 +22,7 @@ public class TestMods {
     Assertions.assertTrue(Modifier.isPublic(mods));
     Assertions.assertTrue(Modifier.isStatic(mods));
     Assertions.assertTrue(Modifier.isFinal(mods));
+    System.out.println(Float.toString(0.54321f));
   }
   
 }

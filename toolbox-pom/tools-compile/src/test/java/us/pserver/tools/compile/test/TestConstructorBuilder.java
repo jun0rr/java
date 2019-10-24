@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Reflect;
+import us.pserver.tools.compile.builder.ClassBuilderContext;
 import us.pserver.tools.compile.builder.ConstructorBuilder;
 import us.pserver.tools.compile.impl.ParameterImpl;
 import us.pserver.tools.compile.impl.SuperConstructorImpl;
@@ -31,7 +32,7 @@ public class TestConstructorBuilder {
         new ParameterImpl(Collections.EMPTY_LIST, LocalDate.class, "birth")
     ));
     VarConsumer cs = os->System.out.println(Arrays.toString(os));
-    System.out.println(new ConstructorBuilder<>()
+    System.out.println(new ConstructorBuilder<>(new ClassBuilderContext(this.getClass()))
         .from(Reflect.of(PersonDef.class).selectConstructor(String.class, String.class, LocalDate.class).constructor().get())
         .setModifiers(Modifier.PUBLIC)
         .setParametersConsumer(cs)

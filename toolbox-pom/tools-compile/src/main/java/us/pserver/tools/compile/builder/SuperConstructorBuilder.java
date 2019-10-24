@@ -17,16 +17,16 @@ import us.pserver.tools.compile.impl.SuperConstructorImpl;
  */
 public class SuperConstructorBuilder<P extends Builder<?>> extends ParameterizedBuilder<P,SuperConstructorImpl> {
 
-  public SuperConstructorBuilder(P parent, Consumer<SuperConstructorImpl> onbuild, Collection<ParameterImpl> pars) {
-    super(parent, onbuild, pars);
+  public SuperConstructorBuilder(P parent, Consumer<SuperConstructorImpl> onbuild, Collection<ParameterImpl> pars, ClassBuilderContext context) {
+    super(parent, onbuild, pars, context);
   }
   
-  public SuperConstructorBuilder(P parent, Consumer<SuperConstructorImpl> onbuild) {
-    super(parent, onbuild);
+  public SuperConstructorBuilder(P parent, Consumer<SuperConstructorImpl> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
   }
   
-  public SuperConstructorBuilder() {
-    this(null, null);
+  public SuperConstructorBuilder(ClassBuilderContext context) {
+    this(null, null, context);
   }
   
   @Override
@@ -42,7 +42,7 @@ public class SuperConstructorBuilder<P extends Builder<?>> extends Parameterized
   
   @Override
   public ParameterBuilder<SuperConstructorBuilder<P>> newParameter() {
-    return new ParameterBuilder<>(this, this::addParameter);
+    return new ParameterBuilder<>(this, this::addParameter, context);
   }
   
   @Override

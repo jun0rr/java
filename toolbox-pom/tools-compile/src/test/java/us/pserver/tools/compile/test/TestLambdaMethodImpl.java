@@ -21,9 +21,9 @@ public class TestLambdaMethodImpl {
   @Test
   public void test_function_method_impl() {
     try {
-      Function<String,Integer> fn = s->new Random().nextInt();
-      LambdaMethodImpl fi = new LambdaMethodImpl(fn.getClass(), Reflect.of(IPerson.class).selectMethod("str2int").method().get());
-      System.out.println(fi.getSourceCode());
+      //Function<String,Integer> fn = s->new Random().nextInt();
+      //LambdaMethodImpl fi = new LambdaMethodImpl(fn.getClass(), Reflect.of(IPerson.class).selectMethod("str2int").method().get());
+      //System.out.println(fi.getSourceCode());
     }
     catch(Exception e) {
       e.printStackTrace();

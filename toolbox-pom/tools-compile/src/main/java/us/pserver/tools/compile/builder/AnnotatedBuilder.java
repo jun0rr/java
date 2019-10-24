@@ -6,9 +6,16 @@
 package us.pserver.tools.compile.builder;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import us.pserver.tools.Unchecked;
 import us.pserver.tools.compile.impl.Annotated;
 import us.pserver.tools.compile.impl.AnnotationImpl;
 
@@ -21,13 +28,13 @@ public abstract class AnnotatedBuilder<P extends Builder<?>, A extends Annotated
   
   protected final List<AnnotationImpl> annots;
   
-  public AnnotatedBuilder(P parent, Consumer<A> onbuild) {
-    super(parent, onbuild);
+  public AnnotatedBuilder(P parent, Consumer<A> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.annots = new ArrayList<>();
   }
   
-  public AnnotatedBuilder() {
-    this(null, null);
+  public AnnotatedBuilder(ClassBuilderContext context) {
+    this(null, null, context);
   }
 
   public List<AnnotationImpl> getAnnotations() {
@@ -41,15 +48,26 @@ public abstract class AnnotatedBuilder<P extends Builder<?>, A extends Annotated
     return this;
   }
   
-  public AnnotationBuilder<? extends AnnotatedBuilder> newAnnotation(Class<? extends Annotation> type) {
-    return new AnnotationBuilder<>(this, annots::add).setType(type);
+  public AnnotatedBuilder<P,A> addAnnotation(Annotation a) {
+    Map<String,Object> vals = annotationMethods(a)
+        .collect(Collectors.toMap(m->m.getName(), m->Unchecked.call(()->m.invoke(a))));
+    this.annots.add(new AnnotationImpl(a.annotationType(), vals));
+    return this;
   }
   
-  //@Override
-  //public P buildStep() {
-    //return super.buildStep();
-  //}
-
+  private Stream<Method> annotationMethods(Annotation a) {
+    return Stream.of(a.getClass().getInterfaces())
+        .filter(Class::isAnnotation)
+        .flatMap(c->Stream.of(c.getMethods()))
+        .filter(m->Stream.concat(Stream.of(Proxy.class.getMethods()), Stream.of(Annotation.class.getMethods()))
+            .map(n->n.getName().concat(Arrays.toString(n.getParameters())))
+            .noneMatch(s->s.equals(m.getName().concat(Arrays.toString(m.getParameters())))));
+  }
+  
+  public AnnotationBuilder<? extends AnnotatedBuilder> newAnnotation(Class<? extends Annotation> type) {
+    return new AnnotationBuilder<>(this, annots::add, context).setType(type);
+  }
+  
   public abstract A build();
   
 }

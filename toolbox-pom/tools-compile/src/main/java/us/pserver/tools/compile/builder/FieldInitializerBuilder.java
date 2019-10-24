@@ -26,8 +26,8 @@ public class FieldInitializerBuilder<P extends Builder<?>> extends AbstractNeste
   
   private Optional<Supplier<?>> supplier;
   
-  public FieldInitializerBuilder(P parent, Consumer<FieldInitializer> onbuild) {
-    super(parent, onbuild);
+  public FieldInitializerBuilder(P parent, Consumer<FieldInitializer> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.initType = null;
     this.name = null;
     this.supplier = Optional.empty();
@@ -68,9 +68,14 @@ public class FieldInitializerBuilder<P extends Builder<?>> extends AbstractNeste
   public FieldInitializer build() {
     Objects.requireNonNull(name, "Bad Null Field Name");
     Objects.requireNonNull(initType, "Bad Null Field Type");
-    return supplier.isPresent()
-        ? new SupplierFieldInitializer(name, initType)
-        : new NewFieldInitializer(name, initType);
+    if(supplier.isPresent()) {
+      context.putProperty(name.concat("Supplier<")
+          .concat(initType.getName()).concat(">"), 
+          supplier.get()
+      );
+      return new SupplierFieldInitializer(name, initType);
+    }
+    else return new NewFieldInitializer(name, initType);
   }
   
 }

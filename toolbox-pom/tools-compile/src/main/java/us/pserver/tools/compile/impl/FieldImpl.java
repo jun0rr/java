@@ -21,10 +21,10 @@ public class FieldImpl extends ParameterImpl {
   
   private final int mods;
   
-  public FieldImpl(Collection<AnnotationImpl> ans, Class type, String name, FieldInitializer init, int mods) {
+  public FieldImpl(Collection<AnnotationImpl> ans, Class type, String name, Optional<FieldInitializer> init, int mods) {
     super(ans, type, name);
     this.mods = mods;
-    this.init = Optional.ofNullable(init);
+    this.init = init;
   }
   
   @Override

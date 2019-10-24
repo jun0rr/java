@@ -28,14 +28,14 @@ public class LambdaMethodBuilder<P extends Builder<?>> extends AbstractMethodBui
   
   private Optional<Object> lambda;
   
-  public LambdaMethodBuilder(P parent, Consumer<LambdaMethodImpl> onbuild) {
-    super(parent, onbuild);
+  public LambdaMethodBuilder(P parent, Consumer<LambdaMethodImpl> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.type = Optional.empty();
     this.lambda = Optional.empty();
   }
   
-  public LambdaMethodBuilder() {
-    this(null, null);
+  public LambdaMethodBuilder(ClassBuilderContext context) {
+    this(null, null, context);
   }
   
   @Override
@@ -114,7 +114,7 @@ public class LambdaMethodBuilder<P extends Builder<?>> extends AbstractMethodBui
   
   @Override
   public LambdaMethodImpl build() {
-    return new LambdaMethodImpl(
+     LambdaMethodImpl impl = new LambdaMethodImpl(
         annots, 
         type.orElseThrow(()->new IllegalStateException("Lambda Not Defined")), 
         returnType, 
@@ -122,6 +122,8 @@ public class LambdaMethodBuilder<P extends Builder<?>> extends AbstractMethodBui
         params, 
         mods
     );
+    lambda.ifPresent(l->context.putProperty(impl.getMethodSignature(), l));
+    return impl;
   }
   
 }

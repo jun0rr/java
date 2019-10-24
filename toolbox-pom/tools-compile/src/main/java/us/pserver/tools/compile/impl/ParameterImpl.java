@@ -7,6 +7,7 @@ package us.pserver.tools.compile.impl;
 
 import java.lang.reflect.Parameter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import us.pserver.tools.compile.SourceCode;
 
@@ -75,6 +76,12 @@ public class ParameterImpl extends Annotated implements SourceCode, Typeable, Na
   @Override
   public String toString() {
     return getSourceCode();
+  }
+  
+  
+  
+  public static ParameterImpl of(Parameter p) {
+    return new ParameterImpl(Collections.EMPTY_LIST, p.getType(), p.getName());
   }
   
 }

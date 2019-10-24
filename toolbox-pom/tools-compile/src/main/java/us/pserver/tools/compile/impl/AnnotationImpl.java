@@ -43,20 +43,16 @@ public class AnnotationImpl implements SourceCode, Typeable {
     StringBuilder sb = new StringBuilder("@");
     sb.append(type.getName());
     if(!vals.isEmpty()) {
-      sb.append("{");
+      sb.append("(");
       Iterator<Entry<String,Object>> es = vals.entrySet().iterator();
       while(es.hasNext()) {
         Entry<String,Object> e = es.next();
-        sb.append(e.getKey()).append("=");
-        if(e.getValue() instanceof CharSequence) {
-          sb.append("\"").append(e.getValue()).append("\"");
-        }
-        else {
-          sb.append(e.getValue());
-        }
-        sb.append(",");
+        sb.append(e.getKey())
+            .append("=")
+            .append(AnnotationSourceCode.of(e.getValue()).getSourceCode())
+            .append(",");
       }
-      sb.deleteCharAt(sb.length() -1).append("}");
+      sb.deleteCharAt(sb.length() -1).append(")");
     }
     return sb.toString();
   }

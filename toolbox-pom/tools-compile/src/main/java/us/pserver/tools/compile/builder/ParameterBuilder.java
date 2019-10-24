@@ -20,8 +20,8 @@ public class ParameterBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,P
   
   protected String name;
   
-  public ParameterBuilder(P parent, Consumer<ParameterImpl> onbuild) {
-    super(parent, onbuild);
+  public ParameterBuilder(P parent, Consumer<ParameterImpl> onbuild, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.type = null;
     this.name = null;
   }

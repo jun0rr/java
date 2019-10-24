@@ -21,17 +21,17 @@ public abstract class ParameterizedBuilder<P extends Builder<?>,T> extends Abstr
 
   protected final List<ParameterImpl> parameters;
   
-  public ParameterizedBuilder(P parent, Consumer<T> onbuild, Collection<ParameterImpl> pars) {
-    super(parent, onbuild);
+  public ParameterizedBuilder(P parent, Consumer<T> onbuild, Collection<ParameterImpl> pars, ClassBuilderContext context) {
+    super(parent, onbuild, context);
     this.parameters = new ArrayList<>(pars);
   }
   
-  public ParameterizedBuilder(P parent, Consumer<T> onbuild) {
-    this(parent, onbuild, Collections.EMPTY_LIST);
+  public ParameterizedBuilder(P parent, Consumer<T> onbuild, ClassBuilderContext context) {
+    this(parent, onbuild, Collections.EMPTY_LIST, context);
   }
   
-  public ParameterizedBuilder() {
-    this(null, null);
+  public ParameterizedBuilder(ClassBuilderContext context) {
+    this(null, null, context);
   }
   
   public List<ParameterImpl> getParameters() {
@@ -53,7 +53,7 @@ public abstract class ParameterizedBuilder<P extends Builder<?>,T> extends Abstr
   }
   
   public ParameterBuilder<? extends ParameterizedBuilder> newParameter() {
-    return new ParameterBuilder<>(this, this::addParameter);
+    return new ParameterBuilder<>(this, this::addParameter, context);
   }
   
   public ParameterizedBuilder<P,T> clearParameters() {

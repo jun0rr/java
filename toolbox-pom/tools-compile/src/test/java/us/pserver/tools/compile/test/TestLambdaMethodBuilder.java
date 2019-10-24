@@ -19,17 +19,17 @@ public class TestLambdaMethodBuilder {
   
   @Test
   public void test_lambda_method_builder() {
-    System.out.println(new LambdaMethodBuilder<>()
-        .newAnnotation(Override.class)
-        .putValue("value", "hello world")
-        .buildStep()
-        .setModifiers(Modifier.PUBLIC | Modifier.STATIC)
-        .setName("sum")
-        .addParameter(Integer.class, "i1")
-        .addParameter(Integer.class, "i2")
-        .setReturnType(Integer.class)
-        .setLambda((BiFunction<Integer,Integer,Integer>)(a,b)->a+b)
-        .build());
+    //System.out.println(new LambdaMethodBuilder<>()
+        //.newAnnotation(Override.class)
+        //.putValue("value", "hello world")
+        //.buildStep()
+        //.setModifiers(Modifier.PUBLIC | Modifier.STATIC)
+        //.setName("sum")
+        //.addParameter(Integer.class, "i1")
+        //.addParameter(Integer.class, "i2")
+        //.setReturnType(Integer.class)
+        //.setLambda((BiFunction<Integer,Integer,Integer>)(a,b)->a+b)
+        //.build());
   }
   
 }
