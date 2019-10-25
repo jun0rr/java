@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -35,13 +36,15 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
   
   private Optional<Class<?>> superClass;
   
-  private List<Class<?>> interfaces;
+  private final List<Class<?>> interfaces;
   
   private final List<FieldImpl> fields;
   
   private final List<ConstructorImpl> ccts;
   
   private final List<MethodImpl> meths;
+  
+  private int mods;
   
   public ClassBuilder(P parent, Consumer<ClassImpl> onbuild, ClassBuilderContext context) {
     super(parent, onbuild, context);
@@ -51,6 +54,12 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
     this.ccts = new ArrayList<>();
     this.meths = new ArrayList<>();
     this.interfaces = new ArrayList<>();
+    this.mods = Modifier.PUBLIC;
+  }
+  
+  public ClassBuilder(String name) {
+    this(null, null, new ClassBuilderContext(Objects.requireNonNull(name, "Bad Null Class Name")));
+    this.name = Optional.of(name);
   }
   
   public ClassBuilder<P> setName(String name) {
@@ -60,6 +69,15 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
   
   public Optional<String> getName() {
     return name;
+  }
+  
+  public int getModifiers() {
+    return mods;
+  }
+  
+  public ClassBuilder<P> setModifiers(int mds) {
+    this.mods = mds;
+    return this;
   }
   
   public ClassBuilder<P> implement(Class<?> iface) {
@@ -87,12 +105,11 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
   
   public ClassBuilder<P> extend(Class<?> superClass) {
     this.superClass = Optional.ofNullable(superClass);
-    if(this.superClass.isPresent()) {
-      this.setupName(superClass);
-      this.setupConstructors(superClass);
-      this.setupMethods(superClass);
-    }
     return this;
+  }
+  
+  private String getSimpleName() {
+    return name.get().substring(name.get().lastIndexOf(".") + 1);
   }
   
   private void setupName(Class<?> base) {
@@ -103,20 +120,19 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
     this.setName(base.getName().concat("$toolsImpl_").concat(h.get()));
   }
   
-  private void setupConstructors(Class<?> base) {
+  private void setupSuperConstructors(Class<?> base) {
     if(base.isInterface()) {
-      ccts.add(ConstructorImpl.empty(name.get()));
+      ccts.add(ConstructorImpl.empty(getSimpleName()));
     }
     else {
-      String sname = name.get().substring(name.get().lastIndexOf(".") + 1);
-      Reflect.of(superClass).streamConstructors()
-          .map(c->newConstructor().from(c).setName(sname).build())
+      Reflect.of(superClass.get()).streamConstructors()
+          .map(c->newConstructor().from(c).setName(getSimpleName()).build())
           .filter(c->ccts.stream().noneMatch(o->c.equals(o)))
           .forEach(ccts::add);
     }
   }
   
-  private void setupMethods(Class<?> base) {
+  private void setupAbstractMethods(Class<?> base) {
     Predicate<Method> isAbstractPublic = m->Modifier.isAbstract(m.getModifiers()) && Modifier.isPublic(m.getModifiers());
     Comparator<Method> me = (a,b) -> a.getName().concat(Arrays.toString(a.getParameterTypes()))
         .compareTo(b.getName().concat(Arrays.toString(b.getParameterTypes())));
@@ -125,6 +141,7 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
         .filter(m -> Reflect.of(Object.class).streamMethods()
             .filter(isAbstractPublic).noneMatch(om->me.compare(om, m) == 0))
         .map(DummyMethodImpl::of)
+        .filter(i->meths.stream().noneMatch(m->i.equals(m)))
         .forEach(meths::add);
   }
   
@@ -170,16 +187,31 @@ public class ClassBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Class
   }
   
   public ConstructorBuilder<ClassBuilder<P>> newConstructor() {
-    return new ConstructorBuilder<>(this, this::addConstructor, context);
+    return new ConstructorBuilder<>(this, this::addConstructor, context).setName(getSimpleName());
   }
   
   public List<ConstructorImpl> getConstructors() {
     return ccts;
   }
   
+  public List<Class<?>> getInterfaces() {
+    return interfaces;
+  }
+  
   @Override
   public ClassImpl build() {
-    return null;
+    if(this.superClass.isPresent()) {
+      this.setupName(superClass.get());
+      this.setupSuperConstructors(superClass.get());
+      this.setupAbstractMethods(superClass.get());
+    }
+    interfaces.forEach(this::setupAbstractMethods);
+    if(mods == 0) throw new IllegalStateException("Modifiers not defined");
+    return new ClassImpl(
+        name.orElseThrow(()->new IllegalStateException("Class name not defined")),
+        superClass, interfaces, annots,
+        ccts, meths, fields, mods
+    );
   }
   
 }

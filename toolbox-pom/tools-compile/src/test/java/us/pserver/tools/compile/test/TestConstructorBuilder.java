@@ -7,15 +7,10 @@ package us.pserver.tools.compile.test;
 
 import java.lang.reflect.Modifier;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import us.pserver.tools.Reflect;
-import us.pserver.tools.compile.builder.ClassBuilderContext;
 import us.pserver.tools.compile.builder.ConstructorBuilder;
-import us.pserver.tools.compile.impl.ParameterImpl;
+import us.pserver.tools.compile.impl.ParameterFieldInitializer;
 import us.pserver.tools.compile.impl.SuperConstructorImpl;
-import us.pserver.tools.compile.impl.VarConsumer;
 
 
 /**
@@ -26,17 +21,18 @@ public class TestConstructorBuilder {
   
   @Test
   public void test_from_constructor() {
-    SuperConstructorImpl sup = new SuperConstructorImpl(Arrays.asList(
-        new ParameterImpl(Collections.EMPTY_LIST, String.class, "name"), 
-        new ParameterImpl(Collections.EMPTY_LIST, String.class, "lastName"),
-        new ParameterImpl(Collections.EMPTY_LIST, LocalDate.class, "birth")
-    ));
-    VarConsumer cs = os->System.out.println(Arrays.toString(os));
-    System.out.println(new ConstructorBuilder<>(new ClassBuilderContext(this.getClass()))
-        .from(Reflect.of(PersonDef.class).selectConstructor(String.class, String.class, LocalDate.class).constructor().get())
+    ConstructorBuilder bld = new ConstructorBuilder<>("Person")
+        .addParameter(String.class, "firstName")
+        .addParameter(String.class, "lastName")
+        .addParameter(LocalDate.class, "birth")
+        .addInitializer(new ParameterFieldInitializer("firstName"))
+        .addInitializer(new ParameterFieldInitializer("lastName"))
+        .addInitializer(new ParameterFieldInitializer("birth"));
+    System.out.println(
+        bld.setSuperConstructor(new SuperConstructorImpl(bld.getParameters()))
         .setModifiers(Modifier.PUBLIC)
-        .setParametersConsumer(cs)
-        .build());
+        .build().getSourceCode()
+    );
   }
   
 }

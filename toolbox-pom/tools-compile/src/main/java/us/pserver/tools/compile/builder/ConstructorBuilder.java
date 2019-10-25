@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -41,6 +42,11 @@ public class ConstructorBuilder<P extends Builder<?>> extends AbstractMethodBuil
     this.inits = new ArrayList<>();
     this.consumer = Optional.empty();
     this.superCall = Optional.empty();
+  }
+  
+  public ConstructorBuilder(String name) {
+    this(null, null, new ClassBuilderContext(Objects.requireNonNull(name, "Bad Null Name")));
+    this.name = Optional.of(name);
   }
   
   public ConstructorBuilder(ClassBuilderContext context) {

@@ -32,6 +32,7 @@ public class FieldBuilder<P extends Builder<?>> extends AnnotatedBuilder<P,Field
     super(parent, onbuild, ctx);
     this.name = Optional.empty();
     this.type = Optional.empty();
+    this.init = Optional.empty();
     this.mods = Modifier.PRIVATE;
   }
   

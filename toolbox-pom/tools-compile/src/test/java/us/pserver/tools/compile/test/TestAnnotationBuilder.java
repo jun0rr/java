@@ -36,7 +36,7 @@ public class TestAnnotationBuilder {
   @Test
   public void test_annotation_builder_from_annotation() {   
     try {
-      ClassBuilderContext ctx = new ClassBuilderContext(TestAnnotationBuilder.class);
+      ClassBuilderContext ctx = new ClassBuilderContext(TestAnnotationBuilder.class.getName());
       AnnotatedBuilder ab = new AnnotatedBuilder(ctx){
         public Annotated build() { return null; }
       };
