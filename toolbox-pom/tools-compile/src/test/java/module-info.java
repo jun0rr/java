@@ -12,4 +12,5 @@ module toolbox.tools.compile.test {
   requires org.junit.jupiter.api;
   requires tinylog.api;
   requires tinylog.impl;
+  requires java.net.http;
 }

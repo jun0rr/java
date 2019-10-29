@@ -6,6 +6,7 @@
 
 module toolbox.tools.compile {
   requires java.base;
+  requires java.net.http;
   requires java.compiler;
   requires transitive toolbox.tools;
   exports us.pserver.tools.compile;
