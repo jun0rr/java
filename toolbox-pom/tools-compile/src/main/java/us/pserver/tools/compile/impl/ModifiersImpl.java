@@ -69,6 +69,7 @@ public class ModifiersImpl implements SourceCode {
     return Modifier.isVolatile(mods);
   }
   
+  @Override
   public String getSourceCode() {
     StringBuilder sb = new StringBuilder();
     if(isPrivate()) sb.append("private ");
@@ -82,6 +83,33 @@ public class ModifiersImpl implements SourceCode {
     if(isVolatile()) sb.append("volatile ");
     else if(isFinal()) sb.append("final ");
     return sb.toString();
+  }
+  
+  @Override
+  public int hashCode() {
+    int hash = 5;
+    hash = 43 * hash + this.mods;
+    return hash;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    final ModifiersImpl other = (ModifiersImpl) obj;
+    return this.mods == other.mods;
+  }
+  
+  @Override
+  public String toString() {
+    return getSourceCode();
   }
   
 }

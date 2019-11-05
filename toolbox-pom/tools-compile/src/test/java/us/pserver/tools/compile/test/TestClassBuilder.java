@@ -9,6 +9,7 @@ import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import us.pserver.tools.compile.builder.Builder;
 import us.pserver.tools.compile.builder.ClassBuilder;
 import us.pserver.tools.compile.impl.FieldImpl;
 import us.pserver.tools.compile.impl.GetterMethodImpl;
@@ -24,23 +25,26 @@ public class TestClassBuilder {
   @Test
   public void method() {
     try {
-      ClassBuilder bld = new ClassBuilder("us.pserver.tools.compile.test.Person1");
+      ClassBuilder<Builder<?>> bld = new ClassBuilder<>("us.pserver.tools.compile.test.Person1");
       bld.newField()
           .setName("name")
           .setType(String.class)
           .setMods(Modifier.PRIVATE | Modifier.FINAL)
-          .buildStep();
-      bld.newField()
+          .buildStep()
+          
+          .newField()
           .setName("lastname")
           .setType(String.class)
           .setMods(Modifier.PRIVATE | Modifier.FINAL)
-          .buildStep();
-      bld.newField()
+          .buildStep()
+          
+          .newField()
           .setName("birth")
           .setType(LocalDate.class)
           .setMods(Modifier.PRIVATE | Modifier.FINAL)
-          .buildStep();
-      bld.newConstructor()
+          .buildStep()
+          
+          .newConstructor()
           .addParameter(String.class, "name")
           .addParameter(String.class, "lastname")
           .addParameter(LocalDate.class, "birth")
