@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy.impl;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 import net.jun0rr.doxy.Packet;
 import net.jun0rr.doxy.SecKey;
@@ -23,9 +24,9 @@ public class PacketImpl implements Packet {
   
   private final SecKey key;
   
-  private final BitBuffer data;
+  private final ByteBuffer data;
   
-  public PacketImpl(String srcid, long ord, SecKey key, BitBuffer data) {
+  public PacketImpl(String srcid, ByteBuffer data, SecKey key, long ord) {
     this.sid = Objects.requireNonNull(srcid, "Bad null Source ID");
     this.order = ord;
     this.key = key;
@@ -48,13 +49,19 @@ public class PacketImpl implements Packet {
   }
   
   @Override
-  public BitBuffer getClearData() {
+  public ByteBuffer getRawData() {
     return data;
   }
   
   @Override
-  public BitBuffer getRawData() {
-    return data;
+  public BitBuffer encode() {
+    int len = Long.BYTES + Integer.BYTES + sid.length() + data.remaining();
+    BitBuffer buf = BitBuffer.dynamicBuffer(len, data.isDirect());
+    buf.putLong(order)
+        .putInt(sid.length())
+        .putUTF8(sid)
+        .put(data);
+    return buf.flip();
   }
   
 }

@@ -6,11 +6,12 @@
 package net.jun0rr.doxy.client;
 
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Objects;
+import net.jun0rr.doxy.DoxyChannel;
 import net.jun0rr.doxy.DoxyEnvironment;
+import net.jun0rr.doxy.impl.DoxyChannelImpl;
 import us.pserver.tools.Hash;
 import us.pserver.tools.Unchecked;
 
@@ -42,16 +43,27 @@ public class ClientInputServer implements Runnable {
     env.executor().submit(this);
   }
   
+  public void stop() {
+    running = false;
+  }
+  
   @Override
   public void run() {
     try {
       try (server) {
-        server.bind(new InetSocketAddress(env.configuration().getHost(), env.configuration().getPort()));
+        server.bind(new InetSocketAddress(
+            env.configuration().getHost(), 
+            env.configuration().getPort())
+        );
         while(running) {
           SocketChannel socket = server.accept();
-          String sid = Hash.sha256().of(socket.getLocalAddress().toString());
-          env.channels().put(sid, socket);
-          env.executor().submit(new ClientInputHandler(env, sid, socket));
+          String sid = Hash.sha256().of(String.join("|", 
+              socket.getLocalAddress().toString(), 
+              socket.getRemoteAddress().toString())
+          );
+          DoxyChannel ch = new DoxyChannelImpl(env, sid, socket);
+          env.channels().add(ch);
+          env.executor().submit(new ClientInputHandler(ch));
         }
       }
     }

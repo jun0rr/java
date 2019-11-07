@@ -5,10 +5,7 @@
  */
 package net.jun0rr.doxy;
 
-import java.nio.channels.SocketChannel;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import net.jun0rr.doxy.client.HttpPacketRequest;
 
@@ -23,19 +20,9 @@ public interface DoxyEnvironment {
   
   public ExecutorService executor();
   
-  /**
-   * Deque holding server responses Packet's.
-   * @return Deque holding server responses Packet's.
-   */
   public List<Packet> inbox();
   
-  public int nextIndex();
-  
-  public Optional<Packet> nextPacket();
-  
-  public long nextPacketOrder();
-  
-  public Map<String,SocketChannel> channels();
+  public List<DoxyChannel> channels();
   
   public HttpPacketRequest http();
   
