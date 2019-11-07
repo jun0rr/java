@@ -1,4 +1,5 @@
 us\pserver\tools\test\StringPadTest.class
+us\pserver\tools\test\TestAtomicReference.class
 us\pserver\tools\test\ReflectTarget.class
 us\pserver\tools\test\TestReflect.class
 module-info.class

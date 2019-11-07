@@ -17,9 +17,7 @@ import us.pserver.tools.io.BitBuffer;
  */
 public class PacketImpl implements Packet {
   
-  private final String sourceID;
-  
-  private final String targetID;
+  private final String sid;
   
   private final long order;
   
@@ -27,22 +25,16 @@ public class PacketImpl implements Packet {
   
   private final BitBuffer data;
   
-  public PacketImpl(String srcid, String tgtid, long ord, SecKey key, BitBuffer data) {
-    this.sourceID = Objects.requireNonNull(srcid, "Bad null Source ID");
-    this.targetID = Objects.requireNonNull(srcid, "Bad null Target ID");
+  public PacketImpl(String srcid, long ord, SecKey key, BitBuffer data) {
+    this.sid = Objects.requireNonNull(srcid, "Bad null Source ID");
     this.order = ord;
     this.key = key;
     this.data = data;
   }
   
   @Override
-  public String getSourceID() {
-    return sourceID;
-  }
-  
-  @Override
-  public String getTargetID() {
-    return targetID;
+  public String getID() {
+    return sid;
   }
   
   @Override

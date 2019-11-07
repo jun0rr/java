@@ -22,8 +22,20 @@ public interface DoxyConfig {
   
   public String getTargetHost();
   
-  public byte[] getSecretKey();
+  public int getProxyPort();
   
-  public ExecutorService getExecutor();
+  public String getProxyHost();
+  
+  public String getProxyUser();
+  
+  public String getProxyPassword();
+  
+  public int getBufferSize();
+  
+  public int getThreadPoolSize();
+  
+  public boolean isDirectBuffer();
+  
+  public byte[] getSecretKey();
   
 }

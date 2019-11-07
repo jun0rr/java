@@ -14,9 +14,7 @@ import us.pserver.tools.io.BitBuffer;
  */
 public interface Packet {
   
-  public String getSourceID();
-  
-  public String getTargetID();
+  public String getID();
   
   public long getOrder();
   

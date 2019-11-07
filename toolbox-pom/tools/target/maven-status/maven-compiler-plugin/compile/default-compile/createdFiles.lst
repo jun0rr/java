@@ -2,6 +2,7 @@ us\pserver\tools\ConditionalSupplier$ConditionalSupplierImpl.class
 us\pserver\tools\UTF8String.class
 us\pserver\tools\CharsetString.class
 us\pserver\tools\IndexedInt.class
+us\pserver\tools\LazyFinal.class
 us\pserver\tools\Unchecked$UncheckedFunction.class
 us\pserver\tools\ConditionalConsumer$ConditionalConsumerImpl.class
 us\pserver\tools\date\DateTime$DateTimeImpl.class

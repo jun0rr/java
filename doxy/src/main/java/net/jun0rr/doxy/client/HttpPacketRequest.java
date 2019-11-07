@@ -14,9 +14,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
+import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.DoxyEnvironment;
 import net.jun0rr.doxy.Packet;
 import us.pserver.tools.Unchecked;
 
@@ -49,24 +52,28 @@ public class HttpPacketRequest {
   }
   
   
-  private final DoxyClientConfig config;
+  private final DoxyEnvironment env;
   
   private final HttpClient client;
   
   
-  public HttpPacketRequest(DoxyClientConfig cfg) {
-    this.config = Objects.requireNonNull(cfg, "Bad null DoxyClientConfig");
+  public HttpPacketRequest(DoxyEnvironment env) {
+    this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
     this.client = HttpClient.newBuilder()
         .version(HttpClient.Version.HTTP_2)
-        .proxy(ProxySelector.of(new InetSocketAddress(cfg.getProxyHost(), cfg.getProxyPort())))
+        .proxy(ProxySelector.of(new InetSocketAddress(env.configuration().getProxyHost(), env.configuration().getProxyPort())))
         .sslContext(SSL)
         .followRedirects(HttpClient.Redirect.ALWAYS)
-        .executor(cfg.getExecutor())
+        .executor(env.executor())
         .build();
   }
   
   public void send(Packet p) throws IOException {
     
+  }
+  
+  public Optional<Packet> receive() throws IOException {
+    return Optional.empty();
   }
   
 }
