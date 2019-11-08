@@ -6,6 +6,7 @@
 package net.jun0rr.doxy;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import net.jun0rr.doxy.client.HttpPacketRequest;
 
@@ -23,6 +24,8 @@ public interface DoxyEnvironment {
   public List<Packet> inbox();
   
   public List<DoxyChannel> channels();
+  
+  public Optional<DoxyChannel> getChannelById(String id);
   
   public HttpPacketRequest http();
   
