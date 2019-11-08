@@ -31,7 +31,9 @@ public class ClientInputHandler implements Runnable {
         channel.readPacket().ifPresent(channel.environment().http()::send);
       }
     }
-    catch(EOFException o) {}
+    catch(EOFException o) {
+      //No more data available, channel will be closed.
+    }
     catch(IOException e) {
       throw Unchecked.unchecked(e);
     }

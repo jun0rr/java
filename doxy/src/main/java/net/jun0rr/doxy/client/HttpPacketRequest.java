@@ -76,16 +76,13 @@ public class HttpPacketRequest {
         .followRedirects(HttpClient.Redirect.ALWAYS)
         .executor(env.executor())
         .build();
+    String host = String.format(HOST_PORT, env.configuration().getTargetHost(), env.configuration().getTargetPort());
     this.sendUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
-        .append(env.configuration().getTargetHost())
-        .append(COLON)
-        .append(env.configuration().getTargetPort())
+        .append(host)
         .append(URI_ENCODE)
         .toString()));
     this.receiveUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
-        .append(env.configuration().getTargetHost())
-        .append(COLON)
-        .append(env.configuration().getTargetPort())
+        .append(host)
         .append(URI_DECODE)
         .toString()));
   }
@@ -115,12 +112,9 @@ public class HttpPacketRequest {
         .header(HEADER_X_PID, id)
         .build();
     HttpResponse<byte[]> resp = Unchecked.call(()->client.send(req, BodyHandlers.ofByteArray()));
-    if(resp.statusCode() == 200) {
-      return Optional.of(Packet.decode(ByteBuffer.wrap(resp.body())));
-    }
-    else {
-      return Optional.empty();
-    }
+    return resp.statusCode() == HTTP_200_OK
+        ? Optional.of(Packet.decode(ByteBuffer.wrap(resp.body())))
+        : Optional.empty();
   }
   
   
@@ -141,7 +135,7 @@ public class HttpPacketRequest {
   
   public static final String HTTPS = "https://";
   
-  public static final String COLON = ":";
+  public static final String HOST_PORT = "%s:%d";
   
   public static final String URI_ENCODE = "/encode";
   
@@ -150,5 +144,7 @@ public class HttpPacketRequest {
   public static final String PROP_DISABLE_SCHEMES = "jdk.http.auth.tunneling.disabledSchemes";
   
   public static final String TLS = "TLS";
+  
+  public static final int HTTP_200_OK = 200;
   
 }
