@@ -25,7 +25,9 @@ public interface Packet {
   
   public ByteBuffer getRawData();
   
-  public BitBuffer encode();
+  public int length();
+  
+  public ByteBuffer encode();
   
   
   

@@ -94,7 +94,7 @@ public class HttpPacketRequest {
   
   public void send(Packet p) {
     HttpRequest req = HttpRequest.newBuilder(sendUri)
-        .POST(new BufferBodyPublisher(p.encode().toByteBuffer()))
+        .POST(new BufferBodyPublisher(p.encode()))
         .version(HttpClient.Version.HTTP_2)
         .header(HEADER_USER_AGENT, VALUE_USER_AGENT)
         .header(HEADER_PROXY_AUTH, getProxyAuthorization())

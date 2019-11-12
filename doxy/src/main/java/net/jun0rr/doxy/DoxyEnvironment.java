@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -28,5 +29,7 @@ public interface DoxyEnvironment {
   public Optional<DoxyChannel> getChannelById(String id);
   
   public HttpPacketRequest http();
+  
+  public ByteBuffer alloc();
   
 }

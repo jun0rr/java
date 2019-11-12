@@ -3,17 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.client;
-
-import net.jun0rr.doxy.Packet;
+package net.jun0rr.doxy.server;
 
 
 /**
  *
- * @author juno
+ * @author Juno
  */
-public interface IncomingPacketHandler {
+public interface RoutableHttpRequestHandler extends HttpRequestHandler {
   
-  public void received(Packet p);
+  public boolean matchRoute(HttpRoute r);
   
 }

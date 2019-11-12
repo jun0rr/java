@@ -29,4 +29,6 @@ public interface DoxyChannel extends AutoCloseable {
   
   public Optional<Packet> readPacket() throws EOFException, IOException;
   
+  public void writePacket(Packet p) throws IOException;
+  
 }

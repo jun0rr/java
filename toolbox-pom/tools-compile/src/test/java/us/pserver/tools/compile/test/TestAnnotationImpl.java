@@ -5,7 +5,10 @@
  */
 package us.pserver.tools.compile.test;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.compile.impl.AnnotationImpl;
 import us.pserver.tools.compile.impl.ParameterImpl;
@@ -18,23 +21,24 @@ import us.pserver.tools.compile.impl.ParameterImpl;
 public class TestAnnotationImpl {
   @Test
   public void test_annotation() {
-    AnnotationImpl a = new AnnotationImpl(Override.class, Collections.EMPTY_MAP);
-    a.values().put("value", "hello");
-    a.values().put("iterations", 5);
+    Map<String,Object> map = new HashMap<>();
+    map.put("value", "hello");
+    map.put("iterations", 5);
+    AnnotationImpl a = new AnnotationImpl(Override.class, map);
     System.out.println(a);
   }
   
   @Test
   public void test_parameter() {
-    AnnotationImpl a = new AnnotationImpl(Override.class, Collections.EMPTY_MAP);
-    a.values().put("value", "hello");
-    a.values().put("iterations", 5);
-    AnnotationImpl b = new AnnotationImpl(Deprecated.class, Collections.EMPTY_MAP);
-    b.values().put("value", "world");
-    b.values().put("iterations", 1);
-    ParameterImpl p = new ParameterImpl(Collections.EMPTY_LIST, Integer.class, "magicNumber");
-    p.annotations().add(a);
-    p.annotations().add(b);
+    Map<String,Object> map = new HashMap<>();
+    map.put("value", "hello");
+    map.put("iterations", 5);
+    AnnotationImpl a = new AnnotationImpl(Override.class, map);
+    map = new HashMap<>();
+    map.put("value", "world");
+    map.put("iterations", 1);
+    AnnotationImpl b = new AnnotationImpl(Deprecated.class, map);
+    ParameterImpl p = new ParameterImpl(Arrays.asList(a, b), Integer.class, "magicNumber");
     System.out.println(p);
   }
 }

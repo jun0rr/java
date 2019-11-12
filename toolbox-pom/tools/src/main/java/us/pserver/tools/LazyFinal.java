@@ -7,6 +7,7 @@ package us.pserver.tools;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 
 /**
@@ -28,9 +29,19 @@ public class LazyFinal<T> {
     return obj.get();
   }
   
-  public void set(T o) throws IllegalStateException {
+  public void init(T o) throws IllegalStateException {
     if(obj.compareAndExchange(null, o) != null) {
-      throw new IllegalStateException("LazyFinal already defined");
+      throw new IllegalStateException("Value already defined");
+    }
+  }
+  
+  public boolean isInitialized() {
+    return obj.get() != null;
+  }
+  
+  public void ifInitialized(Consumer<T> c) {
+    if(isInitialized()) {
+      c.accept(obj.get());
     }
   }
   

@@ -9,5 +9,8 @@ module doxy {
   requires java.net.http;
   requires toolbox.tools;
   requires toolbox.tools.io;
+  requires io.netty.all;
   exports net.jun0rr.doxy;
+  exports net.jun0rr.doxy.client;
+  exports net.jun0rr.doxy.server;
 }

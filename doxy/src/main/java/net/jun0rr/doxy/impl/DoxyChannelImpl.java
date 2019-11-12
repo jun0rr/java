@@ -80,6 +80,11 @@ public class DoxyChannelImpl implements DoxyChannel {
   }
   
   @Override
+  public void writePacket(Packet p) throws IOException {
+    socket.write(p.getRawData());
+  }
+  
+  @Override
   public int hashCode() {
     int hash = 7;
     hash = 59 * hash + Objects.hashCode(this.uid);

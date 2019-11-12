@@ -6,6 +6,7 @@
 package net.jun0rr.doxy.impl;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import net.jun0rr.doxy.Packet;
 import net.jun0rr.doxy.SecKey;
@@ -54,12 +55,18 @@ public class PacketImpl implements Packet {
   }
   
   @Override
-  public BitBuffer encode() {
-    int len = Long.BYTES + Integer.BYTES + sid.length() + data.remaining();
-    BitBuffer buf = BitBuffer.dynamicBuffer(len, data.isDirect());
+  public int length() {
+    return Long.BYTES + Integer.BYTES + sid.length() + data.remaining();
+  }
+  
+  @Override
+  public ByteBuffer encode() {
+    ByteBuffer buf = data.isDirect()
+        ? ByteBuffer.allocateDirect(length())
+        : ByteBuffer.allocate(length());
     buf.putLong(order)
         .putInt(sid.length())
-        .putUTF8(sid)
+        .put(StandardCharsets.UTF_8.encode(sid))
         .put(data);
     return buf.flip();
   }
