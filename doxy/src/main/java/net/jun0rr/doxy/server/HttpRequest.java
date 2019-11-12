@@ -9,68 +9,71 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import java.util.Objects;
 import java.util.Optional;
+import static net.jun0rr.doxy.server.HttpResponse.of;
 
 
 /**
  *
  * @author Juno
  */
-public interface HttpRequest<T extends Object> extends io.netty.handler.codec.http.HttpRequest {
+public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest {
   
-  public Optional<T> body();
-  
-  public FullHttpRequest toNettyRequest();
+  public <T> Optional<T> body();
   
   
   
-  public static <U> HttpRequest<U> of(HttpVersion vrs, HttpMethod mth, String uri, U body) {
-    return new HttpRequestImpl<>(vrs, mth, uri, body);
+  public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
+    return new HttpRequestImpl(vrs, mth, uri, hds, body);
   }
   
-  public static HttpRequest<Void> of(HttpVersion vrs, HttpMethod mth, String uri) {
-    return new HttpRequestImpl<>(vrs, mth, uri);
+  public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
+    return new HttpRequestImpl(vrs, mth, uri, hds);
+  }
+  
+  public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri) {
+    return new HttpRequestImpl(vrs, mth, uri);
+  }
+  
+  public static HttpRequest of(FullHttpRequest fr) {
+    HttpRequest req = of(fr.protocolVersion(), fr.method(), fr.uri(), fr.headers(), fr.content());
+    if(!fr.trailingHeaders().isEmpty()) {
+      req.headers().setAll(fr.trailingHeaders());
+    }
+    return req;
   }
   
   
   
   
   
-  public static class HttpRequestImpl<T extends Object> extends DefaultHttpRequest implements HttpRequest<T> {
+  public static class HttpRequestImpl extends DefaultHttpRequest implements HttpRequest {
     
-    private final Optional<T> body;
-
-    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, T body) {
-      super(vrs, mth, uri);
+    private final Optional<? extends Object> body;
+    
+    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
+      super(vrs, mth, uri, hds);
       this.body = Optional.ofNullable(body);
     }
     
+    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
+      this(vrs, mth, uri, hds, null);
+    }
+    
     public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri) {
-      this(vrs, mth, uri, null);
+      super(vrs, mth, uri);
+      this.body = Optional.empty();
     }
     
     @Override
-    public Optional<T> body() {
-      return body;
+    public <T> Optional<T> body() {
+      return (Optional<T>) body;
     }
     
-    @Override
-    public FullHttpRequest toNettyRequest() {
-      if(body.isEmpty()) {
-        return new DefaultFullHttpRequest(protocolVersion(), method(), uri());
-      }
-      else if(body.get() instanceof ByteBuf) {
-        return new DefaultFullHttpRequest(protocolVersion(), method(), uri(), (ByteBuf)body.get());
-      }
-      else {
-        throw new IllegalStateException("Body type not allowed: " + body.get().getClass().getName());
-      }
-    }
-
-
     @Override
     public int hashCode() {
       int hash = 5;
@@ -79,8 +82,7 @@ public interface HttpRequest<T extends Object> extends io.netty.handler.codec.ht
       hash = 73 * hash + Objects.hashCode(this.uri());
       return hash;
     }
-
-
+    
     @Override
     public boolean equals(Object obj) {
       if (this == obj) {
@@ -92,7 +94,7 @@ public interface HttpRequest<T extends Object> extends io.netty.handler.codec.ht
       if (!HttpResponse.class.isAssignableFrom(obj.getClass())) {
         return false;
       }
-      final HttpRequest<?> other = (HttpRequest<?>) obj;
+      final HttpRequest other = (HttpRequest) obj;
       if (!Objects.equals(this.protocolVersion(), other.protocolVersion())) {
         return false;
       }
@@ -101,8 +103,7 @@ public interface HttpRequest<T extends Object> extends io.netty.handler.codec.ht
       }
       return Objects.equals(this.uri(), other.uri());
     }
-
-
+    
     @Override
     public String toString() {
       return "HttpRequest{" + "version=" + protocolVersion() + ", method=" + method() + ", uri=" + uri() + '}';

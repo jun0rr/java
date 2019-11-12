@@ -16,6 +16,6 @@ import java.util.Optional;
  */
 public interface HttpRequestHandler extends ChannelInboundHandler {
   
-  public Optional<HttpRequest<?>> httpRequest(ChannelHandlerContext ctx, HttpRequest<?> req) throws Exception;
+  public Optional<HttpRequest> httpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception;
   
 }

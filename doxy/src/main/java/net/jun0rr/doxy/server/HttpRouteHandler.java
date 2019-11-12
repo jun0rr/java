@@ -52,20 +52,16 @@ public class HttpRouteHandler extends AbstractHttpRequestHandler {
   }
   
   @Override
-  public Optional<HttpRequest<?>> httpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+  public Optional<HttpRequest> httpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
     Optional<RoutableHttpRequestHandler> hnd = getHandler(HttpRoute.of(req));
     if(hnd.isPresent()) {
       this.current.init(hnd.get());
-      System.out.println("-> ROUTE FOUND: " + hnd.get());
       return current.get().httpRequest(ctx, req);
     }
     else {
       HttpResponse res = HttpResponse.of(HttpResponseStatus.BAD_REQUEST);
       res.headers().add(HttpHeaderNames.CONNECTION, "close");
-      res.headers().addInt(HttpHeaderNames.CONTENT_LENGTH, 0);
-      res.headers().add(HttpHeaderNames.SERVER, "Doxy-0.1-SNAPSHOT");
-      res.headers().add(HttpHeaderNames.DATE, datefmt.format(Instant.now()));
-      writeAndClose(ctx, res);
+      ctx.write(res);
       return Optional.empty();
     }
   }

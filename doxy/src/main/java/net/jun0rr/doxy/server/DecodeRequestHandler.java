@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
 import java.util.List;
@@ -25,14 +24,15 @@ import java.util.Optional;
  *
  * @author Juno
  */
-public class DecodeRequestHandler extends AbstractRoutableHttpRequestHandler<ByteBuf> {
+public class DecodeRequestHandler extends AbstractRoutableHttpRequestHandler {
   
   public DecodeRequestHandler() {
     super(HttpRoute.of("\\/decode.*", HttpMethod.GET));
   }
 
   @Override
-  public Optional<HttpRequest<?>> httpRequest(ChannelHandlerContext ctx, HttpRequest<ByteBuf> req) throws Exception {
+  public Optional<HttpRequest> httpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+    if(true) throw new IllegalStateException("!!!###!!!");
     System.out.println("-> DECODE_HANDLER");
     StringBuilder buf = new StringBuilder();
     buf.append("VERSION: ").append(req.protocolVersion()).append("\r\n");
@@ -76,13 +76,14 @@ public class DecodeRequestHandler extends AbstractRoutableHttpRequestHandler<Byt
 
     buf.append("END OF CONTENT\r\n");
 
-    HttpResponse<ByteBuf> response = HttpResponse.of(HTTP_1_1, 
+    HttpResponse response = HttpResponse.of(
+        req.protocolVersion(), 
         req.decoderResult().isSuccess()? OK : BAD_REQUEST, 
-        req.headers(), content
+        req.headers(), 
+        content
     );
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-    writeAndClose(ctx, response);
+    ctx.write(response);
     return Optional.empty();
   }
   

@@ -15,16 +15,16 @@ import java.util.Optional;
  *
  * @author Juno
  */
-public class ForwardHttpRequestHandler<T> extends AbstractHttpRequestHandler<T> {
+public class ForwardHttpRequestHandler extends AbstractHttpRequestHandler {
   
-  private final HttpRequestHandler<T> handler;
+  private final HttpRequestHandler handler;
   
-  public ForwardHttpRequestHandler(HttpRequestHandler<T> h) {
+  public ForwardHttpRequestHandler(HttpRequestHandler h) {
     this.handler = Objects.requireNonNull(h);
   }
 
   @Override
-  public Optional<HttpRequest<?>> httpRequest(ChannelHandlerContext c, HttpRequest<T> req) throws Exception {
+  public Optional<HttpRequest> httpRequest(ChannelHandlerContext c, HttpRequest req) throws Exception {
     return handler.httpRequest(c, req); 
   }
   

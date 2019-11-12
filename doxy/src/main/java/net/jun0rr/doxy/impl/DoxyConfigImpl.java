@@ -37,8 +37,12 @@ public class DoxyConfigImpl implements DoxyConfig {
   
   private final boolean directBuffer;
   
+  private final String serverName;
   
-  public DoxyConfigImpl(int port, String host, int targetPort, String targetHost, int proxyPort, String proxyHost, String proxyUser, String proxyPass, int threadPoolSize, int bufferSize, boolean directBuffer) {
+  private final String userAgent;
+  
+  
+  public DoxyConfigImpl(int port, String host, int targetPort, String targetHost, int proxyPort, String proxyHost, String proxyUser, String proxyPass, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
     this.port = port;
     this.host = host;
     this.targetPort = targetPort;
@@ -50,6 +54,8 @@ public class DoxyConfigImpl implements DoxyConfig {
     this.threadPoolSize = threadPoolSize;
     this.bufferSize = bufferSize;
     this.directBuffer = directBuffer;
+    this.serverName = serverName;
+    this.userAgent = userAgent;
   }
   
   
@@ -91,6 +97,16 @@ public class DoxyConfigImpl implements DoxyConfig {
   @Override
   public String getProxyPassword() {
     return proxyPass;
+  }
+  
+  @Override
+  public String getServerName() {
+    return serverName;
+  }
+  
+  @Override
+  public String getUserAgent() {
+    return userAgent;
   }
   
   @Override

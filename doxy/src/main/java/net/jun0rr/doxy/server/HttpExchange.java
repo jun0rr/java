@@ -15,16 +15,18 @@ import java.util.Map;
  */
 public interface HttpExchange {
   
-  public HttpRequest<?> request();
+  public HttpRequest request();
   
-  public HttpResponse<?> response();
+  public HttpResponse response();
   
   public ChannelHandlerContext context();
   
   public Map<String, Object> attributes();
   
-  public HttpExchange withRequest(HttpRequest<?> req);
+  public HttpExchange withRequest(HttpRequest req);
   
-  public HttpExchange withResponse(HttpResponse<?> res);
+  public HttpExchange withResponse(HttpResponse res);
+  
+  public void sendResponse();
   
 }

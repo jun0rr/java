@@ -20,41 +20,57 @@ import java.util.Optional;
  *
  * @author Juno
  */
-public interface HttpResponse<T> extends io.netty.handler.codec.http.HttpResponse {
+public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse {
   
-  public Optional<T> content();
+  public <T> Optional<T> content();
   
   public FullHttpResponse toNettyResponse();
   
   
   
-  public static <U> HttpResponse<U> of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds, U cnt) {
-    return new HttpResponseImpl<>(vrs, sts, hds, cnt);
+  public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds, Object cnt) {
+    return new HttpResponseImpl(vrs, sts, hds, cnt);
   }
   
-  public static <U> HttpResponse<U> of(HttpVersion vrs, HttpResponseStatus sts) {
-    return new HttpResponseImpl<>(vrs, sts);
+  public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds) {
+    return new HttpResponseImpl(vrs, sts, hds);
   }
   
-  public static <U> HttpResponse<U> of(HttpResponseStatus sts, U cnt) {
-    return new HttpResponseImpl<>(sts, cnt);
+  public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts) {
+    return new HttpResponseImpl(vrs, sts);
   }
   
-  public static <U> HttpResponse<U> of(HttpResponseStatus sts) {
-    return new HttpResponseImpl<>(sts);
+  public static HttpResponse of(HttpResponseStatus sts, Object cnt) {
+    return new HttpResponseImpl(sts, cnt);
+  }
+  
+  public static HttpResponse of(HttpResponseStatus sts) {
+    return new HttpResponseImpl(sts);
+  }
+  
+  public static HttpResponse of(FullHttpResponse fr) {
+    HttpResponse res = of(fr.protocolVersion(), fr.status(), fr.headers(), fr.content());
+    if(!fr.trailingHeaders().isEmpty()) {
+      res.headers().setAll(fr.trailingHeaders());
+    }
+    return res;
   }
   
   
   
   
   
-  public static class HttpResponseImpl<T> extends DefaultHttpResponse implements HttpResponse<T> {
+  public static class HttpResponseImpl extends DefaultHttpResponse implements HttpResponse {
 
-    private final Optional<T> content;
+    private final Optional<? extends Object> content;
     
-    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, T content) {
+    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, Object content) {
       super(version, status, headers);
       this.content = Optional.ofNullable(content);
+    }
+    
+    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers) {
+      this(version, status, headers, null);
     }
     
     public HttpResponseImpl(HttpVersion version, HttpResponseStatus status) {
@@ -62,7 +78,7 @@ public interface HttpResponse<T> extends io.netty.handler.codec.http.HttpRespons
       this.content = Optional.empty();
     }
     
-    public HttpResponseImpl(HttpResponseStatus status, T content) {
+    public HttpResponseImpl(HttpResponseStatus status, Object content) {
       super(HttpVersion.HTTP_1_1, status);
       this.content = Optional.ofNullable(content);
     }
@@ -72,21 +88,24 @@ public interface HttpResponse<T> extends io.netty.handler.codec.http.HttpRespons
     }
     
     @Override
-    public Optional<T> content() {
-      return content;
+    public <T> Optional<T> content() {
+      return (Optional<T>) content;
     }
     
     @Override
     public FullHttpResponse toNettyResponse() {
+      FullHttpResponse res;
       if(content.isEmpty()) {
-        return new DefaultFullHttpResponse(protocolVersion(), status());
+        res = new DefaultFullHttpResponse(protocolVersion(), status());
       }
       else if(content.get() instanceof ByteBuf) {
-        return new DefaultFullHttpResponse(protocolVersion(), status(), (ByteBuf)content.get());
+        res = new DefaultFullHttpResponse(protocolVersion(), status(), (ByteBuf)content.get());
       }
       else {
         throw new IllegalStateException("Content type not allowed: " + content.get().getClass().getName());
       }
+      res.headers().setAll(headers());
+      return res;
     }
     
     @Override
@@ -109,7 +128,7 @@ public interface HttpResponse<T> extends io.netty.handler.codec.http.HttpRespons
       if (!HttpResponse.class.isAssignableFrom(obj.getClass())) {
         return false;
       }
-      final HttpResponse<?> other = (HttpResponse<?>) obj;
+      final HttpResponse other = (HttpResponse) obj;
       if(!Objects.equals(this.protocolVersion(), other.protocolVersion())) {
         return false;
       }

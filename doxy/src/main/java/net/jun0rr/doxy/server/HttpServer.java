@@ -94,6 +94,7 @@ public class HttpServer {
           //createSSL().newHandler(c.alloc()),
           new HttpServerCodec(),
           new HttpObjectAggregator(1024*1024),
+          new HttpResponseHeadersHandler(config),
           new HttpRouteHandler()
               .addHandler(new EncodeRequestHandler())
               .addHandler(new DecodeRequestHandler())

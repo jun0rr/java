@@ -16,6 +16,6 @@ import java.util.Optional;
  */
 public interface HttpResponseHandler extends ChannelOutboundHandler {
   
-  public Optional<HttpResponse<?>> httpResponse(ChannelHandlerContext ctx, HttpResponse<?> res) throws Exception;
+  public Optional<HttpResponse> httpResponse(ChannelHandlerContext ctx, HttpResponse res) throws Exception;
   
 }

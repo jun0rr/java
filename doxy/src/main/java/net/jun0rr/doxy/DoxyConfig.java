@@ -38,4 +38,8 @@ public interface DoxyConfig {
   
   public byte[] getSecretKey();
   
+  public String getServerName();
+  
+  public String getUserAgent();
+  
 }

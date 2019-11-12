@@ -5,10 +5,13 @@
  */
 package net.jun0rr.doxy.server;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.SocketAddress;
 
 
@@ -18,7 +21,7 @@ import java.net.SocketAddress;
  */
 public abstract class AbstractHttpResponseHandler implements HttpResponseHandler {
   
-  public void writeAndClose(ChannelHandlerContext ctx, HttpResponse<ByteBuf> res) throws Exception {
+  public void writeAndClose(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
     ctx.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
   }
   
@@ -26,8 +29,10 @@ public abstract class AbstractHttpResponseHandler implements HttpResponseHandler
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
       if(msg instanceof HttpResponse) {
-        this.httpResponse(ctx, (HttpResponse<?>)msg)
-            .ifPresent(r->ctx.write(r, cp));
+        this.httpResponse(ctx, (HttpResponse) msg).ifPresent(r->ctx.write(r, cp));
+      }
+      else if(msg instanceof FullHttpResponse) {
+        this.httpResponse(ctx, HttpResponse.of((FullHttpResponse)msg)).ifPresent(r->ctx.write(r, cp));
       }
       else {
         throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
@@ -39,8 +44,15 @@ public abstract class AbstractHttpResponseHandler implements HttpResponseHandler
   }
   
   @Override 
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable thrwbl) throws Exception {
-    ctx.fireExceptionCaught(thrwbl);
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
+    HttpResponse res = HttpResponse.of(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    res.headers().set("x-error-type", e.getClass().getName());
+    res.headers().set("x-error-message", e.getMessage());
+    if(e.getCause() != null) {
+      res.headers().set("x-error-cause", e.getCause());
+    }
+    ctx.write(res);
   }
   
   @Override
