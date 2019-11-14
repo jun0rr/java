@@ -12,33 +12,30 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import net.jun0rr.doxy.server.HttpExchange;
-import net.jun0rr.doxy.server.HttpInputFilter;
 import net.jun0rr.doxy.server.HttpRequest;
 import net.jun0rr.doxy.server.HttpResponse;
+import net.jun0rr.doxy.server.HttpRequestFilter;
 
 
 /**
  *
  * @author Juno
  */
-public class DefaultHttpInputFilter implements ChannelInboundHandler, HttpInputFilter {
+public class UncaughtExceptionHandler implements ChannelInboundHandler, HttpRequestFilter {
   
-  private final HttpInputFilter filter;
+  private final Function<Throwable,Optional<HttpResponse>> exceptionHandler;
   
-  private final Function<Throwable,HttpResponse> exceptionHandler;
-  
-  public DefaultHttpInputFilter(HttpInputFilter hnd, Function<Throwable,HttpResponse> exceptionHandler) {
-    this.filter = Objects.requireNonNull(hnd, "Bad null HttpHandler");
+  public UncaughtExceptionHandler(Function<Throwable,Optional<HttpResponse>> exceptionHandler) {
     this.exceptionHandler = Objects.requireNonNull(exceptionHandler, "Bad null exception handler Function");
   }
   
-  public DefaultHttpInputFilter(HttpInputFilter hnd) {
-    this(hnd, new ServerErrorFunction());
+  public UncaughtExceptionHandler() {
+    this(new ServerErrorFunction());
   }
   
   @Override
   public Optional<HttpRequest> filter(ChannelHandlerContext ctx, HttpRequest he) throws Exception {
-    return filter.filter(ctx, he);
+    return Optional.of(he);
   }
   
   @Override 
@@ -64,7 +61,7 @@ public class DefaultHttpInputFilter implements ChannelInboundHandler, HttpInputF
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    ctx.write(exceptionHandler.apply(e));
+    exceptionHandler.apply(e).ifPresent(ctx::write);
   }
   
   @Override

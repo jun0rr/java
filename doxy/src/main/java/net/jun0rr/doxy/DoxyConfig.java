@@ -5,7 +5,7 @@
  */
 package net.jun0rr.doxy;
 
-import java.util.concurrent.ExecutorService;
+import java.nio.file.Path;
 
 
 /**
@@ -41,5 +41,7 @@ public interface DoxyConfig {
   public String getServerName();
   
   public String getUserAgent();
+  
+  public Path getSSLKeystorePath();
   
 }

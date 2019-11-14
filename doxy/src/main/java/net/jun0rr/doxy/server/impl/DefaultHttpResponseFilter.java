@@ -14,27 +14,20 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import net.jun0rr.doxy.server.HttpExchange;
-import net.jun0rr.doxy.server.HttpOutputFilter;
 import net.jun0rr.doxy.server.HttpResponse;
+import net.jun0rr.doxy.server.HttpResponseFilter;
 
 
 /**
  *
  * @author Juno
  */
-public class DefaultHttpOutputFilter implements ChannelOutboundHandler, HttpOutputFilter {
+public class DefaultHttpResponseFilter implements ChannelOutboundHandler, HttpResponseFilter {
   
-  private final HttpOutputFilter filter;
+  private final HttpResponseFilter filter;
   
-  private final Function<Throwable,HttpResponse> exceptionHandler;
-  
-  public DefaultHttpOutputFilter(HttpOutputFilter flt, Function<Throwable,HttpResponse> fn) {
+  public DefaultHttpResponseFilter(HttpResponseFilter flt) {
     this.filter = Objects.requireNonNull(flt, "Bad null HttpHandler");
-    this.exceptionHandler = Objects.requireNonNull(fn, "Bad null exception handler Function");
-  }
-  
-  public DefaultHttpOutputFilter(HttpOutputFilter flt) {
-    this(flt, new ServerErrorFunction());
   }
   
   @Override
@@ -65,7 +58,7 @@ public class DefaultHttpOutputFilter implements ChannelOutboundHandler, HttpOutp
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    ctx.write(exceptionHandler.apply(e));
+    ctx.fireExceptionCaught(e);
   }
   
   @Override

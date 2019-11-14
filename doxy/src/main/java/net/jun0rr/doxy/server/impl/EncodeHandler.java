@@ -13,6 +13,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,19 +65,18 @@ public class EncodeHandler implements HttpHandler {
         buf.append("\r\n");
     }
     
-    ByteBuf content;
     Optional<ByteBuf> body = req.body();
     if (body.isPresent() && body.get().isReadable()) {
         buf.append("CONTENT: ");
         buf.append(body.get().toString(CharsetUtil.UTF_8));
         buf.append("\r\n");
-        content = Unpooled.copiedBuffer(body.get());
     }
     else {
-      content = Unpooled.EMPTY_BUFFER;
     }
 
     buf.append("END OF CONTENT\r\n");
+    ByteBuf content = he.context().alloc().buffer(buf.length());
+    content.writeCharSequence(buf.toString(), StandardCharsets.UTF_8);
 
     HttpResponse response = HttpResponse.of(
         req.protocolVersion(), 

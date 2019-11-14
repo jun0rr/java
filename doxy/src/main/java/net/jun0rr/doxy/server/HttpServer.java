@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import net.jun0rr.doxy.DoxyConfig;
-import net.jun0rr.doxy.server.impl.HttpHandlers;
 import us.pserver.tools.LazyFinal;
 import us.pserver.tools.Unchecked;
 

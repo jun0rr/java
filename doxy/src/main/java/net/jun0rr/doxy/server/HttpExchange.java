@@ -5,6 +5,8 @@
  */
 package net.jun0rr.doxy.server;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -110,7 +112,11 @@ public interface HttpExchange {
     
     @Override
     public Optional<HttpExchange> send(HttpResponse res) {
-      context.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
+      ChannelFutureListener closeAndRelease = f -> {
+        f.channel().close();
+        res.<ByteBuf>content().ifPresent(ByteBuf::release);
+      };
+      context.writeAndFlush(res.toNettyResponse()).addListener(closeAndRelease);
       return Optional.empty();
     }
     

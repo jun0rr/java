@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy.impl;
 
+import java.nio.file.Path;
 import java.util.Objects;
 import net.jun0rr.doxy.DoxyConfig;
 
@@ -41,8 +42,10 @@ public class DoxyConfigImpl implements DoxyConfig {
   
   private final String userAgent;
   
+  private final Path keystorePath;
   
-  public DoxyConfigImpl(int port, String host, int targetPort, String targetHost, int proxyPort, String proxyHost, String proxyUser, String proxyPass, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
+  
+  public DoxyConfigImpl(int port, String host, int targetPort, String targetHost, int proxyPort, String proxyHost, String proxyUser, String proxyPass, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, Path keystorePath) {
     this.port = port;
     this.host = host;
     this.targetPort = targetPort;
@@ -56,6 +59,7 @@ public class DoxyConfigImpl implements DoxyConfig {
     this.directBuffer = directBuffer;
     this.serverName = serverName;
     this.userAgent = userAgent;
+    this.keystorePath = keystorePath;
   }
   
   
@@ -127,6 +131,10 @@ public class DoxyConfigImpl implements DoxyConfig {
   @Override
   public byte[] getSecretKey() {
     return null;
+  }
+  
+  public Path getSSLKeystorePath() {
+    return keystorePath;
   }
 
 

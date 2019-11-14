@@ -16,15 +16,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.DoxyConfig;
-import net.jun0rr.doxy.server.HttpOutputFilter;
 import net.jun0rr.doxy.server.HttpResponse;
+import net.jun0rr.doxy.server.HttpResponseFilter;
 
 
 /**
  *
  * @author juno
  */
-public class HttpHeadersOutputFilter implements HttpOutputFilter {
+public class HttpResponseHeadersFilter implements HttpResponseFilter {
   
   private final HttpHeaders headers;
   
@@ -32,7 +32,7 @@ public class HttpHeadersOutputFilter implements HttpOutputFilter {
   
   private final DoxyConfig config;
   
-  public HttpHeadersOutputFilter(DoxyConfig cfg) {
+  public HttpResponseHeadersFilter(DoxyConfig cfg) {
     this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig");
     this.headers = new DefaultHttpHeaders();
     this.datefmt = DateTimeFormatter

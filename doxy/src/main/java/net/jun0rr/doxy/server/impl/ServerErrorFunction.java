@@ -8,6 +8,7 @@ package net.jun0rr.doxy.server.impl;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import java.util.Optional;
 import java.util.function.Function;
 import net.jun0rr.doxy.server.HttpResponse;
 
@@ -16,10 +17,10 @@ import net.jun0rr.doxy.server.HttpResponse;
  *
  * @author Juno
  */
-public class ServerErrorFunction implements Function<Throwable,HttpResponse> {
+public class ServerErrorFunction implements Function<Throwable,Optional<HttpResponse>> {
   
   @Override
-  public HttpResponse apply(Throwable th) {
+  public Optional<HttpResponse> apply(Throwable th) {
     th.printStackTrace();
     HttpResponse res = HttpResponse.of(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
@@ -28,7 +29,8 @@ public class ServerErrorFunction implements Function<Throwable,HttpResponse> {
     if(th.getCause() != null) {
       res.headers().set("x-error-cause", th.getCause());
     }
-    return res;
+    res.headers().set("x-error-trace", th.getStackTrace()[0].toString());
+    return Optional.of(res);
   }
 
 }

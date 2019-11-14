@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.server.impl;
 
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -13,39 +12,39 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import net.jun0rr.doxy.server.HttpExchange;
-import net.jun0rr.doxy.server.HttpHandler;
 import net.jun0rr.doxy.server.HttpRequest;
 import net.jun0rr.doxy.server.HttpResponse;
+import net.jun0rr.doxy.server.HttpRequestFilter;
 
 
 /**
  *
  * @author Juno
  */
-public class DefaultHttpHandler implements ChannelInboundHandler, HttpHandler {
+public class DefaultHttpRequestFilter implements ChannelInboundHandler, HttpRequestFilter {
   
-  private final HttpHandler handler;
+  private final HttpRequestFilter filter;
   
-  public DefaultHttpHandler(HttpHandler hnd) {
-    this.handler = Objects.requireNonNull(hnd, "Bad null HttpHandler");
+  public DefaultHttpRequestFilter(HttpRequestFilter hnd) {
+    this.filter = Objects.requireNonNull(hnd, "Bad null HttpHandler");
   }
   
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-    return handler.handle(he);
+  public Optional<HttpRequest> filter(ChannelHandlerContext ctx, HttpRequest he) throws Exception {
+    return filter.filter(ctx, he);
   }
   
   @Override 
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     try {
       if(msg instanceof HttpRequest) {
-        handle(HttpExchange.of(ctx, (HttpRequest)msg)).ifPresent(ctx::write);
+        filter(ctx, (HttpRequest)msg).ifPresent(ctx::fireChannelRead);
       }
       else if(msg instanceof FullHttpRequest) {
-        handle(HttpExchange.of(ctx, HttpRequest.of((FullHttpRequest)msg))).ifPresent(ctx::write);
+        filter(ctx, HttpRequest.of((FullHttpRequest)msg)).ifPresent(ctx::fireChannelRead);
       }
       else if(msg instanceof HttpExchange) {
-        handle((HttpExchange)msg).ifPresent(ctx::write);
+        filter(ctx, ((HttpExchange)msg).request()).ifPresent(ctx::fireChannelRead);
       }
       else {
         throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
@@ -59,10 +58,6 @@ public class DefaultHttpHandler implements ChannelInboundHandler, HttpHandler {
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
     ctx.fireExceptionCaught(e);
-  }
-  
-  public void writeAndClose(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
-    ctx.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
   }
   
   @Override
