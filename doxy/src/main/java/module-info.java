@@ -13,4 +13,5 @@ module doxy {
   exports net.jun0rr.doxy;
   exports net.jun0rr.doxy.client;
   exports net.jun0rr.doxy.server;
+  exports net.jun0rr.doxy.server.impl;
 }

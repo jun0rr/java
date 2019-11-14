@@ -5,13 +5,16 @@
  */
 package net.jun0rr.doxy.server;
 
+import java.util.Optional;
+
 
 /**
  *
- * @author Juno
+ * @author juno
  */
-public interface RoutableHttpRequestHandler extends HttpRequestHandler {
+@FunctionalInterface
+public interface HttpHandler {
   
-  public boolean matchRoute(HttpRoute r);
+  public Optional<HttpExchange> handle(HttpExchange he) throws Exception;
   
 }

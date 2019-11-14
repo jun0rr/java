@@ -3,36 +3,56 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server;
+package net.jun0rr.doxy.server.impl;
 
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.SocketAddress;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import net.jun0rr.doxy.server.HttpExchange;
+import net.jun0rr.doxy.server.HttpOutputFilter;
+import net.jun0rr.doxy.server.HttpResponse;
 
 
 /**
  *
  * @author Juno
  */
-public abstract class AbstractHttpResponseHandler implements HttpResponseHandler {
+public class DefaultHttpOutputFilter implements ChannelOutboundHandler, HttpOutputFilter {
   
-  public void writeAndClose(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
-    ctx.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
+  private final HttpOutputFilter filter;
+  
+  private final Function<Throwable,HttpResponse> exceptionHandler;
+  
+  public DefaultHttpOutputFilter(HttpOutputFilter flt, Function<Throwable,HttpResponse> fn) {
+    this.filter = Objects.requireNonNull(flt, "Bad null HttpHandler");
+    this.exceptionHandler = Objects.requireNonNull(fn, "Bad null exception handler Function");
+  }
+  
+  public DefaultHttpOutputFilter(HttpOutputFilter flt) {
+    this(flt, new ServerErrorFunction());
+  }
+  
+  @Override
+  public Optional<HttpResponse> filter(ChannelHandlerContext ctx, HttpResponse he) throws Exception {
+    return filter.filter(ctx, he);
   }
   
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
       if(msg instanceof HttpResponse) {
-        this.httpResponse(ctx, (HttpResponse) msg).ifPresent(r->ctx.write(r, cp));
+        filter(ctx, (HttpResponse)msg).ifPresent(r->ctx.write(r, cp));
       }
       else if(msg instanceof FullHttpResponse) {
-        this.httpResponse(ctx, HttpResponse.of((FullHttpResponse)msg)).ifPresent(r->ctx.write(r, cp));
+        filter(ctx, HttpResponse.of((FullHttpResponse)msg)).ifPresent(r->ctx.write(r, cp));
+      }
+      else if(msg instanceof HttpExchange) {
+        filter(ctx, ((HttpExchange)msg).response()).ifPresent(r->ctx.write(r, cp));
       }
       else {
         throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
@@ -45,14 +65,7 @@ public abstract class AbstractHttpResponseHandler implements HttpResponseHandler
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    HttpResponse res = HttpResponse.of(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-    res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-    res.headers().set("x-error-type", e.getClass().getName());
-    res.headers().set("x-error-message", e.getMessage());
-    if(e.getCause() != null) {
-      res.headers().set("x-error-cause", e.getCause());
-    }
-    ctx.write(res);
+    ctx.write(exceptionHandler.apply(e));
   }
   
   @Override

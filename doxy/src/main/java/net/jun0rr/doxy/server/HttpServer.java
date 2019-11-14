@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.server.impl.HttpHandlers;
 import us.pserver.tools.LazyFinal;
 import us.pserver.tools.Unchecked;
 
@@ -42,11 +43,14 @@ public class HttpServer {
   
   private final DoxyConfig config;
   
+  private final HttpHandlers handlers;
+  
   public HttpServer(DoxyConfig cfg) {
     this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig (cfg)");
     this.channel = new LazyFinal<>();
     this.accept = new NioEventLoopGroup(1);
     this.handle = new NioEventLoopGroup(cfg.getThreadPoolSize());
+    this.handlers = new HttpHandlers(config);
   }
   
   private ServerBootstrap bootstrap() {
@@ -56,7 +60,11 @@ public class HttpServer {
         .childOption(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
         .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
         .group(accept, handle)
-        .childHandler(new HttpServerInit());
+        .childHandler(handlers.createInitializer());
+  }
+  
+  public HttpHandlers httpHandlers() {
+    return handlers;
   }
   
   public void stop() {
@@ -93,11 +101,11 @@ public class HttpServer {
       c.pipeline().addLast(
           //createSSL().newHandler(c.alloc()),
           new HttpServerCodec(),
-          new HttpObjectAggregator(1024*1024),
-          new HttpResponseHeadersHandler(config),
-          new HttpRouteHandler()
-              .addHandler(new EncodeRequestHandler())
-              .addHandler(new DecodeRequestHandler())
+          new HttpObjectAggregator(1024*1024)
+          //new HttpHeadersOutputFilter(config)
+          //new HttpRequestRouteHandler()
+              //.addHandler(new EncodeHandler())
+              //.addHandler(new DecodeRequestHandler())
       );
     }
 

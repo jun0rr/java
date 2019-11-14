@@ -8,11 +8,11 @@ package net.jun0rr.doxy.server;
 
 /**
  *
- * @author juno
+ * @author Juno
  */
 @FunctionalInterface
-public interface HttpService {
+public interface Routable {
   
-  public HttpExchange service(HttpExchange he) throws Exception;
+  public boolean match(HttpRoute r);
   
 }

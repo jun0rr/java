@@ -3,14 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server;
+package net.jun0rr.doxy.server.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -18,22 +16,27 @@ import io.netty.util.CharsetUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import net.jun0rr.doxy.server.HttpExchange;
+import net.jun0rr.doxy.server.HttpHandler;
+import net.jun0rr.doxy.server.HttpRequest;
+import net.jun0rr.doxy.server.HttpResponse;
 
 
 /**
  *
  * @author Juno
  */
-public class DecodeRequestHandler extends AbstractRoutableHttpRequestHandler {
+public class DecodeHandler implements HttpHandler {
   
-  public DecodeRequestHandler() {
-    super(HttpRoute.of("\\/decode.*", HttpMethod.GET));
+  public DecodeHandler() {
+    //super(HttpRoute.of("\\/decode.*", HttpMethod.GET));
   }
 
   @Override
-  public Optional<HttpRequest> httpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
     if(true) throw new IllegalStateException("!!!###!!!");
     System.out.println("-> DECODE_HANDLER");
+    HttpRequest req = he.request();
     StringBuilder buf = new StringBuilder();
     buf.append("VERSION: ").append(req.protocolVersion()).append("\r\n");
     buf.append("HOSTNAME: ").append(req.headers().get(HttpHeaderNames.HOST, "unknown")).append("\r\n");
@@ -83,8 +86,7 @@ public class DecodeRequestHandler extends AbstractRoutableHttpRequestHandler {
         content
     );
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-    ctx.write(response);
-    return Optional.empty();
+    return he.send(response);
   }
   
 }
