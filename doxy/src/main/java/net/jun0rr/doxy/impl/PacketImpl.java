@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.SecKey;
 import us.pserver.tools.io.BitBuffer;
 
 
@@ -23,15 +22,15 @@ public class PacketImpl implements Packet {
   
   private final long order;
   
-  private final SecKey key;
-  
   private final ByteBuffer data;
   
-  public PacketImpl(String srcid, ByteBuffer data, SecKey key, long ord) {
+  private final int orilen;
+  
+  public PacketImpl(String srcid, ByteBuffer data, long ord, int originalLength) {
     this.sid = Objects.requireNonNull(srcid, "Bad null Source ID");
     this.order = ord;
-    this.key = key;
     this.data = data;
+    this.orilen = originalLength;
   }
   
   @Override
@@ -45,18 +44,18 @@ public class PacketImpl implements Packet {
   }
   
   @Override
-  public SecKey getSecKey() {
-    return key;
-  }
-  
-  @Override
   public ByteBuffer getRawData() {
     return data;
   }
   
   @Override
   public int length() {
-    return Long.BYTES + Integer.BYTES + sid.length() + data.remaining();
+    return Long.BYTES + Integer.BYTES * 2 + sid.length() + data.remaining();
+  }
+  
+  @Override
+  public int originalLength() {
+    return orilen;
   }
   
   @Override
@@ -65,6 +64,7 @@ public class PacketImpl implements Packet {
         ? ByteBuffer.allocateDirect(length())
         : ByteBuffer.allocate(length());
     buf.putLong(order)
+        .putInt(orilen)
         .putInt(sid.length())
         .put(StandardCharsets.UTF_8.encode(sid))
         .put(data);

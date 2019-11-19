@@ -74,9 +74,8 @@ public class HttpServer {
   }
   
   public void start() {
-    SocketAddress addr = new InetSocketAddress(config.getHost(), config.getPort());
-    channel.init(bootstrap().bind(addr));
-    System.out.println("* HttpServer started: " + addr);
+    channel.init(bootstrap().bind(config.getHost().toSocketAddr()));
+    System.out.println("* HttpServer started: " + config.getHost());
     channel.get().syncUninterruptibly().awaitUninterruptibly();
     Unchecked.call(()->accept.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS));
   }

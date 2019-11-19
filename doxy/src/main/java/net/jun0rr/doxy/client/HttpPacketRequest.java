@@ -71,24 +71,26 @@ public class HttpPacketRequest {
     this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
     this.client = HttpClient.newBuilder()
         .version(HttpClient.Version.HTTP_2)
-        .proxy(ProxySelector.of(new InetSocketAddress(env.configuration().getProxyHost(), env.configuration().getProxyPort())))
+        .proxy(ProxySelector.of(env.configuration().getProxyConfig().getProxyHost().toSocketAddr()))
         .sslContext(SSL)
         .followRedirects(HttpClient.Redirect.ALWAYS)
         .executor(env.executor())
         .build();
-    String host = String.format(HOST_PORT, env.configuration().getTargetHost(), env.configuration().getTargetPort());
     this.sendUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
-        .append(host)
+        .append(env.configuration().getTarget())
         .append(URI_ENCODE)
         .toString()));
     this.receiveUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
-        .append(host)
+        .append(env.configuration().getTarget())
         .append(URI_DECODE)
         .toString()));
   }
   
   private String getProxyAuthorization() {
-    String auth = String.format(AUTH_FORMAT, env.configuration().getProxyUser(), env.configuration().getProxyPassword());
+    String auth = String.format(AUTH_FORMAT, 
+        env.configuration().getProxyConfig().getProxyUser(), 
+        new String(env.configuration().getProxyConfig().getProxyPassword())
+    );
     return String.format(BASIC_AUTH, Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8)));
   }
   

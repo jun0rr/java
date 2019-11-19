@@ -7,7 +7,7 @@ package net.jun0rr.doxy.server.impl;
 
 import io.netty.handler.ssl.SslHandler;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -21,6 +21,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import net.jun0rr.doxy.DoxyConfig;
 
 
 /**
@@ -29,17 +30,26 @@ import javax.net.ssl.X509TrustManager;
  */
 public class SSLHandlerFactory {
   
-  private final Path keystorePath;
+  private final DoxyConfig config;
   
-  public SSLHandlerFactory(Path keystorePath) {
-    this.keystorePath = Objects.requireNonNull(keystorePath, "Bad null keystore Path");
+  public SSLHandlerFactory(DoxyConfig cfg) {
+    this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig");
+    if(config.getSecurityConfig().getKeystorePath() == null || !Files.exists(config.getSecurityConfig().getKeystorePath())) {
+      throw new IllegalStateException("Bad null/missing keystore file (cfg.getKeystorePath): " + config.getSecurityConfig().getKeystorePath());
+    }
+    if(config.getSecurityConfig().getKeystorePassword()== null || config.getSecurityConfig().getKeystorePassword().length < 1) {
+      throw new IllegalStateException("Bad null/empty keystore password (cfg.getKeystorePass)");
+    }
   }
   
-  private SSLContext createSSLContext(char[] keystorePass) throws IOException {
+  private SSLContext createSSLContext() throws IOException {
     try {
-      KeyStore ks = KeyStore.getInstance(keystorePath.toFile(), keystorePass);
+      KeyStore ks = KeyStore.getInstance(
+          config.getSecurityConfig().getKeystorePath().toFile(), 
+          config.getSecurityConfig().getKeystorePassword()
+      );
       KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      kmf.init(ks, keystorePass);
+      kmf.init(ks, config.getSecurityConfig().getKeystorePassword());
       SSLContext ctx = SSLContext.getInstance("TLS");
       ctx.init(kmf.getKeyManagers(), TRUST_ALL_CERTS, null);
       return ctx;
@@ -52,8 +62,8 @@ public class SSLHandlerFactory {
     }
   }
   
-  public SslHandler create(char[] keystorePass) throws IOException {
-    SSLContext ctx = createSSLContext(keystorePass);
+  public SslHandler create() throws IOException {
+    SSLContext ctx = createSSLContext();
     SSLEngine eng = ctx.createSSLEngine();
     eng.setUseClientMode(false);
     eng.setNeedClientAuth(false);

@@ -14,34 +14,22 @@ import java.nio.file.Path;
  */
 public interface DoxyConfig {
   
-  public int getPort();
+  public HostConfig getHost();
   
-  public String getHost();
+  public HostConfig getTarget();
   
-  public int getTargetPort();
+  public ProxyConfig getProxyConfig();
   
-  public String getTargetHost();
+  public SecurityConfig getSecurityConfig();
   
-  public int getProxyPort();
+  public String getServerName();
   
-  public String getProxyHost();
-  
-  public String getProxyUser();
-  
-  public String getProxyPassword();
+  public String getUserAgent();
   
   public int getBufferSize();
   
   public int getThreadPoolSize();
   
   public boolean isDirectBuffer();
-  
-  public byte[] getSecretKey();
-  
-  public String getServerName();
-  
-  public String getUserAgent();
-  
-  public Path getSSLKeystorePath();
   
 }

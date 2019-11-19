@@ -7,6 +7,7 @@ package net.jun0rr.doxy;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import net.jun0rr.doxy.impl.DoxyConfigImpl;
 
 
@@ -16,21 +17,42 @@ import net.jun0rr.doxy.impl.DoxyConfigImpl;
  */
 public class DoxyConfigBuilder {
   
-  private final int port;
+  public static final String LOCALHOST = "localhost";
   
-  private final String host;
+  public static final String DEFAULT_SERVER_NAME = "Doxy-0.1-SNAPSHOT";
   
-  private final int targetPort;
+  public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0";
   
-  private final String targetHost;
+  public static final String DEFAULT_CRYPT_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
   
-  private final int proxyPort;
+  public static final int DEFAULT_HOST_PORT = 3333;
   
-  private final String proxyHost;
+  public static final int DEFAULT_TARGET_PORT = 6060;
+  
+  public static final int DEFAULT_PROXY_PORT = 40080;
+  
+  public static final int DEFAULT_BUFFER_SIZE = 8*1024;
+  
+  public static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
+  
+  
+  private final HostConfig host;
+  
+  private final HostConfig target;
+  
+  private final HostConfig proxy;
   
   private final String proxyUser;
   
-  private final String proxyPass;
+  private final char[] proxyPass;
+  
+  private final Path pkpath;
+  
+  private final Path pubpath;
+  
+  private final Path kspath;
+  
+  private final char[] kspass;
   
   private final int threadPoolSize;
   
@@ -42,130 +64,123 @@ public class DoxyConfigBuilder {
   
   private final String userAgent;
   
-  private final Path keystorePath;
-  
+  private final String cryptAlg;
   
   public DoxyConfigBuilder() {
-    this.port = 3333;
-    this.targetPort = 6060;
-    this.proxyPort = 0;
-    this.threadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
-    this.host = "0.0.0.0";
-    this.targetHost = "localhost";
-    this.proxyHost = "";
-    this.proxyUser = "user";
-    this.proxyPass = "password";
-    this.serverName = "Doxy-0.1-SNAPSHOT";
-    this.userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0";
-    this.bufferSize = 8*1024;
+    this.host = HostConfig.of(LOCALHOST, DEFAULT_HOST_PORT);
+    this.target = HostConfig.of(LOCALHOST, DEFAULT_TARGET_PORT);
+    this.proxy = HostConfig.of(LOCALHOST, DEFAULT_PROXY_PORT);
+    this.threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
+    this.proxyUser = null;
+    this.proxyPass = null;
+    this.serverName = DEFAULT_SERVER_NAME;
+    this.userAgent = DEFAULT_USER_AGENT;
+    this.bufferSize = DEFAULT_BUFFER_SIZE;
     this.directBuffer = true;
-    this.keystorePath = Paths.get("/home/juno/java/doxy.jks");
+    this.kspath = null;
+    this.pkpath = null;
+    this.pubpath = null;
+    this.kspass = null;
+    this.cryptAlg = DEFAULT_CRYPT_ALGORITHM;
   }
 
 
-  private DoxyConfigBuilder(int port, String host, int targetPort, String targetHost, int proxyPort, String proxyHost, String proxyUser, String proxyPass, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, Path keystorePath) {
-    this.port = port;
+  public DoxyConfigBuilder(HostConfig host, HostConfig target, HostConfig proxy, String proxyUser, char[] proxyPass, Path privateKey, Path publicKey, Path keystore, char[] keystorePass, String serverName, String userAgent, String cryptAlg, int threadPoolSize, int bufferSize, boolean directBuffer) {
     this.host = host;
-    this.targetPort = targetPort;
-    this.targetHost = targetHost;
-    this.proxyPort = proxyPort;
-    this.proxyHost = proxyHost;
+    this.target = target;
+    this.proxy = proxy;
+    this.threadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     this.proxyUser = proxyUser;
     this.proxyPass = proxyPass;
-    this.threadPoolSize = threadPoolSize;
-    this.bufferSize = bufferSize;
-    this.directBuffer = directBuffer;
     this.serverName = serverName;
     this.userAgent = userAgent;
-    this.keystorePath = keystorePath;
+    this.bufferSize = bufferSize;
+    this.directBuffer = directBuffer;
+    this.kspath = keystore;
+    this.pkpath = privateKey;
+    this.pubpath = publicKey;
+    this.kspass = keystorePass;
+    this.cryptAlg = cryptAlg;
   }
   
   
-  public DoxyConfigBuilder port(int p) {
-    return new DoxyConfigBuilder(p, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder host(String hostname, int port) {
+    return new DoxyConfigBuilder(HostConfig.of(hostname, port), target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder targetPort(int p) {
-    return new DoxyConfigBuilder(port, host, p, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder target(String hostname, int port) {
+    return new DoxyConfigBuilder(host, HostConfig.of(hostname, port), proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder proxyPort(int p) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, p, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder proxy(String hostname, int port) {
+    return new DoxyConfigBuilder(host, target, HostConfig.of(hostname, port), proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder threadPoolSize(int p) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, p, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder threadPoolSize(int threadPoolSize) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder bufferSize(int p) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, p, directBuffer, keystorePath);
+  public DoxyConfigBuilder bufferSize(int bufferSize) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder directBuffer(boolean direct) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, direct, keystorePath);
-  }
-  
-  public DoxyConfigBuilder host(String host) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
-  }
-  
-  public DoxyConfigBuilder targetHost(String targetHost) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
-  }
-  
-  public DoxyConfigBuilder proxyHost(String proxyHost) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder directBuffer(boolean directBuffer) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder proxyUser(String proxyUser) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder proxyPassword(String proxyPass) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder proxyPassword(char[] proxyPass) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder serverName(String serverName) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder userAgent(String userAgent) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder sslKeystorePath(Path keystorePath) {
-    return new DoxyConfigBuilder(port, host, targetPort, targetHost, proxyPort, proxyHost, proxyUser, proxyPass, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, keystorePath);
+  public DoxyConfigBuilder privateKeyPath(Path pkpath) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public int getPort() {
-    return port;
+  public DoxyConfigBuilder publicKeyPath(Path pubpath) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public String getHost() {
+  public DoxyConfigBuilder keystorePath(Path kspath) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+  }
+  
+  public DoxyConfigBuilder keystorePassword(char[] kspass) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+  }
+  
+  public DoxyConfigBuilder cryptAlgorithm(String cryptAlg) {
+    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+  }
+  
+  public HostConfig getHost() {
     return host;
   }
-
-  public int getTargetPort() {
-    return targetPort;
+  
+  public HostConfig getTarget() {
+    return target;
   }
   
-  public String getTargetHost() {
-    return targetHost;
-  }
-  
-  public int getProxyPort() {
-    return proxyPort;
-  }
-  
-  public String getProxyHost() {
-    return proxyHost;
+  public HostConfig getProxy() {
+    return proxy;
   }
   
   public String getProxyUser() {
     return proxyUser;
   }
   
-  public String getProxyPassword() {
+  public char[] getProxyPassword() {
     return proxyPass;
   }
   
@@ -181,34 +196,50 @@ public class DoxyConfigBuilder {
     return directBuffer;
   }
   
-  public byte[] getSecretKey() {
-    return null;
+  public Path getPrivateKeyPath() {
+    return pkpath;
   }
   
-  public Path getSSLKeystorePath() {
-    return keystorePath;
+  public Path getPublicKeyPath() {
+    return pubpath;
+  }
+  
+  public Path getKeystorePath() {
+    return kspath;
+  }
+  
+  public char[] getKeystorePassword() {
+    return kspass;
+  }
+  
+  public String getServerName() {
+    return serverName;
+  }
+  
+  public String getUserAgent() {
+    return userAgent;
+  }
+  
+  public String getCryptAlgorithm() {
+    return userAgent;
   }
   
   public DoxyConfig build() {
-    if(port <= 0) throw new IllegalStateException("Bad port: " + port);
-    if(targetPort <= 0) throw new IllegalStateException("Bad target port: " + targetPort);
+    Objects.requireNonNull(host, "Bad null Host");
+    Objects.requireNonNull(target, "Bad null Target");
+    Objects.requireNonNull(cryptAlg, "Bad null cryptography algorithm");
     if(threadPoolSize <= 0) throw new IllegalStateException("Bad thread pool size: " + threadPoolSize);
     if(bufferSize <= 0) throw new IllegalStateException("Bad buffer size: " + bufferSize);
     return new DoxyConfigImpl(
-        port, 
         host, 
-        targetPort, 
-        targetHost, 
-        proxyPort, 
-        proxyHost, 
-        proxyUser, 
-        proxyPass,
+        target, 
+        ProxyConfig.of(proxy, proxyUser, proxyPass),
+        SecurityConfig.of(pkpath, pubpath, kspath, kspass, cryptAlg),
         serverName,
         userAgent,
         threadPoolSize, 
         bufferSize, 
-        directBuffer,
-        keystorePath
+        directBuffer
     );
   }
   

@@ -75,11 +75,7 @@ public class TargetTransport extends AbstractRunnable {
   }
   
   private DoxyChannel createChannel(String id) throws IOException {
-    SocketAddress target = new InetSocketAddress(
-        env.configuration().getTargetHost(), 
-        env.configuration().getTargetPort()
-    );
-    SocketChannel sock = SocketChannel.open(target);
+    SocketChannel sock = SocketChannel.open(env.configuration().getTarget().toSocketAddr());
     DoxyChannel ch = new DoxyChannelImpl(env, id, sock);
     env.channels().add(ch);
     env.executor().submit(readingLoop(ch));

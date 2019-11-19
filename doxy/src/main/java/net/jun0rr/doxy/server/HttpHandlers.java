@@ -29,8 +29,10 @@ import net.jun0rr.doxy.server.impl.DefaultHttpResponseFilter;
 import net.jun0rr.doxy.server.impl.HttpResponseHeadersFilter;
 import net.jun0rr.doxy.server.impl.HttpRouteHandler;
 import net.jun0rr.doxy.server.impl.RoutableHttpHandler;
+import net.jun0rr.doxy.server.impl.SSLHandlerFactory;
 import net.jun0rr.doxy.server.impl.ServerErrorFunction;
 import net.jun0rr.doxy.server.impl.UncaughtExceptionHandler;
+import us.pserver.tools.Unchecked;
 
 
 /**
@@ -137,22 +139,24 @@ public class HttpHandlers {
     return exchangeFilters;
   }
   
-  private boolean isSSLKeystoreSetted() {
-    return config.getSSLKeystorePath() != null
-        && Files.exists(config.getSSLKeystorePath());
+  private boolean isKeystoreSetted() {
+    return config.getSecurityConfig().getKeystorePath() != null
+        && Files.exists(config.getSecurityConfig().getKeystorePath());
   }
   
   private SslHandler createSSLHandler() {
-    return null;
+    return Unchecked.call(()->new SSLHandlerFactory(config).create());
   }
   
   public ChannelInitializer<SocketChannel> createInitializer() {
     return new ChannelInitializer<>() {
       @Override
       protected void initChannel(SocketChannel c) throws Exception {
-        c.pipeline().addLast(new HttpServerCodec(),
-          new HttpObjectAggregator(1024*1024),
-          new DefaultHttpResponseFilter(new HttpResponseHeadersFilter(config))
+        c.pipeline().addLast(
+            createSSLHandler(),
+            new HttpServerCodec(),
+            new HttpObjectAggregator(1024*1024),
+            new DefaultHttpResponseFilter(new HttpResponseHeadersFilter(config))
         );
         responseFilters.forEach(f->c.pipeline().addLast(new DefaultHttpResponseFilter(f.get())));
         requestFilters.forEach(f->c.pipeline().addLast(new DefaultHttpRequestFilter(f.get())));

@@ -6,6 +6,8 @@
 package net.jun0rr.doxy;
 
 import java.nio.ByteBuffer;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -31,5 +33,9 @@ public interface DoxyEnvironment {
   public HttpPacketRequest http();
   
   public ByteBuffer alloc();
+  
+  public PublicKey getPublicKey();
+  
+  public PrivateKey getPrivateKey();
   
 }

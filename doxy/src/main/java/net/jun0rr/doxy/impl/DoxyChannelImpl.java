@@ -76,7 +76,7 @@ public class DoxyChannelImpl implements DoxyChannel {
     int read = socket.read(rbuf);
     if(read == -1) throw new EOFException();
     else if(read < 1) return Optional.empty();
-    else return Optional.of(new PacketImpl(uid, rbuf, null, nextOrder()));
+    else return Optional.of(new PacketImpl(uid, rbuf, nextOrder()));
   }
   
   @Override

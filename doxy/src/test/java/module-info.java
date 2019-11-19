@@ -8,5 +8,6 @@ module doxy.test {
   requires doxy;
   requires java.base;
   requires toolbox.tools;
+  requires org.jose4j;
   requires org.junit.jupiter.api;
 }

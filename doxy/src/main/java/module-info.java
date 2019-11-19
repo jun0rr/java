@@ -10,6 +10,7 @@ module doxy {
   requires toolbox.tools;
   requires toolbox.tools.io;
   requires io.netty.all;
+  requires org.jose4j;
   exports net.jun0rr.doxy;
   exports net.jun0rr.doxy.client;
   exports net.jun0rr.doxy.server;

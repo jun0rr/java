@@ -8,7 +8,6 @@ package net.jun0rr.doxy;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import net.jun0rr.doxy.impl.PacketImpl;
-import us.pserver.tools.io.BitBuffer;
 
 
 /**
@@ -21,11 +20,11 @@ public interface Packet {
   
   public long getOrder();
   
-  public SecKey getSecKey();
-  
   public ByteBuffer getRawData();
   
   public int length();
+  
+  public int originalLength();
   
   public ByteBuffer encode();
   
@@ -33,11 +32,12 @@ public interface Packet {
   
   public static Packet decode(ByteBuffer buf) {
     long ord = buf.getLong();
+    int orilen = buf.getInt();
     int idlen = buf.getInt();
     ByteBuffer bid = ByteBuffer.allocate(idlen);
     buf.get(bid.array());
     String sid = StandardCharsets.UTF_8.decode(bid).toString();
-    return new PacketImpl(sid, buf.slice(), null, ord);
+    return new PacketImpl(sid, buf.slice(), ord, orilen);
   }
   
 }

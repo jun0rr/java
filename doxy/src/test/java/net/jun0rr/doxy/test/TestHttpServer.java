@@ -6,8 +6,9 @@
 package net.jun0rr.doxy.test;
 
 import io.netty.handler.codec.http.HttpMethod;
-import java.security.Security;
+import java.nio.file.Paths;
 import java.util.Optional;
+import net.jun0rr.doxy.DoxyConfig;
 import net.jun0rr.doxy.DoxyConfigBuilder;
 import net.jun0rr.doxy.server.HttpHandler;
 import net.jun0rr.doxy.server.HttpRoute;
@@ -26,8 +27,12 @@ import net.jun0rr.doxy.server.HttpResponseFilter;
 public class TestHttpServer {
   @Test
   public void method() {
-    System.out.println("ssl.KeyManagerFactory.algorithm: " + Security.getProperty("ssl.KeyManagerFactory.algorithm"));
-    HttpServer server = new HttpServer(DoxyConfigBuilder.newBuilder().build());
+    DoxyConfig cfg = DoxyConfigBuilder.newBuilder()
+        //.keystorePath(Paths.get("/home/juno/java/doxy.jks"))
+        .keystorePath(Paths.get("d:/java/doxy.jks"))
+        .keystorePassword("32132155".toCharArray())
+        .build();
+    HttpServer server = new HttpServer(cfg);
     HttpRequestFilter fi1 = (c,r)->{
       System.out.println("* HttpRequest: " + r);
       r.headers().set("x-input-filter1", "passed");

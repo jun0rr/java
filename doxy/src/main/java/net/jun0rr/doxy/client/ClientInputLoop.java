@@ -32,10 +32,7 @@ public class ClientInputLoop extends AbstractRunnable {
   }
   
   private void bindServer() throws IOException {
-    server.bind(new InetSocketAddress(
-        env.configuration().getHost(), 
-        env.configuration().getPort())
-    );
+    server.bind(env.configuration().getHost().toSocketAddr());
   }
   
   @Override

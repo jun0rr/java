@@ -8,6 +8,9 @@ package net.jun0rr.doxy.impl;
 import java.nio.file.Path;
 import java.util.Objects;
 import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.HostConfig;
+import net.jun0rr.doxy.ProxyConfig;
+import net.jun0rr.doxy.SecurityConfig;
 
 
 /**
@@ -16,21 +19,13 @@ import net.jun0rr.doxy.DoxyConfig;
  */
 public class DoxyConfigImpl implements DoxyConfig {
   
-  private final int port;
+  private final HostConfig host;
   
-  private final String host;
+  private final HostConfig target;
   
-  private final int targetPort;
+  private final ProxyConfig proxy;
   
-  private final String targetHost;
-  
-  private final int proxyPort;
-  
-  private final String proxyHost;
-  
-  private final String proxyUser;
-  
-  private final String proxyPass;
+  private final SecurityConfig security;
   
   private final int threadPoolSize;
   
@@ -42,65 +37,37 @@ public class DoxyConfigImpl implements DoxyConfig {
   
   private final String userAgent;
   
-  private final Path keystorePath;
   
-  
-  public DoxyConfigImpl(int port, String host, int targetPort, String targetHost, int proxyPort, String proxyHost, String proxyUser, String proxyPass, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, Path keystorePath) {
-    this.port = port;
+  public DoxyConfigImpl(HostConfig host, HostConfig target, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
     this.host = host;
-    this.targetPort = targetPort;
-    this.targetHost = targetHost;
-    this.proxyPort = proxyPort;
-    this.proxyHost = proxyHost;
-    this.proxyUser = proxyUser;
-    this.proxyPass = proxyPass;
+    this.target = target;
+    this.proxy = proxy;
+    this.security = security;
     this.threadPoolSize = threadPoolSize;
     this.bufferSize = bufferSize;
     this.directBuffer = directBuffer;
     this.serverName = serverName;
     this.userAgent = userAgent;
-    this.keystorePath = keystorePath;
-  }
-  
-  
-  @Override
-  public int getPort() {
-    return port;
   }
   
   @Override
-  public String getHost() {
+  public HostConfig getHost() {
     return host;
   }
-
+  
   @Override
-  public int getTargetPort() {
-    return targetPort;
+  public HostConfig getTarget() {
+    return target;
   }
   
   @Override
-  public String getTargetHost() {
-    return targetHost;
+  public ProxyConfig getProxyConfig() {
+    return proxy;
   }
   
   @Override
-  public int getProxyPort() {
-    return proxyPort;
-  }
-  
-  @Override
-  public String getProxyHost() {
-    return proxyHost;
-  }
-  
-  @Override
-  public String getProxyUser() {
-    return proxyUser;
-  }
-  
-  @Override
-  public String getProxyPassword() {
-    return proxyPass;
+  public SecurityConfig getSecurityConfig() {
+    return security;
   }
   
   @Override
@@ -129,90 +96,14 @@ public class DoxyConfigImpl implements DoxyConfig {
   }
   
   @Override
-  public byte[] getSecretKey() {
-    return null;
-  }
-  
-  public Path getSSLKeystorePath() {
-    return keystorePath;
-  }
-
-
-  @Override
-  public int hashCode() {
-    int hash = 7;
-    hash = 11 * hash + this.port;
-    hash = 11 * hash + Objects.hashCode(this.host);
-    hash = 11 * hash + this.targetPort;
-    hash = 11 * hash + Objects.hashCode(this.targetHost);
-    hash = 11 * hash + this.proxyPort;
-    hash = 11 * hash + Objects.hashCode(this.proxyHost);
-    hash = 11 * hash + Objects.hashCode(this.proxyUser);
-    hash = 11 * hash + Objects.hashCode(this.proxyPass);
-    hash = 11 * hash + this.threadPoolSize;
-    hash = 11 * hash + this.bufferSize;
-    hash = 11 * hash + (this.directBuffer ? 1 : 0);
-    return hash;
-  }
-
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final DoxyConfig other = (DoxyConfig) obj;
-    if (this.port != other.getPort()) {
-      return false;
-    }
-    if (this.targetPort != other.getTargetPort()) {
-      return false;
-    }
-    if (this.proxyPort != other.getProxyPort()) {
-      return false;
-    }
-    if (this.threadPoolSize != other.getThreadPoolSize()) {
-      return false;
-    }
-    if (this.bufferSize != other.getBufferSize()) {
-      return false;
-    }
-    if (this.directBuffer != other.isDirectBuffer()) {
-      return false;
-    }
-    if (!Objects.equals(this.host, other.getHost())) {
-      return false;
-    }
-    if (!Objects.equals(this.targetHost, other.getTargetHost())) {
-      return false;
-    }
-    if (!Objects.equals(this.proxyHost, other.getProxyHost())) {
-      return false;
-    }
-    if (!Objects.equals(this.proxyUser, other.getProxyUser())) {
-      return false;
-    }
-    return Objects.equals(this.proxyPass, other.getProxyPassword());
-  }
-
-
-  @Override
   public String toString() {
     return "DoxyConfig{" 
-        + "  - port=" + port + "\n"
-        + "  - host=" + host + "\n"
-        + "  - targetPort=" + targetPort + "\n"
-        + "  - targetHost=" + targetHost + "\n"
-        + "  - proxyPort=" + proxyPort + "\n"
-        + "  - proxyHost=" + proxyHost + "\n"
-        + "  - proxyUser=" + proxyUser + "\n"
-        + "  - proxyPass=" + proxyPass + "\n"
+        + "  - port=" + host + "\n"
+        + "  - target=" + target + "\n"
+        + "  - proxy=" + proxy + "\n"
+        + "  - security=" + security + "\n"
+        + "  - serverName=" + serverName + "\n"
+        + "  - userAgent=" + userAgent + "\n"
         + "  - threadPoolSize=" + threadPoolSize + "\n"
         + "  - bufferSize=" + bufferSize + "\n"
         + "  - directBuffer=" + directBuffer + "\n"
