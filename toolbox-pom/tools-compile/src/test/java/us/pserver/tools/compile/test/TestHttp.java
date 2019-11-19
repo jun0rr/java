@@ -7,7 +7,6 @@ package us.pserver.tools.compile.test;
 
 import java.net.Authenticator;
 import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -49,7 +48,7 @@ public class TestHttp {
       HttpRequest req = HttpRequest.newBuilder(new URI("https://www.google.com"))
           .GET()
           .version(HttpClient.Version.HTTP_2)
-          .header("Proxy-Authorization", "Basic ZjYwMzY0Nzc6Nzg5NjMyNTg=")
+          .header("Proxy-Authorization", "Basic ZjYwMzY0Nzc6OTg3NDEwMjU=")
           .build();
       System.out.println("* sending request...");
       HttpResponse<String> resp = hc.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
