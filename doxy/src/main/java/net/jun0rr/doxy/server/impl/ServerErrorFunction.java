@@ -23,13 +23,8 @@ public class ServerErrorFunction implements Function<Throwable,Optional<HttpResp
   public Optional<HttpResponse> apply(Throwable th) {
     th.printStackTrace();
     HttpResponse res = HttpResponse.of(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    new XErrorHeaders().setError(th).toHeaders(res.headers());
     res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-    res.headers().set("x-error-type", th.getClass().getName());
-    res.headers().set("x-error-message", th.getMessage());
-    if(th.getCause() != null) {
-      res.headers().set("x-error-cause", th.getCause());
-    }
-    res.headers().set("x-error-trace", th.getStackTrace()[0].toString());
     return Optional.of(res);
   }
 
