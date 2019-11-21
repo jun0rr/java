@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.client;
 
-import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -27,6 +26,8 @@ import javax.net.ssl.X509TrustManager;
 import net.jun0rr.doxy.DoxyEnvironment;
 import net.jun0rr.doxy.Packet;
 import net.jun0rr.doxy.impl.BufferBodyPublisher;
+import net.jun0rr.doxy.impl.PacketDecoder;
+import net.jun0rr.doxy.impl.PacketEncoder;
 import us.pserver.tools.Unchecked;
 
 
@@ -66,6 +67,10 @@ public class HttpPacketRequest {
   
   private final URI receiveUri;
   
+  private final PacketEncoder encoder;
+  
+  private final PacketDecoder decoder;
+  
   
   public HttpPacketRequest(DoxyEnvironment env) {
     this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
@@ -77,13 +82,15 @@ public class HttpPacketRequest {
         .executor(env.executor())
         .build();
     this.sendUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
-        .append(env.configuration().getTarget())
+        .append(env.configuration().getServerHost())
         .append(URI_ENCODE)
         .toString()));
     this.receiveUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
-        .append(env.configuration().getTarget())
+        .append(env.configuration().getServerHost())
         .append(URI_DECODE)
         .toString()));
+    this.encoder = new PacketEncoder(env.configuration().getSecurityConfig().getCryptAlgorithm(), env.getPublicKey());
+    this.decoder = new PacketDecoder(env.configuration().getSecurityConfig().getCryptAlgorithm(), env.getPrivateKey());
   }
   
   private String getProxyAuthorization() {
@@ -96,7 +103,7 @@ public class HttpPacketRequest {
   
   public void send(Packet p) {
     HttpRequest req = HttpRequest.newBuilder(sendUri)
-        .POST(new BufferBodyPublisher(p.encode()))
+        .POST(new BufferBodyPublisher(encoder.encodeCompress(p)))
         .version(HttpClient.Version.HTTP_2)
         .header(HEADER_USER_AGENT, VALUE_USER_AGENT)
         .header(HEADER_PROXY_AUTH, getProxyAuthorization())
@@ -115,7 +122,7 @@ public class HttpPacketRequest {
         .build();
     HttpResponse<byte[]> resp = Unchecked.call(()->client.send(req, BodyHandlers.ofByteArray()));
     return resp.statusCode() == HTTP_200_OK
-        ? Optional.of(Packet.decode(ByteBuffer.wrap(resp.body())))
+        ? Optional.of(decoder.decodeDecompress(ByteBuffer.wrap(resp.body())))
         : Optional.empty();
   }
   

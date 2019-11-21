@@ -16,7 +16,9 @@ public interface DoxyConfig {
   
   public HostConfig getHost();
   
-  public HostConfig getTarget();
+  public HostConfig getServerHost();
+  
+  public HostConfig getRemoteHost();
   
   public ProxyConfig getProxyConfig();
   

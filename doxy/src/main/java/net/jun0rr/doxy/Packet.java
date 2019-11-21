@@ -31,8 +31,9 @@ public interface Packet {
   
   
   public static Packet decode(ByteBuffer buf) {
-    long ord = buf.getLong();
+    int len = buf.getInt();
     int orilen = buf.getInt();
+    long ord = buf.getLong();
     int idlen = buf.getInt();
     ByteBuffer bid = ByteBuffer.allocate(idlen);
     buf.get(bid.array());

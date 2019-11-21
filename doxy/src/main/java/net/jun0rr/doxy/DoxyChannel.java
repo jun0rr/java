@@ -5,9 +5,9 @@
  */
 package net.jun0rr.doxy;
 
+import io.netty.channel.Channel;
 import java.io.EOFException;
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
 import java.util.Optional;
 
 
@@ -21,9 +21,11 @@ public interface DoxyChannel extends AutoCloseable {
   
   public String uid();
   
+  public String authToken();
+  
   public long nextOrder();
   
-  public SocketChannel socket();
+  public Channel channel();
   
   @Override public void close();
   

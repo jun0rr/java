@@ -6,10 +6,8 @@
 package net.jun0rr.doxy;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.URL;
 import java.util.Objects;
-import net.jun0rr.doxy.server.impl.NonNullArgument;
 import us.pserver.tools.Unchecked;
 
 

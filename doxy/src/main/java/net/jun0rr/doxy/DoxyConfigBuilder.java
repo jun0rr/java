@@ -27,7 +27,9 @@ public class DoxyConfigBuilder {
   
   public static final int DEFAULT_HOST_PORT = 3333;
   
-  public static final int DEFAULT_TARGET_PORT = 6060;
+  public static final int DEFAULT_SERVER_PORT = 443;
+  
+  public static final int DEFAULT_REMOTE_PORT = 6060;
   
   public static final int DEFAULT_PROXY_PORT = 40080;
   
@@ -38,7 +40,9 @@ public class DoxyConfigBuilder {
   
   private final HostConfig host;
   
-  private final HostConfig target;
+  private final HostConfig server;
+  
+  private final HostConfig remote;
   
   private final HostConfig proxy;
   
@@ -68,7 +72,8 @@ public class DoxyConfigBuilder {
   
   public DoxyConfigBuilder() {
     this.host = HostConfig.of(LOCALHOST, DEFAULT_HOST_PORT);
-    this.target = HostConfig.of(LOCALHOST, DEFAULT_TARGET_PORT);
+    this.server = HostConfig.of(LOCALHOST, DEFAULT_SERVER_PORT);
+    this.remote = HostConfig.of(LOCALHOST, DEFAULT_REMOTE_PORT);
     this.proxy = HostConfig.of(LOCALHOST, DEFAULT_PROXY_PORT);
     this.threadPoolSize = DEFAULT_THREAD_POOL_SIZE;
     this.proxyUser = null;
@@ -85,9 +90,10 @@ public class DoxyConfigBuilder {
   }
 
 
-  public DoxyConfigBuilder(HostConfig host, HostConfig target, HostConfig proxy, String proxyUser, char[] proxyPass, Path privateKey, Path publicKey, Path keystore, char[] keystorePass, String serverName, String userAgent, String cryptAlg, int threadPoolSize, int bufferSize, boolean directBuffer) {
+  public DoxyConfigBuilder(HostConfig host, HostConfig server, HostConfig remote, HostConfig proxy, String proxyUser, char[] proxyPass, Path privateKey, Path publicKey, Path keystore, char[] keystorePass, String serverName, String userAgent, String cryptAlg, int threadPoolSize, int bufferSize, boolean directBuffer) {
     this.host = host;
-    this.target = target;
+    this.server = server;
+    this.remote = remote;
     this.proxy = proxy;
     this.threadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     this.proxyUser = proxyUser;
@@ -105,71 +111,79 @@ public class DoxyConfigBuilder {
   
   
   public DoxyConfigBuilder host(String hostname, int port) {
-    return new DoxyConfigBuilder(HostConfig.of(hostname, port), target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(HostConfig.of(hostname, port), server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder target(String hostname, int port) {
-    return new DoxyConfigBuilder(host, HostConfig.of(hostname, port), proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+  public DoxyConfigBuilder serverHost(String hostname, int port) {
+    return new DoxyConfigBuilder(host, HostConfig.of(hostname, port), remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
-  public DoxyConfigBuilder proxy(String hostname, int port) {
-    return new DoxyConfigBuilder(host, target, HostConfig.of(hostname, port), proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+  public DoxyConfigBuilder remoteHost(String hostname, int port) {
+    return new DoxyConfigBuilder(host, server, HostConfig.of(hostname, port), proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+  }
+  
+  public DoxyConfigBuilder proxyHost(String hostname, int port) {
+    return new DoxyConfigBuilder(host, server, remote, HostConfig.of(hostname, port), proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder threadPoolSize(int threadPoolSize) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder bufferSize(int bufferSize) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder directBuffer(boolean directBuffer) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder proxyUser(String proxyUser) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder proxyPassword(char[] proxyPass) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder serverName(String serverName) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder userAgent(String userAgent) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder privateKeyPath(Path pkpath) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder publicKeyPath(Path pubpath) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder keystorePath(Path kspath) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder keystorePassword(char[] kspass) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public DoxyConfigBuilder cryptAlgorithm(String cryptAlg) {
-    return new DoxyConfigBuilder(host, target, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
+    return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer);
   }
   
   public HostConfig getHost() {
     return host;
   }
   
-  public HostConfig getTarget() {
-    return target;
+  public HostConfig getServerHost() {
+    return server;
+  }
+  
+  public HostConfig getRemoteHost() {
+    return remote;
   }
   
   public HostConfig getProxy() {
@@ -226,13 +240,14 @@ public class DoxyConfigBuilder {
   
   public DoxyConfig build() {
     Objects.requireNonNull(host, "Bad null Host");
-    Objects.requireNonNull(target, "Bad null Target");
+    Objects.requireNonNull(server, "Bad null Target");
     Objects.requireNonNull(cryptAlg, "Bad null cryptography algorithm");
     if(threadPoolSize <= 0) throw new IllegalStateException("Bad thread pool size: " + threadPoolSize);
     if(bufferSize <= 0) throw new IllegalStateException("Bad buffer size: " + bufferSize);
     return new DoxyConfigImpl(
         host, 
-        target, 
+        server, 
+        remote, 
         ProxyConfig.of(proxy, proxyUser, proxyPass),
         SecurityConfig.of(pkpath, pubpath, kspath, kspass, cryptAlg),
         serverName,

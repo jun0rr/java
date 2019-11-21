@@ -21,7 +21,9 @@ public class DoxyConfigImpl implements DoxyConfig {
   
   private final HostConfig host;
   
-  private final HostConfig target;
+  private final HostConfig server;
+  
+  private final HostConfig remote;
   
   private final ProxyConfig proxy;
   
@@ -38,9 +40,10 @@ public class DoxyConfigImpl implements DoxyConfig {
   private final String userAgent;
   
   
-  public DoxyConfigImpl(HostConfig host, HostConfig target, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
+  public DoxyConfigImpl(HostConfig host, HostConfig server, HostConfig remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
     this.host = host;
-    this.target = target;
+    this.server = server;
+    this.remote = remote;
     this.proxy = proxy;
     this.security = security;
     this.threadPoolSize = threadPoolSize;
@@ -56,8 +59,13 @@ public class DoxyConfigImpl implements DoxyConfig {
   }
   
   @Override
-  public HostConfig getTarget() {
-    return target;
+  public HostConfig getServerHost() {
+    return server;
+  }
+  
+  @Override
+  public HostConfig getRemoteHost() {
+    return remote;
   }
   
   @Override
@@ -99,7 +107,8 @@ public class DoxyConfigImpl implements DoxyConfig {
   public String toString() {
     return "DoxyConfig{" 
         + "  - port=" + host + "\n"
-        + "  - target=" + target + "\n"
+        + "  - server=" + server + "\n"
+        + "  - remote=" + remote + "\n"
         + "  - proxy=" + proxy + "\n"
         + "  - security=" + security + "\n"
         + "  - serverName=" + serverName + "\n"

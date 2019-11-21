@@ -27,10 +27,10 @@ public class ClientOutputLoop extends AbstractRunnable {
   public void run() {
     while(isRunning()) {
       env.channels().stream()
-          .filter(c->c.socket().isConnected())
+          .filter(c->c.channel().isConnected())
           .forEach(c->env.executor().submit(requesting(c)));
       env.channels().stream()
-          .filter(c->!c.socket().isConnected())
+          .filter(c->!c.channel().isConnected())
           .forEach(DoxyChannel::close);
       Unchecked.call(()->Thread.sleep(SLEEP_MILLIS));
     }

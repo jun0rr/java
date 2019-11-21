@@ -5,10 +5,11 @@
  */
 package net.jun0rr.doxy.impl;
 
+import io.netty.channel.Channel;
+import io.netty.channel.socket.SocketChannel;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,16 +29,19 @@ public class DoxyChannelImpl implements DoxyChannel {
   
   private final String uid;
   
+  private final String authToken;
+  
   private final AtomicLong order;
   
-  private final SocketChannel socket;
+  private final Channel channel;
   
   private final ByteBuffer rbuf;
   
-  public DoxyChannelImpl(DoxyEnvironment env, String uid, SocketChannel sc) {
+  public DoxyChannelImpl(DoxyEnvironment env, String uid, String authToken, Channel sc) {
     this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment (env)");
     this.uid = Objects.requireNonNull(uid, "Bad null uid String");
-    this.socket = Objects.requireNonNull(sc, "Bad null SocketChannel (sc)");
+    this.authToken = Objects.requireNonNull(authToken, "Bad null authentication token String");
+    this.channel = Objects.requireNonNull(sc, "Bad null SocketChannel (sc)");
     this.order = new AtomicLong(0L);
     this.rbuf = env.configuration().isDirectBuffer()
         ? ByteBuffer.allocateDirect(env.configuration().getBufferSize())
@@ -55,33 +59,34 @@ public class DoxyChannelImpl implements DoxyChannel {
   }
   
   @Override
+  public String authToken() {
+    return authToken;
+  }
+  
+  @Override
   public long nextOrder() {
     return order.getAndIncrement();
   }
   
   @Override
-  public SocketChannel socket() {
-    return socket;
+  public Channel channel() {
+    return channel;
   }
   
   @Override
   public void close() {
-    Unchecked.call(()->socket.close());
+    Unchecked.call(()->channel.close());
     env.channels().remove(this);
   }
   
   @Override
   public Optional<Packet> readPacket() throws EOFException, IOException {
-    rbuf.compact();
-    int read = socket.read(rbuf);
-    if(read == -1) throw new EOFException();
-    else if(read < 1) return Optional.empty();
-    else return Optional.of(new PacketImpl(uid, rbuf, nextOrder()));
+    return Optional.empty();
   }
   
   @Override
   public void writePacket(Packet p) throws IOException {
-    socket.write(p.getRawData());
+    channel.write(p.getRawData());
   }
   
   @Override
@@ -108,7 +113,7 @@ public class DoxyChannelImpl implements DoxyChannel {
   
   @Override
   public String toString() {
-    return "DoxyChannel{" + "uid=" + uid + ", order=" + order + ", channel=" + socket + '}';
+    return "DoxyChannel{" + "uid=" + uid + ", order=" + order + ", channel=" + channel + '}';
   }
   
 }

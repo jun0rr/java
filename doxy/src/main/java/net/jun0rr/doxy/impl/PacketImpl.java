@@ -50,7 +50,7 @@ public class PacketImpl implements Packet {
   
   @Override
   public int length() {
-    return Long.BYTES + Integer.BYTES * 2 + sid.length() + data.remaining();
+    return Long.BYTES + Integer.BYTES * 3 + sid.length() + data.remaining();
   }
   
   @Override
@@ -63,8 +63,9 @@ public class PacketImpl implements Packet {
     ByteBuffer buf = data.isDirect()
         ? ByteBuffer.allocateDirect(length())
         : ByteBuffer.allocate(length());
-    buf.putLong(order)
+    buf.putInt(length())
         .putInt(orilen)
+        .putLong(order)
         .putInt(sid.length())
         .put(StandardCharsets.UTF_8.encode(sid))
         .put(data);
