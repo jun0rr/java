@@ -45,15 +45,13 @@ public class JwtClientFactory {
     jwe.setKey(env.getPublicKey());
   }
   
-  public JwtClaims createClaims(String channelID) {
+  public JwtClaims createClaims() {
     JwtClaims jc = new JwtClaims();
     jc.setAudience(DoxyClaims.AUDIENCE_SERVER);
     jc.setIssuer(DoxyClaims.ISSUER_CLIENT);
-    jc.setExpirationTimeMinutesInTheFuture(DoxyClaims.EXPIRATION_MINUTES);
+    //jc.setExpirationTimeMinutesInTheFuture(DoxyClaims.EXPIRATION_MINUTES);
     jc.setSubject(DoxyClaims.SUBJECT_AUTH);
     jc.setIssuedAtToNow();
-    jc.setClaim(DoxyClaims.CLAIM_CHANNEL_ID, channelID);
-    jc.setClaim(DoxyClaims.CLAIM_REMOTE_HOST, env.configuration().getRemoteHost());
     return jc;
   }
   
@@ -67,8 +65,8 @@ public class JwtClientFactory {
     return jwe.getCompactSerialization();
   }
   
-  public String getAuthenticationToken(String channelID) throws JoseException {
-    return encryptPayload(signPayload(createClaims(channelID).toJson()));
+  public String createAuthToken() throws JoseException {
+    return encryptPayload(signPayload(createClaims().toJson()));
   }
   
 }

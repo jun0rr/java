@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.client;
 
-import net.jun0rr.doxy.server.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,15 +13,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import javax.net.ssl.SSLException;
-import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.DoxyEnvironment;
 import us.pserver.tools.LazyFinal;
 import us.pserver.tools.Unchecked;
 
@@ -39,13 +35,16 @@ public class InputServer {
   
   private final EventLoopGroup handle;
   
-  private final DoxyConfig config;
+  private final DoxyEnvironment env;
   
-  public InputServer(DoxyConfig cfg) {
-    this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig (cfg)");
+  private final InternalLogger log;
+  
+  public InputServer(DoxyEnvironment env) {
+    this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
     this.channel = new LazyFinal<>();
     this.accept = new NioEventLoopGroup(1);
-    this.handle = new NioEventLoopGroup(cfg.getThreadPoolSize());
+    this.handle = new NioEventLoopGroup(env.configuration().getThreadPoolSize());
+    this.log = InternalLoggerFactory.getInstance(getClass());
   }
   
   private ServerBootstrap bootstrap() {
@@ -54,8 +53,17 @@ public class InputServer {
         .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
         .childOption(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
         .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
+        .childOption(ChannelOption.SO_RCVBUF, env.configuration().getBufferSize())
+        .childOption(ChannelOption.SO_SNDBUF, env.configuration().getBufferSize())
         .group(accept, handle)
-        .childHandler(handlers.createInitializer());
+        .handler(new LoggingHandler())
+        .childHandler(new ChannelInitializer<SocketChannel>() {
+          @Override
+          protected void initChannel(SocketChannel c) throws Exception {
+            c.pipeline().addLast(new InputServerHandler(env));
+          }
+        })
+        ;
   }
   
   public void stop() {
@@ -66,29 +74,10 @@ public class InputServer {
   }
   
   public void start() {
-    channel.init(bootstrap().bind(config.getHost().toSocketAddr()));
-    System.out.println("* HttpServer started: " + config.getHost());
+    channel.init(bootstrap().bind(env.configuration().getHost().toSocketAddr()));
+    log.info("InputServer started: {}", env.configuration().getHost());
     channel.get().syncUninterruptibly().awaitUninterruptibly();
     Unchecked.call(()->accept.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS));
-  }
-  
-  
-  
-  private class InputServerInit extends ChannelInitializer<SocketChannel> {
-    
-    @Override
-    protected void initChannel(SocketChannel c) throws Exception {
-      c.pipeline().addLast(
-          //createSSL().newHandler(c.alloc()),
-          new HttpServerCodec(),
-          new HttpObjectAggregator(1024*1024)
-          //new HttpHeadersOutputFilter(config)
-          //new HttpRequestRouteHandler()
-              //.addHandler(new EncodeHandler())
-              //.addHandler(new DecodeRequestHandler())
-      );
-    }
-
   }
   
 }

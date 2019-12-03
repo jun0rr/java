@@ -56,8 +56,7 @@ public class ServerTransport extends AbstractRunnable {
   private Runnable reading() {
     return () -> {
       while(isRunning()) {
-        Optional<PacketCollection> col = env.http().receive();
-        col.stream()
+        env.http().receive().stream()
             .flatMap(PacketCollection::stream)
             .map(p->decoder.decodePacket(p))
             .forEach(p->env.getChannelById(p.channelID()).ifPresent(c->c.writePacket(p)));

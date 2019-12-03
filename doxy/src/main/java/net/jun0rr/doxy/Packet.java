@@ -8,6 +8,7 @@ package net.jun0rr.doxy;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import net.jun0rr.doxy.impl.PacketImpl;
 import us.pserver.tools.Unchecked;
 
@@ -37,19 +38,10 @@ public interface Packet {
   
   
   public static Packet of(ByteBuffer buf) {
-    /*
-    buf.putInt(encodeLength())
-        .putInt(orilen)
-        .putLong(order)
-        .put((byte)raw.length)
-        .put(raw)
-        .putInt(remote.getPort())
-        .put((byte)(encoded ? 1 : 0))
-        .putInt(cid.length())
-        .put(StandardCharsets.UTF_8.encode(cid))
-        .put(data);
-    */
+    int bufpos = buf.position();
+    int buflim = buf.limit();
     int len = buf.getInt();
+    buf.limit(bufpos + len);
     int orilen = buf.getInt();
     long ord = buf.getLong();
     int adrlen = buf.get();
@@ -60,10 +52,18 @@ public interface Packet {
     HostConfig rem = HostConfig.of(iadr.getHostAddress(), port);
     boolean enc = buf.get() == 1;
     int idlen = buf.getInt();
-    ByteBuffer bid = ByteBuffer.allocate(idlen);
-    buf.get(bid.array());
-    String sid = StandardCharsets.UTF_8.decode(bid).toString();
-    return new PacketImpl(sid, buf.slice(), rem, ord, orilen, enc);
+    String sid = getUTF(buf, idlen);
+    ByteBuffer data = buf.slice();
+    buf.limit(buflim).position(bufpos + len);
+    return new PacketImpl(sid, data, rem, ord, orilen, enc);
+  }
+  
+  private static String getUTF(ByteBuffer buf, int length) {
+    int lim = buf.limit();
+    buf.limit(buf.position() + length);
+    String str = StandardCharsets.UTF_8.decode(buf).toString();
+    buf.limit(lim);
+    return str;
   }
   
 }

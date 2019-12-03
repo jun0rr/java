@@ -7,6 +7,7 @@ package net.jun0rr.doxy.impl;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 import net.jun0rr.doxy.HostConfig;
 import net.jun0rr.doxy.Packet;
@@ -81,6 +82,7 @@ public class PacketImpl implements Packet {
         ? ByteBuffer.allocateDirect(encodeLength())
         : ByteBuffer.allocate(encodeLength());
     byte[] raw = remote.toSocketAddr().getAddress().getAddress();
+    System.out.printf("* Packet.toByteBuffer(): rawAddress=%s:%d%n", Arrays.toString(raw), remote.getPort());
     buf.putInt(encodeLength())
         .putInt(orilen)
         .putLong(order)

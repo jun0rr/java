@@ -55,7 +55,7 @@ public class JwtAuthFilter implements HttpHandler {
         .setJwsAlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256)
         .setVerificationKey(env.getPublicKey())
         .setDecryptionKey(env.getPrivateKey())
-        .setRequireExpirationTime()
+        //.setRequireExpirationTime()
         .setRequireIssuedAt()
         .setExpectedIssuer(EXPECTED_ISSUER)
         .setExpectedAudience(EXPECTED_AUDIENCE)
@@ -70,7 +70,7 @@ public class JwtAuthFilter implements HttpHandler {
       new XErrorHeaders()
           .setErrorType("Authorization")
           .setErrorMessage("Authorization header not present")
-          .setErrorTrace("JwtAuthFilter.handle()")
+          .setErrorTrace("JwtAuthFilter.handle():70")
           .toHeaders(res.headers());
       res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
       return he.send(res);

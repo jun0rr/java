@@ -11,15 +11,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.LinkedList;
+import java.util.List;
 import javax.crypto.Cipher;
 import net.jun0rr.doxy.DerKeyFactory;
 import net.jun0rr.doxy.DoxyConfigBuilder;
 import net.jun0rr.doxy.HostConfig;
 import net.jun0rr.doxy.Packet;
+import net.jun0rr.doxy.impl.PacketCollection;
 import net.jun0rr.doxy.impl.PacketDecoder;
 import net.jun0rr.doxy.impl.PacketEncoder;
 import net.jun0rr.doxy.impl.PacketImpl;
 import org.junit.jupiter.api.Test;
+import us.pserver.tools.Unchecked;
 
 
 /**
@@ -27,12 +31,19 @@ import org.junit.jupiter.api.Test;
  * @author Juno
  */
 public class TestPacketCoder {
+
+  //private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("d:/java/doxy-pk.der")));
+  //private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("d:/java/doxy-pub.der")));
+  private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("/home/juno/java/doxy-pk.der")));
+  private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("/home/juno/java/doxy-pub.der")));
+  private static final PacketEncoder enc = new PacketEncoder(DoxyConfigBuilder.DEFAULT_CRYPT_ALGORITHM, pub);
+  private static final PacketDecoder dec = new PacketDecoder(DoxyConfigBuilder.DEFAULT_CRYPT_ALGORITHM, pk);
+  
   @Test
   public void cryptDecrypt() {
+    System.out.println("------ cryptDecrypt ------");
     try {
-      PrivateKey pk = DerKeyFactory.loadPrivateKey(Paths.get("d:/java/doxy-pk.der"));
-      PublicKey pub = DerKeyFactory.loadPublicKey(Paths.get("d:/java/doxy-pub.der"));
-      String algo = "RSA/ECB/OAEPWithSHA-512AndMGF1Padding";
+      String algo = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
       //String algo = "RSA/ECB/PKCS1Padding";
       Cipher enc = Cipher.getInstance(algo);
       enc.init(Cipher.ENCRYPT_MODE, pub);
@@ -69,11 +80,8 @@ public class TestPacketCoder {
   
   @Test
   public void packetEncodeDecode() throws IOException {
+    System.out.println("------ packetEncodeDecode ------");
     try {
-      PrivateKey pk = DerKeyFactory.loadPrivateKey(Paths.get("d:/java/doxy-pk.der"));
-      PublicKey pub = DerKeyFactory.loadPublicKey(Paths.get("d:/java/doxy-pub.der"));
-      PacketEncoder enc = new PacketEncoder(DoxyConfigBuilder.DEFAULT_CRYPT_ALGORITHM, pub);
-      PacketDecoder dec = new PacketDecoder(DoxyConfigBuilder.DEFAULT_CRYPT_ALGORITHM, pk);
       ByteBuffer data = StandardCharsets.UTF_8.encode("Hello World");
       Packet p = new PacketImpl("channel-1", data, HostConfig.of("localhost", 6060), 0L, data.remaining(), false);
       System.out.println(p);
@@ -94,4 +102,65 @@ public class TestPacketCoder {
       e.printStackTrace();
     }
   }
+  
+  @Test
+  public void testPacketToFromBuffer() {
+    System.out.println("------ testPacketToFromBuffer ------");
+    try {
+      ByteBuffer data = StandardCharsets.UTF_8.encode("Hello World");
+      Packet p = new PacketImpl("channel-1", data, HostConfig.of("172.29.14.10", 6060), 0L, data.remaining(), false);
+      System.out.println(p + " --> " + StandardCharsets.UTF_8.decode(p.data()));
+      p.data().flip();
+      //ByteBuffer eb = enc.encode(p);
+      ByteBuffer eb = p.toByteBuffer();
+      System.out.println(eb);
+      //p = dec.decode(eb);
+      p = Packet.of(eb);
+      System.out.println(p + " --> " + StandardCharsets.UTF_8.decode(p.data()));
+      p.data().flip();
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw Unchecked.unchecked(e);
+    }
+  }
+  
+  @Test
+  public void testPacketCollection() {
+    System.out.println("------ testPacketCollection ------");
+    try {
+      List<Packet> ls = new LinkedList<>();
+      for(int i = 0; i < 10; i++) {
+        ByteBuffer data = StandardCharsets.UTF_8.encode(String.format("Hello World [%d]", i));
+        HostConfig host = HostConfig.of(String.format("172.29.14.%d", (i+1)), (6060 + i));
+        Packet p = new PacketImpl(String.format("channel-%d", i), data, host, i, data.remaining(), false);
+        System.out.println(p);
+        ls.add(enc.encodePacket(p));
+        //ls.add(p);
+      }
+      ls.stream()
+          //.map(p->new StringBuilder(p.toString()).append(" --> ").append(StandardCharsets.UTF_8.decode(p.data()).toString()))
+          .forEach(System.out::println);
+      //ls.stream()
+          //.peek(p->p.data().flip())
+          //.forEach(System.out::println);
+          //.forEach(p->p.data().flip());
+      System.out.println("---------------------------------");
+      PacketCollection col = new PacketCollection(ls);
+      ByteBuffer bcol = col.toByteBuffer();
+      System.out.println("bcol=" + bcol);
+      col = PacketCollection.of(bcol);
+      col.stream()
+          .peek(System.out::println)
+          .map(dec::decodePacket)
+          .map(p->new StringBuilder(p.toString()).append(" --> ").append(StandardCharsets.UTF_8.decode(p.data()).toString()))
+          .forEach(System.out::println);
+      System.out.println("---------------------------------");
+    }
+    catch(Exception e) {
+      e.printStackTrace();
+      throw Unchecked.unchecked(e);
+    }
+  }
+  
 }

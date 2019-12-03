@@ -10,14 +10,14 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import net.jun0rr.doxy.DoxyConfig;
 import net.jun0rr.doxy.DoxyConfigBuilder;
-import net.jun0rr.doxy.server.HttpHandler;
-import net.jun0rr.doxy.server.HttpRoute;
-import net.jun0rr.doxy.server.HttpServer;
-import net.jun0rr.doxy.server.impl.DecodeHandler;
-import net.jun0rr.doxy.server.impl.EncodeHandler;
+import net.jun0rr.doxy.server.ex.DecodeHandler;
+import net.jun0rr.doxy.server.ex.EncodeHandler;
+import net.jun0rr.doxy.server.http.HttpHandler;
+import net.jun0rr.doxy.server.http.HttpRequestFilter;
+import net.jun0rr.doxy.server.http.HttpResponseFilter;
+import net.jun0rr.doxy.server.http.HttpRoute;
+import net.jun0rr.doxy.server.http.HttpServer;
 import org.junit.jupiter.api.Test;
-import net.jun0rr.doxy.server.HttpRequestFilter;
-import net.jun0rr.doxy.server.HttpResponseFilter;
 
 
 /**

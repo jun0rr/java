@@ -47,7 +47,7 @@ public class PacketDecoder {
   }
   
   public Packet decode(ByteBuffer buf) {
-    return decryptPacket(decompressPacket(Packet.of(buf)));
+    return decryptPacket(Packet.of(buf));
   }
   
   public ByteBuffer decompress(ByteBuffer buf) {

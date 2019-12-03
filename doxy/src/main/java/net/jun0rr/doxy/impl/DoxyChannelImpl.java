@@ -30,16 +30,17 @@ public class DoxyChannelImpl implements DoxyChannel {
   
   private final Channel channel;
   
-  private final ByteBuffer rbuf;
+  private final PacketDecoder decoder;
   
   public DoxyChannelImpl(DoxyEnvironment env, String uid, Channel sc) {
-    this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment (env)");
+    this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
     this.uid = Objects.requireNonNull(uid, "Bad null uid String");
-    this.channel = Objects.requireNonNull(sc, "Bad null SocketChannel (sc)");
+    this.channel = Objects.requireNonNull(sc, "Bad null Channel");
     this.order = new AtomicLong(0L);
-    this.rbuf = env.configuration().isDirectBuffer()
-        ? ByteBuffer.allocateDirect(env.configuration().getBufferSize())
-        : ByteBuffer.allocate(env.configuration().getBufferSize());
+    this.decoder = new PacketDecoder(
+        env.configuration().getSecurityConfig().getCryptAlgorithm(), 
+        env.getPrivateKey()
+    );
   }
   
   @Override
@@ -69,8 +70,8 @@ public class DoxyChannelImpl implements DoxyChannel {
   }
   
   @Override
-  public void writePacket(Packet p) throws IOException {
-    channel.write(p.data());
+  public void writePacket(Packet p) {
+    channel.write(decoder.decodePacket(p).data());
   }
   
   @Override
