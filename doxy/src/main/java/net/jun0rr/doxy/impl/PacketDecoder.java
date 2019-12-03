@@ -28,11 +28,26 @@ public class PacketDecoder {
     Unchecked.call(()->cipher.init(Cipher.DECRYPT_MODE, key));
   }
   
-  public Packet decode(ByteBuffer buf) {
+  private ByteBuffer decrypt(ByteBuffer buf) {
     ByteBuffer decbuf = alloc(cipher.getOutputSize(buf.remaining()), buf.isDirect());
     Unchecked.call(()->cipher.doFinal(buf, decbuf));
     decbuf.flip();
-    return Packet.decode(decbuf);
+    return decbuf;
+  }
+  
+  public Packet decryptPacket(Packet p) {
+    return p.isEncoded()
+        ? new PacketImpl(p.channelID(), decrypt(p.data()), p.remote(), p.order(), p.originalLength(), false) 
+        : p;
+  }
+  
+  public Packet decodePacket(Packet p) {
+    //return decryptPacket(decompressPacket(p));
+    return decryptPacket(p);
+  }
+  
+  public Packet decode(ByteBuffer buf) {
+    return decryptPacket(decompressPacket(Packet.of(buf)));
   }
   
   public ByteBuffer decompress(ByteBuffer buf) {
@@ -51,8 +66,10 @@ public class PacketDecoder {
     }
   }
   
-  public Packet decodeDecompress(ByteBuffer buf) {
-    return decode(decompress(buf));
+  public Packet decompressPacket(Packet p) {
+    return p.isEncoded()
+        ? new PacketImpl(p.channelID(), decompress(p.data()), p.remote(), p.order(), p.originalLength(), p.isEncoded())
+        : p;
   }
   
   private ByteBuffer alloc(int size, boolean direct) {

@@ -28,12 +28,26 @@ public class PacketEncoder {
     Unchecked.call(()->cipher.init(Cipher.ENCRYPT_MODE, key));
   }
   
-  public ByteBuffer encode(Packet p) {
-    ByteBuffer buf = p.encode();
+  public ByteBuffer encrypt(ByteBuffer buf) {
     ByteBuffer encbuf = alloc(cipher.getOutputSize(buf.remaining()), buf.isDirect());
     Unchecked.call(()->cipher.doFinal(buf, encbuf));
     encbuf.flip();
     return encbuf;
+  }
+  
+  public Packet encryptPacket(Packet p) {
+    int orilen = p.data().remaining();
+    return p.isEncoded() ? p 
+        : new PacketImpl(p.channelID(), encrypt(p.data()), p.remote(), p.order(), orilen, true);
+  }
+  
+  public Packet encodePacket(Packet p) {
+    //return compressPacket(encryptPacket(p));
+    return encryptPacket(p);
+  }
+  
+  public ByteBuffer encode(Packet p) {
+    return encodePacket(p).toByteBuffer();
   }
   
   public ByteBuffer compress(ByteBuffer buf) {
@@ -51,8 +65,9 @@ public class PacketEncoder {
     }
   }
   
-  public ByteBuffer encodeCompress(Packet p) {
-    return compress(encode(p));
+  public Packet compressPacket(Packet p) {
+    return p.isEncoded() ? p 
+        : new PacketImpl(p.channelID(), compress(p.data()), p.remote(), p.order(), p.originalLength(), true);
   }
   
   private ByteBuffer alloc(int size, boolean direct) {

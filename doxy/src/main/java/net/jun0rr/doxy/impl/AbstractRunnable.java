@@ -24,6 +24,10 @@ public abstract class AbstractRunnable implements Runnable {
     this.running = false;
   }
   
+  public DoxyEnvironment environment() {
+    return env;
+  }
+  
   public void start() {
     this.running = true;
     env.executor().submit(this);

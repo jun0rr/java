@@ -33,6 +33,8 @@ public class DoxyConfigImpl implements DoxyConfig {
   
   private final int bufferSize;
   
+  private final long timeout;
+  
   private final boolean directBuffer;
   
   private final String serverName;
@@ -40,7 +42,7 @@ public class DoxyConfigImpl implements DoxyConfig {
   private final String userAgent;
   
   
-  public DoxyConfigImpl(HostConfig host, HostConfig server, HostConfig remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
+  public DoxyConfigImpl(HostConfig host, HostConfig server, HostConfig remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
     this.host = host;
     this.server = server;
     this.remote = remote;
@@ -51,6 +53,7 @@ public class DoxyConfigImpl implements DoxyConfig {
     this.directBuffer = directBuffer;
     this.serverName = serverName;
     this.userAgent = userAgent;
+    this.timeout = timeout;
   }
   
   @Override
@@ -104,6 +107,11 @@ public class DoxyConfigImpl implements DoxyConfig {
   }
   
   @Override
+  public long getServerTimeout() {
+    return timeout;
+  }
+  
+  @Override
   public String toString() {
     return "DoxyConfig{" 
         + "  - port=" + host + "\n"
@@ -116,6 +124,7 @@ public class DoxyConfigImpl implements DoxyConfig {
         + "  - threadPoolSize=" + threadPoolSize + "\n"
         + "  - bufferSize=" + bufferSize + "\n"
         + "  - directBuffer=" + directBuffer + "\n"
+        + "  - timeout=" + timeout + "\n"
         + '}';
   }
   

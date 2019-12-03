@@ -26,6 +26,7 @@ import javax.net.ssl.X509TrustManager;
 import net.jun0rr.doxy.DoxyEnvironment;
 import net.jun0rr.doxy.Packet;
 import net.jun0rr.doxy.impl.BufferBodyPublisher;
+import net.jun0rr.doxy.impl.PacketCollection;
 import net.jun0rr.doxy.impl.PacketDecoder;
 import net.jun0rr.doxy.impl.PacketEncoder;
 import us.pserver.tools.Unchecked;
@@ -75,7 +76,7 @@ public class HttpPacketRequest {
   public HttpPacketRequest(DoxyEnvironment env) {
     this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
     this.client = HttpClient.newBuilder()
-        .version(HttpClient.Version.HTTP_2)
+        .version(HttpClient.Version.HTTP_1_1)
         .proxy(ProxySelector.of(env.configuration().getProxyConfig().getProxyHost().toSocketAddr()))
         .sslContext(SSL)
         .followRedirects(HttpClient.Redirect.ALWAYS)
@@ -83,11 +84,11 @@ public class HttpPacketRequest {
         .build();
     this.sendUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
         .append(env.configuration().getServerHost())
-        .append(URI_ENCODE)
+        .append(URI_OUTBOX)
         .toString()));
     this.receiveUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
         .append(env.configuration().getServerHost())
-        .append(URI_DECODE)
+        .append(URI_INBOX)
         .toString()));
     this.encoder = new PacketEncoder(env.configuration().getSecurityConfig().getCryptAlgorithm(), env.getPublicKey());
     this.decoder = new PacketDecoder(env.configuration().getSecurityConfig().getCryptAlgorithm(), env.getPrivateKey());
@@ -103,27 +104,26 @@ public class HttpPacketRequest {
   
   public void send(Packet p) {
     HttpRequest req = HttpRequest.newBuilder(sendUri)
-        .POST(new BufferBodyPublisher(encoder.encodeCompress(p)))
-        .version(HttpClient.Version.HTTP_2)
+        .POST(new BufferBodyPublisher(encoder.encode(p)))
+        .version(HttpClient.Version.HTTP_1_1)
         .header(HEADER_USER_AGENT, VALUE_USER_AGENT)
         .header(HEADER_PROXY_AUTH, getProxyAuthorization())
-        .header(HEADER_X_PID, p.getID())
-        .header(HEADER_X_ORDER, String.valueOf(p.getOrder()))
         .build();
-    client.sendAsync(req, BodyHandlers.discarding());
+    Unchecked.call(()->client.send(req, BodyHandlers.discarding()));
   }
   
-  public Optional<Packet> receive(String id) {
+  public Optional<PacketCollection> receive() {
     HttpRequest req = HttpRequest.newBuilder(receiveUri).GET()
-        .version(HttpClient.Version.HTTP_2)
+        .version(HttpClient.Version.HTTP_1_1)
         .header(HEADER_USER_AGENT, VALUE_USER_AGENT)
         .header(HEADER_PROXY_AUTH, getProxyAuthorization())
-        .header(HEADER_X_PID, id)
         .build();
     HttpResponse<byte[]> resp = Unchecked.call(()->client.send(req, BodyHandlers.ofByteArray()));
-    return resp.statusCode() == HTTP_200_OK
-        ? Optional.of(decoder.decodeDecompress(ByteBuffer.wrap(resp.body())))
-        : Optional.empty();
+    if(HTTP_200_OK == resp.statusCode()) {
+      ByteBuffer cont = ByteBuffer.wrap(resp.body());
+      return Optional.of(PacketCollection.of(cont));
+    }
+    return Optional.empty();
   }
   
   
@@ -146,9 +146,11 @@ public class HttpPacketRequest {
   
   public static final String HOST_PORT = "%s:%d";
   
-  public static final String URI_ENCODE = "/encode";
+  public static final String URI_OUTBOX = "/outbox";
   
-  public static final String URI_DECODE = "/decode";
+  public static final String URI_INBOX = "/inbox";
+  
+  public static final String URI_CLOSE = "/close";
   
   public static final String PROP_DISABLE_SCHEMES = "jdk.http.auth.tunneling.disabledSchemes";
   

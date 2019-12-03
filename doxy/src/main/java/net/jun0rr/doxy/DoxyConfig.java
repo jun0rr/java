@@ -34,4 +34,6 @@ public interface DoxyConfig {
   
   public boolean isDirectBuffer();
   
+  public long getServerTimeout();
+  
 }

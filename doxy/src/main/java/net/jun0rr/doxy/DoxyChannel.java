@@ -6,9 +6,6 @@
 package net.jun0rr.doxy;
 
 import io.netty.channel.Channel;
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.Optional;
 
 
 /**
@@ -21,16 +18,12 @@ public interface DoxyChannel extends AutoCloseable {
   
   public String uid();
   
-  public String authToken();
-  
   public long nextOrder();
   
   public Channel channel();
   
   @Override public void close();
   
-  public Optional<Packet> readPacket() throws EOFException, IOException;
-  
-  public void writePacket(Packet p) throws IOException;
+  public void writePacket(Packet p);
   
 }

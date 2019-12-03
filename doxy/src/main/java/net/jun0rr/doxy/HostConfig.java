@@ -35,6 +35,16 @@ public interface HostConfig {
     return new HostConfigImpl(host, port);
   }
   
+  public static HostConfig of(String hostport) {
+    try {
+      String[] ss = hostport.split(":");
+      return of(ss[0], Integer.parseInt(ss[1]));
+    }
+    catch(Exception e) {
+      throw new IllegalArgumentException(String.format("Bad <host:port> String: '%s'", hostport));
+    }
+  }
+  
   
   
   

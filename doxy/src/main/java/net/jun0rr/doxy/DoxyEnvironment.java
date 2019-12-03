@@ -10,6 +10,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import net.jun0rr.doxy.client.HttpPacketRequest;
 
@@ -24,7 +25,9 @@ public interface DoxyEnvironment {
   
   public ExecutorService executor();
   
-  public List<Packet> inbox();
+  public BlockingDeque<Packet> inbox();
+  
+  public BlockingDeque<Packet> outbox();
   
   public List<DoxyChannel> channels();
   
@@ -33,6 +36,8 @@ public interface DoxyEnvironment {
   public HttpPacketRequest http();
   
   public ByteBuffer alloc();
+  
+  public ByteBuffer alloc(int size);
   
   public PublicKey getPublicKey();
   

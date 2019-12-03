@@ -6,12 +6,9 @@
 package net.jun0rr.doxy.impl;
 
 import io.netty.channel.Channel;
-import io.netty.channel.socket.SocketChannel;
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import net.jun0rr.doxy.DoxyChannel;
 import net.jun0rr.doxy.DoxyEnvironment;
@@ -29,18 +26,15 @@ public class DoxyChannelImpl implements DoxyChannel {
   
   private final String uid;
   
-  private final String authToken;
-  
   private final AtomicLong order;
   
   private final Channel channel;
   
   private final ByteBuffer rbuf;
   
-  public DoxyChannelImpl(DoxyEnvironment env, String uid, String authToken, Channel sc) {
+  public DoxyChannelImpl(DoxyEnvironment env, String uid, Channel sc) {
     this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment (env)");
     this.uid = Objects.requireNonNull(uid, "Bad null uid String");
-    this.authToken = Objects.requireNonNull(authToken, "Bad null authentication token String");
     this.channel = Objects.requireNonNull(sc, "Bad null SocketChannel (sc)");
     this.order = new AtomicLong(0L);
     this.rbuf = env.configuration().isDirectBuffer()
@@ -56,11 +50,6 @@ public class DoxyChannelImpl implements DoxyChannel {
   @Override
   public String uid() {
     return uid;
-  }
-  
-  @Override
-  public String authToken() {
-    return authToken;
   }
   
   @Override
@@ -80,13 +69,8 @@ public class DoxyChannelImpl implements DoxyChannel {
   }
   
   @Override
-  public Optional<Packet> readPacket() throws EOFException, IOException {
-    return Optional.empty();
-  }
-  
-  @Override
   public void writePacket(Packet p) throws IOException {
-    channel.write(p.getRawData());
+    channel.write(p.data());
   }
   
   @Override
