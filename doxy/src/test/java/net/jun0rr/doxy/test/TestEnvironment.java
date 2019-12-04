@@ -18,6 +18,11 @@ import org.junit.jupiter.api.Test;
 public class TestEnvironment {
   
   @Test
+  public void getSystemEnv() {
+    System.out.println(System.getenv("DOXY_HOST"));
+  }
+  
+  //@Test
   public void method() throws ClassNotFoundException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
     try {
       Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
