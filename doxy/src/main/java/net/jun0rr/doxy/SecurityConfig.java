@@ -122,7 +122,7 @@ public interface SecurityConfig {
     
     @Override
     public String toString() {
-      return "SecurityConfig{" + "private=" + pkpath + ", public=" + pubpath + ", keystore=" + kspath + ", password=" + StringPad.of("").lpad("*", kspass.length) + ", cryptAlg=" + cryptAlg + '}';
+      return "SecurityConfig{" + "private=" + pkpath + ", public=" + pubpath + ", keystore=" + kspath + ", pass=" + StringPad.of("").lpad("*", kspass.length) + ", cryptAlg=" + cryptAlg + '}';
     }
     
   }
