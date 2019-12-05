@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.impl;
+package net.jun0rr.doxy.common;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.IntFunction;
-import net.jun0rr.doxy.Packet;
 
 
 /**

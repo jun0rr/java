@@ -12,17 +12,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import net.jun0rr.doxy.DoxyChannel;
-import net.jun0rr.doxy.DoxyEnvironment;
-import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.impl.AbstractRunnable;
-import net.jun0rr.doxy.impl.DoxyChannelImpl;
+import net.jun0rr.doxy.common.AbstractRunnable;
+import net.jun0rr.doxy.common.DoxyChannel;
+import net.jun0rr.doxy.common.DoxyChannel.DoxyChannelImpl;
+import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.common.Packet;
 import us.pserver.tools.Unchecked;
 
 

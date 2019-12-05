@@ -7,11 +7,11 @@ package net.jun0rr.doxy.client;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import net.jun0rr.doxy.DoxyEnvironment;
-import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.impl.AbstractRunnable;
-import net.jun0rr.doxy.impl.PacketCollection;
-import net.jun0rr.doxy.impl.PacketDecoder;
+import net.jun0rr.doxy.common.AbstractRunnable;
+import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.common.Packet;
+import net.jun0rr.doxy.common.PacketCollection;
+import net.jun0rr.doxy.common.PacketDecoder;
 import us.pserver.tools.Unchecked;
 
 

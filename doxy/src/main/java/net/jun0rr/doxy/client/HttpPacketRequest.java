@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.client;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -25,12 +24,9 @@ import java.util.Optional;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import net.jun0rr.doxy.DoxyEnvironment;
-import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.impl.BufferBodyPublisher;
-import net.jun0rr.doxy.impl.PacketCollection;
-import net.jun0rr.doxy.impl.PacketDecoder;
-import net.jun0rr.doxy.impl.PacketEncoder;
+import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.common.Packet;
+import net.jun0rr.doxy.common.PacketCollection;
 import us.pserver.tools.Unchecked;
 
 

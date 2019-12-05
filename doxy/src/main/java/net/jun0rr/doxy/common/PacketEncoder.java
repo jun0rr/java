@@ -3,14 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.impl;
+package net.jun0rr.doxy.common;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.Key;
 import java.util.zip.GZIPOutputStream;
 import javax.crypto.Cipher;
-import net.jun0rr.doxy.Packet;
 import us.pserver.tools.Unchecked;
 import us.pserver.tools.io.BitBuffer;
 

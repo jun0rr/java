@@ -18,7 +18,7 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import net.jun0rr.doxy.DoxyEnvironment;
+import net.jun0rr.doxy.common.DoxyEnvironment;
 import us.pserver.tools.LazyFinal;
 import us.pserver.tools.Unchecked;
 
@@ -74,8 +74,8 @@ public class InputServer {
   }
   
   public void start() {
-    channel.init(bootstrap().bind(env.configuration().getHost().toSocketAddr()));
-    log.info("InputServer started: {}", env.configuration().getHost());
+    channel.init(bootstrap().bind(env.configuration().getClientHost().toSocketAddr()));
+    log.info("InputServer started: {}", env.configuration().getClientHost());
     channel.get().syncUninterruptibly().awaitUninterruptibly();
     Unchecked.call(()->accept.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS));
   }

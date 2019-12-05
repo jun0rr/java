@@ -15,7 +15,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
-import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.cfg.DoxyConfig;
 import net.jun0rr.doxy.server.http.HttpResponse;
 import net.jun0rr.doxy.server.http.HttpResponseFilter;
 

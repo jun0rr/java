@@ -12,7 +12,8 @@ module doxy {
   requires io.netty.all;
   requires org.jose4j;
   exports net.jun0rr.doxy;
-  exports net.jun0rr.doxy.impl;
+  exports net.jun0rr.doxy.cfg;
+  exports net.jun0rr.doxy.common;
   exports net.jun0rr.doxy.client;
   exports net.jun0rr.doxy.server.ex;
   exports net.jun0rr.doxy.server.http;

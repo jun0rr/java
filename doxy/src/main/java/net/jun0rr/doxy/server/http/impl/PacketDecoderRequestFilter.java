@@ -11,9 +11,9 @@ import io.netty.handler.codec.http.HttpMethod;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Optional;
-import net.jun0rr.doxy.DoxyEnvironment;
-import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.impl.PacketDecoder;
+import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.common.Packet;
+import net.jun0rr.doxy.common.PacketDecoder;
 import net.jun0rr.doxy.server.http.HttpRequest;
 import net.jun0rr.doxy.server.http.HttpRequestFilter;
 

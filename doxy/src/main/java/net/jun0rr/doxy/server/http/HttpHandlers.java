@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.cfg.DoxyConfig;
 import net.jun0rr.doxy.server.http.impl.BadRequestHandler;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpFilter;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpHandler;

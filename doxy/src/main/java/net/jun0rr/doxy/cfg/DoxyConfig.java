@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy;
+package net.jun0rr.doxy.cfg;
 
 import java.util.Properties;
 
@@ -14,7 +14,7 @@ import java.util.Properties;
  */
 public interface DoxyConfig {
   
-  public HostConfig getHost();
+  public HostConfig getClientHost();
   
   public HostConfig getServerHost();
   
@@ -40,10 +40,6 @@ public interface DoxyConfig {
   
   public static DoxyConfigBuilder builder() {
     return DoxyConfigBuilder.newBuilder();
-  }
-  
-  public static DoxyConfig of(Properties prop) {
-    return builder().loadProperties(prop).build();
   }
   
   public static DoxyConfig of(HostConfig host, HostConfig server, HostConfig remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
@@ -94,7 +90,7 @@ public interface DoxyConfig {
     }
 
     @Override
-    public HostConfig getHost() {
+    public HostConfig getClientHost() {
       return host;
     }
 

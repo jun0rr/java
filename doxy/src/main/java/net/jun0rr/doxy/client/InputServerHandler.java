@@ -12,12 +12,12 @@ import io.netty.channel.ChannelInboundHandler;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.nio.ByteBuffer;
-import net.jun0rr.doxy.DoxyChannel;
-import net.jun0rr.doxy.DoxyEnvironment;
-import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.impl.DoxyChannelImpl;
-import net.jun0rr.doxy.impl.PacketEncoder;
-import net.jun0rr.doxy.impl.PacketImpl;
+import net.jun0rr.doxy.common.DoxyChannel;
+import net.jun0rr.doxy.common.DoxyChannel.DoxyChannelImpl;
+import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.common.Packet;
+import net.jun0rr.doxy.common.Packet.PacketImpl;
+import net.jun0rr.doxy.common.PacketEncoder;
 import us.pserver.tools.Hash;
 
 

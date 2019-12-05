@@ -11,11 +11,11 @@ import io.netty.channel.ChannelInboundHandler;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
-import net.jun0rr.doxy.DoxyEnvironment;
-import net.jun0rr.doxy.HostConfig;
-import net.jun0rr.doxy.Packet;
-import net.jun0rr.doxy.impl.PacketEncoder;
-import net.jun0rr.doxy.impl.PacketImpl;
+import net.jun0rr.doxy.cfg.HostConfig;
+import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.common.Packet;
+import net.jun0rr.doxy.common.Packet.PacketImpl;
+import net.jun0rr.doxy.common.PacketEncoder;
 
 
 /**

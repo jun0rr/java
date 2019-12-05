@@ -21,7 +21,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
-import net.jun0rr.doxy.DoxyConfig;
+import net.jun0rr.doxy.cfg.DoxyConfig;
 import us.pserver.tools.LazyFinal;
 import us.pserver.tools.Unchecked;
 
@@ -72,8 +72,8 @@ public class HttpServer {
   }
   
   public void start() {
-    channel.init(bootstrap().bind(config.getHost().toSocketAddr()));
-    System.out.println("* HttpServer started: " + config.getHost());
+    channel.init(bootstrap().bind(config.getClientHost().toSocketAddr()));
+    System.out.println("* HttpServer started: " + config.getClientHost());
     channel.get().syncUninterruptibly().awaitUninterruptibly();
     Unchecked.call(()->accept.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS));
   }

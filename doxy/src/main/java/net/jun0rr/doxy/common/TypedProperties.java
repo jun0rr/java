@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.impl;
+package net.jun0rr.doxy.common;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-import net.jun0rr.doxy.HostConfig;
+import net.jun0rr.doxy.cfg.HostConfig;
 
 
 /**

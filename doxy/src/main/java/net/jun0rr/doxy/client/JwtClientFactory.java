@@ -7,7 +7,7 @@ package net.jun0rr.doxy.client;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import net.jun0rr.doxy.DoxyEnvironment;
+import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.impl.DoxyClaims;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.JsonWebEncryption;

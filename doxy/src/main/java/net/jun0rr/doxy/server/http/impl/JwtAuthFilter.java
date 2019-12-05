@@ -10,7 +10,7 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.Objects;
 import java.util.Optional;
-import net.jun0rr.doxy.DoxyEnvironment;
+import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpResponse;
