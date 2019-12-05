@@ -22,7 +22,7 @@ public class TestEnvironment {
     System.out.println(System.getenv("DOXY_HOST"));
   }
   
-  //@Test
+  @Test
   public void method() throws ClassNotFoundException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
     try {
       Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");

@@ -61,7 +61,7 @@
                 <version>2.22.1</version>
                 <configuration>
                     <argLine>
-                        --illegal-access=permit
+                        --add-opens java.base/java.lang=doxy --add-opens java.base/java.lang=doxy.test --illegal-access=permit 
                     </argLine>
                     <useSystemClassLoader>false</useSystemClassLoader>
                     <includes>
