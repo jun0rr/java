@@ -125,7 +125,6 @@ public class DoxyConfigBuilder {
   }
   
   public DoxyConfigBuilder threadPoolSize(int threadPoolSize) {
-    System.out.println("DoxyConfigBuilder.threadPoolSize=" + threadPoolSize);
     return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
   }
   
