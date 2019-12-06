@@ -5,14 +5,13 @@
  */
 package net.jun0rr.doxy.test;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import net.jun0rr.doxy.cfg.DefaultConfigSource;
+import net.jun0rr.doxy.cfg.DoxyConfig;
 import net.jun0rr.doxy.cfg.DoxyConfigBuilder;
+import net.jun0rr.doxy.cfg.SysEnvConfigSource;
 import org.junit.jupiter.api.Test;
 
 
@@ -23,12 +22,11 @@ import org.junit.jupiter.api.Test;
 public class TestDoxyConfigBuilder {
   
   @Test
-  public void testLoadProperties() throws IOException {
-    System.out.println("------ testLoadProperties ------");
-    Properties props = new Properties();
+  public void testLoadResourceProperties() throws Exception {
+    System.out.println("------ testLoadResourceProperties ------");
     try (InputStream is = getClass().getClassLoader().getResourceAsStream("doxy.properties")) {
-      props.load(is);
-      System.out.println(DoxyConfigBuilder.newBuilder().loadProperties(props).build());
+      DoxyConfig cfg = DoxyConfigBuilder.newBuilder().configSources().fromResourceProps().load().build();
+      System.out.println(cfg);
     }
     catch(Exception e) {
       e.printStackTrace();
@@ -37,46 +35,28 @@ public class TestDoxyConfigBuilder {
   }
   
   @Test
-  public void testLoadEnvironment() throws Exception {
+  public void testSysEnvComposedWithResourceProps() throws Exception {
     try {
-      System.out.println("------ testLoadEnvironment ------");
+      System.out.println("------ testSysEnvComposedWithResourceProps ------");
       Map<String,String> env = new HashMap<>();
-      env.put(DoxyConfigBuilder.ENV_REMOTE_HOST, "google.com:443");
-      env.put(DoxyConfigBuilder.ENV_BUFFER_SIZE, "1024");
-      env.put(DoxyConfigBuilder.ENV_THREADPOOL_SIZE, "2");
-      setEnvironment(env);
-      System.out.println(DoxyConfigBuilder.newBuilder().loadEnvironment().build());
+      env.put(SysEnvConfigSource.ENV_CLIENT_HOST, "localhost:7777");
+      env.put(SysEnvConfigSource.ENV_SERVER_HOST, "google.com:443");
+      env.put(SysEnvConfigSource.ENV_REMOTE_HOST, "localhost:3620");
+      env.put(SysEnvConfigSource.ENV_BUFFER_SIZE, "2048");
+      env.put(SysEnvConfigSource.ENV_CRYPT_ALGORITHM, DefaultConfigSource.DEFAULT_CRYPT_ALGORITHM);
+      env.put(SysEnvConfigSource.ENV_SERVER_TIMEOUT, "5000");
+      env.put(SysEnvConfigSource.ENV_THREAD_POOL_SIZE, "2");
+      DoxyConfig cfg = DoxyConfigBuilder.newBuilder()
+          .configSources()
+          .composeWithSystemEnv(env)
+          .composeWithResourceProps()
+          .fromComposedSource()
+          .load().build();
+      System.out.println(cfg);
     }
     catch(Exception e) {
       e.printStackTrace();
       throw e;
-    }
-  }
-  
-  private void setEnvironment(Map<String,String> newenv) throws Exception {
-    try {
-      Class<?> processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment");
-      Field theEnvironmentField = processEnvironmentClass.getDeclaredField("theEnvironment");
-      theEnvironmentField.setAccessible(true);
-      Map<String, String> env = (Map<String, String>) theEnvironmentField.get(null);
-      env.putAll(newenv);
-      Field theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment");
-      theCaseInsensitiveEnvironmentField.setAccessible(true);
-      Map<String, String> cienv = (Map<String, String>)     theCaseInsensitiveEnvironmentField.get(null);
-      cienv.putAll(newenv);
-    } catch (NoSuchFieldException e) {
-      Class[] classes = Collections.class.getDeclaredClasses();
-      Map<String, String> env = System.getenv();
-      for(Class cl : classes) {
-        if("java.util.Collections$UnmodifiableMap".equals(cl.getName())) {
-          Field field = cl.getDeclaredField("m");
-          field.setAccessible(true);
-          Object obj = field.get(env);
-          Map<String, String> map = (Map<String, String>) obj;
-          map.clear();
-          map.putAll(newenv);
-        }
-      }
     }
   }
   

@@ -38,6 +38,11 @@ public interface Packet {
   
   
   
+  public static Packet of(String channelID, ByteBuffer data, HostConfig remote, long ord, int originalLength, boolean encoded) {
+    return new PacketImpl(channelID, data, remote, ord, originalLength, encoded);
+  }
+  
+  
   public static Packet of(ByteBuffer buf) {
     int bufpos = buf.position();
     int buflim = buf.limit();

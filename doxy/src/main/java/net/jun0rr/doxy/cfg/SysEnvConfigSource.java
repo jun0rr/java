@@ -44,7 +44,7 @@ public class SysEnvConfigSource implements ConfigSource {
         .serverHost(prop.getAsHost(ENV_SERVER_HOST))
         .serverName(prop.getProperty(ENV_SERVER_NAME))
         .serverTimeout(prop.getAsLong(ENV_SERVER_TIMEOUT))
-        .threadPoolSize(prop.getAsInt(ENV_THREADPOOL_SIZE))
+        .threadPoolSize(prop.getAsInt(ENV_THREAD_POOL_SIZE))
         .userAgent(prop.getProperty(ENV_USERAGENT));
   }
   
@@ -65,6 +65,6 @@ public class SysEnvConfigSource implements ConfigSource {
   public static final String ENV_CRYPT_ALGORITHM = "DOXY_CRYPT_ALGORITHM";
   public static final String ENV_BUFFER_SIZE = "DOXY_BUFFER_SIZE";
   public static final String ENV_BUFFER_DIRECT = "DOXY_BUFFER_DIRECT";
-  public static final String ENV_THREADPOOL_SIZE = "DOXY_THREAD_POOL_SIZE";
+  public static final String ENV_THREAD_POOL_SIZE = "DOXY_THREAD_POOL_SIZE";
   
 }

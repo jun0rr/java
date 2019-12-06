@@ -65,6 +65,7 @@ public class ComposedConfigSource implements ConfigSource {
       if(bld.getServerName() == null && b.getServerName() != null) {
         bld = bld.serverName(b.getServerName());
       }
+      System.out.println("ComposedConfigSource.load(" + src.getClass().getSimpleName() + "): bld.getThreadPoolSize()="+ bld.getThreadPoolSize() + ", b.getThreadPoolSize()=" + b.getThreadPoolSize());
       if(bld.getThreadPoolSize() <= 0 && b.getThreadPoolSize() > 0) {
         bld = bld.threadPoolSize(b.getThreadPoolSize());
       }

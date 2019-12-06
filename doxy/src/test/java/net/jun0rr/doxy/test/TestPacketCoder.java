@@ -14,7 +14,7 @@ import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
 import javax.crypto.Cipher;
-import net.jun0rr.doxy.cfg.DoxyConfigBuilder;
+import net.jun0rr.doxy.cfg.DefaultConfigSource;
 import net.jun0rr.doxy.cfg.HostConfig;
 import net.jun0rr.doxy.common.DerKeyFactory;
 import net.jun0rr.doxy.common.Packet;
@@ -36,8 +36,8 @@ public class TestPacketCoder {
   //private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("d:/java/doxy-pub.der")));
   private static final PrivateKey pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(Paths.get("/home/juno/java/doxy-pk.der")));
   private static final PublicKey pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(Paths.get("/home/juno/java/doxy-pub.der")));
-  private static final PacketEncoder enc = new PacketEncoder(DoxyConfigBuilder.DEFAULT_CRYPT_ALGORITHM, pub);
-  private static final PacketDecoder dec = new PacketDecoder(DoxyConfigBuilder.DEFAULT_CRYPT_ALGORITHM, pk);
+  private static final PacketEncoder enc = new PacketEncoder(DefaultConfigSource.DEFAULT_CRYPT_ALGORITHM, pub);
+  private static final PacketDecoder dec = new PacketDecoder(DefaultConfigSource.DEFAULT_CRYPT_ALGORITHM, pk);
   
   @Test
   public void cryptDecrypt() {

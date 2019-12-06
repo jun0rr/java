@@ -18,16 +18,18 @@ import java.util.Properties;
  *
  * @author juno
  */
-public class ResourcesPropertiesConfigSource implements ConfigSource {
+public class FilePropsConfigSource implements ConfigSource {
+  
+  private final Path path;
   
   private final Charset charset;
   
-  public ResourcesPropertiesConfigSource(Path path, Charset cs) {
+  public FilePropsConfigSource(Path path, Charset cs) {
     this.path = Objects.requireNonNull(path, "Bad null Path");
     this.charset = Objects.requireNonNull(cs, "Bad null Charset");
   }
   
-  public ResourcesPropertiesConfigSource(Path path) {
+  public FilePropsConfigSource(Path path) {
     this(path, StandardCharsets.UTF_8);
   }
   

@@ -36,7 +36,7 @@ public class PacketDecoder {
   
   public Packet decryptPacket(Packet p) {
     return p.isEncoded()
-        ? new PacketImpl(p.channelID(), decrypt(p.data()), p.remote(), p.order(), p.originalLength(), false) 
+        ? Packet.of(p.channelID(), decrypt(p.data()), p.remote(), p.order(), p.originalLength(), false) 
         : p;
   }
   
@@ -67,7 +67,7 @@ public class PacketDecoder {
   
   public Packet decompressPacket(Packet p) {
     return p.isEncoded()
-        ? new PacketImpl(p.channelID(), decompress(p.data()), p.remote(), p.order(), p.originalLength(), p.isEncoded())
+        ? Packet.of(p.channelID(), decompress(p.data()), p.remote(), p.order(), p.originalLength(), p.isEncoded())
         : p;
   }
   

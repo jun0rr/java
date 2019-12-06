@@ -5,14 +5,8 @@
  */
 package net.jun0rr.doxy.cfg;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
 
 
 /**
@@ -82,7 +76,7 @@ public class DoxyConfigBuilder {
     this.server = server;
     this.remote = remote;
     this.proxy = proxy;
-    this.threadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
+    this.threadPoolSize = threadPoolSize;
     this.proxyUser = proxyUser;
     this.proxyPass = proxyPass;
     this.serverName = serverName;
@@ -131,6 +125,7 @@ public class DoxyConfigBuilder {
   }
   
   public DoxyConfigBuilder threadPoolSize(int threadPoolSize) {
+    System.out.println("DoxyConfigBuilder.threadPoolSize=" + threadPoolSize);
     return new DoxyConfigBuilder(host, server, remote, proxy, proxyUser, proxyPass, pkpath, pubpath, kspath, kspass, serverName, userAgent, cryptAlg, threadPoolSize, bufferSize, directBuffer, timeout);
   }
   
@@ -248,6 +243,10 @@ public class DoxyConfigBuilder {
   
   public String getCryptAlgorithm() {
     return userAgent;
+  }
+  
+  public ConfigSourceBuilder configSources() {
+    return new ConfigSourceBuilder();
   }
   
   public DoxyConfig build() {

@@ -37,7 +37,7 @@ public class PacketEncoder {
   public Packet encryptPacket(Packet p) {
     int orilen = p.data().remaining();
     return p.isEncoded() ? p 
-        : new PacketImpl(p.channelID(), encrypt(p.data()), p.remote(), p.order(), orilen, true);
+        : Packet.of(p.channelID(), encrypt(p.data()), p.remote(), p.order(), orilen, true);
   }
   
   public Packet encodePacket(Packet p) {
@@ -66,7 +66,7 @@ public class PacketEncoder {
   
   public Packet compressPacket(Packet p) {
     return p.isEncoded() ? p 
-        : new PacketImpl(p.channelID(), compress(p.data()), p.remote(), p.order(), p.originalLength(), true);
+        : Packet.of(p.channelID(), compress(p.data()), p.remote(), p.order(), p.originalLength(), true);
   }
   
   private ByteBuffer alloc(int size, boolean direct) {
