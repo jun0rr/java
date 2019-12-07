@@ -3,61 +3,43 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server;
+package net.jun0rr.doxy.common;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
-import net.jun0rr.doxy.common.DoxyEnvironment;
-import net.jun0rr.doxy.common.Packet;
-import net.jun0rr.doxy.common.Packet.PacketImpl;
-import net.jun0rr.doxy.common.PacketEncoder;
-import net.jun0rr.doxy.cfg.Host;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import java.util.function.BiConsumer;
 
 
 /**
  *
  * @author Juno
  */
-public class RemoteInputHandler implements ChannelInboundHandler {
+public class TcpUcaughtExceptionHandler implements ChannelInboundHandler {
   
-  private final DoxyEnvironment env;
+  private final BiConsumer<ChannelHandlerContext,Throwable> uncaughtHandler;
   
-  private final String cid;
+  private final InternalLogger log;
   
-  private final AtomicLong order;
+  public TcpUcaughtExceptionHandler(BiConsumer<ChannelHandlerContext,Throwable> uncaughtHandler) {
+    this.log = InternalLoggerFactory.getInstance(getClass());
+    this.uncaughtHandler = uncaughtHandler != null ? uncaughtHandler 
+        : (c,t)->log.error("Uncaught Exception", t);
+  }
   
-  private final PacketEncoder encoder;
-  
-  public RemoteInputHandler(DoxyEnvironment env, String channelID) {
-    this.env = env;
-    this.cid = channelID;
-    this.order = new AtomicLong(0L);
-    this.encoder = new PacketEncoder(
-        env.configuration().getSecurityConfig().getCryptAlgorithm(), 
-        env.getPrivateKey()
-    );
+  public TcpUcaughtExceptionHandler() {
+    this(null);
   }
   
   @Override 
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    ByteBuf buf = (ByteBuf) msg;
-    ByteBuffer cont = env.alloc(buf.readableBytes());
-    buf.readBytes(cont);
-    cont.flip();
-    buf.release();
-    InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-    Host rem = Host.of(addr.getAddress().getHostAddress(), addr.getPort());
-    Packet p = new PacketImpl(cid, cont, rem, order.getAndIncrement(), cont.remaining(), false);
-    env.inbox().offerLast(encoder.encodePacket(p));
+    ctx.writeAndFlush(msg);
   }
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    ctx.fireExceptionCaught(e);
+    uncaughtHandler.accept(ctx, e);
   }
   
   @Override

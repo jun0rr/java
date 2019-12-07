@@ -8,7 +8,7 @@ package net.jun0rr.doxy.common;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
-import net.jun0rr.doxy.cfg.HostConfig;
+import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -51,13 +51,13 @@ public class TypedProperties extends Properties {
     }
   }
   
-  public HostConfig getAsHost(String prop) {
+  public Host getAsHost(String prop) {
     return getAsHost(prop, null);
   }
   
-  public HostConfig getAsHost(String prop, HostConfig host) {
+  public Host getAsHost(String prop, Host host) {
     String shost = this.getProperty(prop);
-    return shost == null || !shost.contains(":") ? host : HostConfig.of(shost);
+    return shost == null || !shost.contains(":") ? host : Host.of(shost);
   }
   
   public char[] getAsChars(String prop) {

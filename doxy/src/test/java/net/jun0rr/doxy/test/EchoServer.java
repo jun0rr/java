@@ -16,9 +16,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.util.concurrent.CountDownLatch;
-import net.jun0rr.doxy.cfg.HostConfig;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 import us.pserver.tools.Unchecked;
+import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -33,11 +33,11 @@ public class EchoServer {
   private final NioEventLoopGroup handle;
   private ChannelFuture channel;
   private final CountDownLatch countdown;
-  private final HostConfig bind;
+  private final Host bind;
   private final InternalLogger log;
   
   
-  public EchoServer(HostConfig bind, int inputCount) {
+  public EchoServer(Host bind, int inputCount) {
     this.accept = new NioEventLoopGroup(1);
     this.handle = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2);
     this.countdown = new CountDownLatch(inputCount);
@@ -46,11 +46,11 @@ public class EchoServer {
   }
   
   public EchoServer(int inputCount) {
-    this(HostConfig.of(DEFAULT_BIND_HOST), inputCount);
+    this(Host.of(DEFAULT_BIND_HOST), inputCount);
   }
   
   public EchoServer() {
-    this(HostConfig.of(DEFAULT_BIND_HOST), 1);
+    this(Host.of(DEFAULT_BIND_HOST), 1);
   }
   
   private ServerBootstrap bootstrap() {

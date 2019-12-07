@@ -15,7 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.crypto.Cipher;
 import net.jun0rr.doxy.cfg.DefaultConfigSource;
-import net.jun0rr.doxy.cfg.HostConfig;
 import net.jun0rr.doxy.common.DerKeyFactory;
 import net.jun0rr.doxy.common.Packet;
 import net.jun0rr.doxy.common.Packet.PacketImpl;
@@ -24,6 +23,7 @@ import net.jun0rr.doxy.common.PacketDecoder;
 import net.jun0rr.doxy.common.PacketEncoder;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Unchecked;
+import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -83,7 +83,7 @@ public class TestPacketCoder {
     System.out.println("------ packetEncodeDecode ------");
     try {
       ByteBuffer data = StandardCharsets.UTF_8.encode("Hello World");
-      Packet p = new PacketImpl("channel-1", data, HostConfig.of("localhost", 6060), 0L, data.remaining(), false);
+      Packet p = new PacketImpl("channel-1", data, Host.of("localhost", 6060), 0L, data.remaining(), false);
       System.out.println(p);
       System.out.println(StandardCharsets.UTF_8.decode(p.data()));
       p.data().flip();
@@ -108,7 +108,7 @@ public class TestPacketCoder {
     System.out.println("------ testPacketToFromBuffer ------");
     try {
       ByteBuffer data = StandardCharsets.UTF_8.encode("Hello World");
-      Packet p = new PacketImpl("channel-1", data, HostConfig.of("172.29.14.10", 6060), 0L, data.remaining(), false);
+      Packet p = new PacketImpl("channel-1", data, Host.of("172.29.14.10", 6060), 0L, data.remaining(), false);
       System.out.println(p + " --> " + StandardCharsets.UTF_8.decode(p.data()));
       p.data().flip();
       //ByteBuffer eb = enc.encode(p);
@@ -132,7 +132,7 @@ public class TestPacketCoder {
       List<Packet> ls = new LinkedList<>();
       for(int i = 0; i < 10; i++) {
         ByteBuffer data = StandardCharsets.UTF_8.encode(String.format("Hello World [%d]", i));
-        HostConfig host = HostConfig.of(String.format("172.29.14.%d", (i+1)), (6060 + i));
+        Host host = Host.of(String.format("172.29.14.%d", (i+1)), (6060 + i));
         Packet p = new PacketImpl(String.format("channel-%d", i), data, host, i, data.remaining(), false);
         System.out.println(p);
         ls.add(enc.encodePacket(p));

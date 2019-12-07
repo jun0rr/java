@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.common;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import java.util.Objects;
@@ -15,22 +14,27 @@ import java.util.Objects;
  *
  * @author Juno
  */
-public class InboundConsumerHandler implements ChannelInboundHandler {
+public class TcpChannelHandler implements ChannelInboundHandler {
   
-  private final InboundConsumer consumer;
+  private final TcpHandler handler;
   
-  public InboundConsumerHandler(InboundConsumer consumer) {
-    this.consumer = Objects.requireNonNull(consumer, "Bad null BiConsumer");
+  private final TcpServer server;
+  
+  public TcpChannelHandler(TcpServer server, TcpHandler handler) {
+    this.server = Objects.requireNonNull(server, "Bad null TcpServer");
+    this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
   }
   
   @Override 
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    InboundResult res = consumer.accept(ctx, msg);
-    if(res == null) {
-      throw new IllegalStateException("InboundConsumerHandler.channelRead(): Bad null InboundResult");
+    TcpExchange ex;
+    if(msg instanceof TcpExchange) {
+      ex = (TcpExchange)msg;
     }
-    res.ifResultContinue(ctx::fireChannelRead);
-    res.ifFinalOperation(o->ctx.writeAndFlush(o.orElse(Unpooled.EMPTY_BUFFER)));
+    else {
+      ex = TcpExchange.of(server, ctx, msg);
+    }
+    handler.handle(ex).ifPresent(ctx::fireChannelRead);
   }
   
   @Override 

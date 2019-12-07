@@ -16,7 +16,7 @@ import us.pserver.tools.StringPad;
  */
 public interface ProxyConfig {
   
-  public HostConfig getProxyHost();
+  public Host getProxyHost();
   
   public String getProxyUser();
   
@@ -25,14 +25,14 @@ public interface ProxyConfig {
   
   
   public static ProxyConfig of(String host, int port, String user, char[] pass) {
-    return new ProxyConfigImpl(HostConfig.of(host, port), user, pass);
+    return new ProxyConfigImpl(Host.of(host, port), user, pass);
   }
   
-  public static ProxyConfig of(HostConfig host, String user, char[] pass) {
+  public static ProxyConfig of(Host host, String user, char[] pass) {
     return new ProxyConfigImpl(host, user, pass);
   }
   
-  public static ProxyConfig of(HostConfig host) {
+  public static ProxyConfig of(Host host) {
     return new ProxyConfigImpl(host, null, null);
   }
   
@@ -42,20 +42,20 @@ public interface ProxyConfig {
   
   public static class ProxyConfigImpl implements ProxyConfig {
     
-    private final HostConfig host;
+    private final Host host;
     
     private final String user;
     
     private char[] pass;
     
-    public ProxyConfigImpl(HostConfig host, String user, char[] pass) {
+    public ProxyConfigImpl(Host host, String user, char[] pass) {
       this.host = Objects.requireNonNull(host, "Bad null proxy host");
       this.user = user;
       this.pass = pass;
     }
     
     @Override
-    public HostConfig getProxyHost() {
+    public Host getProxyHost() {
       return host;
     }
     

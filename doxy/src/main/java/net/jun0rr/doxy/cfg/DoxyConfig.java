@@ -14,11 +14,11 @@ import java.util.Properties;
  */
 public interface DoxyConfig {
   
-  public HostConfig getClientHost();
+  public Host getClientHost();
   
-  public HostConfig getServerHost();
+  public Host getServerHost();
   
-  public HostConfig getRemoteHost();
+  public Host getRemoteHost();
   
   public ProxyConfig getProxyConfig();
   
@@ -42,7 +42,7 @@ public interface DoxyConfig {
     return DoxyConfigBuilder.newBuilder();
   }
   
-  public static DoxyConfig of(HostConfig host, HostConfig server, HostConfig remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
+  public static DoxyConfig of(Host host, Host server, Host remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
     return new DoxyConfigImpl(host, server, remote, proxy, security, serverName, userAgent, threadPoolSize, bufferSize, directBuffer, timeout);
   }
   
@@ -52,11 +52,11 @@ public interface DoxyConfig {
   
   public static class DoxyConfigImpl implements DoxyConfig {
 
-    private final HostConfig host;
+    private final Host host;
 
-    private final HostConfig server;
+    private final Host server;
 
-    private final HostConfig remote;
+    private final Host remote;
 
     private final ProxyConfig proxy;
 
@@ -75,7 +75,7 @@ public interface DoxyConfig {
     private final String userAgent;
 
 
-    public DoxyConfigImpl(HostConfig host, HostConfig server, HostConfig remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
+    public DoxyConfigImpl(Host host, Host server, Host remote, ProxyConfig proxy, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer, long timeout) {
       this.host = host;
       this.server = server;
       this.remote = remote;
@@ -90,17 +90,17 @@ public interface DoxyConfig {
     }
 
     @Override
-    public HostConfig getClientHost() {
+    public Host getClientHost() {
       return host;
     }
 
     @Override
-    public HostConfig getServerHost() {
+    public Host getServerHost() {
       return server;
     }
 
     @Override
-    public HostConfig getRemoteHost() {
+    public Host getRemoteHost() {
       return remote;
     }
 

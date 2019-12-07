@@ -5,15 +5,16 @@
  */
 package net.jun0rr.doxy.common;
 
-import io.netty.channel.ChannelHandlerContext;
+import java.util.Optional;
 
 
 /**
  *
  * @author juno
  */
-public interface InboundConsumer {
+@FunctionalInterface
+public interface TcpHandler {
   
-  public InboundResult accept(ChannelHandlerContext ctx, Object msg) throws Exception;
+  public Optional<TcpExchange> handle(TcpExchange ex) throws Exception;
   
 }

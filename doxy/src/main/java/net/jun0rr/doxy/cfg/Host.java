@@ -15,7 +15,7 @@ import us.pserver.tools.Unchecked;
  *
  * @author Juno
  */
-public interface HostConfig {
+public interface Host {
   
   public String getHostname();
   
@@ -31,11 +31,11 @@ public interface HostConfig {
   
   
   
-  public static HostConfig of(String host, int port) {
-    return new HostConfigImpl(host, port);
+  public static Host of(String host, int port) {
+    return new HostImpl(host, port);
   }
   
-  public static HostConfig of(String hostport) {
+  public static Host of(String hostport) {
     try {
       String[] ss = hostport.split(":");
       return of(ss[0], Integer.parseInt(ss[1]));
@@ -49,13 +49,13 @@ public interface HostConfig {
   
   
   
-  public class HostConfigImpl implements HostConfig {
+  public class HostImpl implements Host {
   
     private final String hostname;
 
     private final int port;
 
-    public HostConfigImpl(String host, int port) {
+    public HostImpl(String host, int port) {
       this.hostname = Objects.requireNonNull(host, "Bad null hostname");
       this.port = port;
       if(port < 1 || port > 65535) {
@@ -92,7 +92,7 @@ public interface HostConfig {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final HostConfigImpl other = (HostConfigImpl) obj;
+      final HostImpl other = (HostImpl) obj;
       if (this.port != other.port) {
         return false;
       }

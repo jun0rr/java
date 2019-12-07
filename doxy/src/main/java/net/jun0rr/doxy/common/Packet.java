@@ -10,8 +10,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
-import net.jun0rr.doxy.cfg.HostConfig;
 import us.pserver.tools.Unchecked;
+import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -30,7 +30,7 @@ public interface Packet {
   
   public int encodeLength();
   
-  public HostConfig remote();
+  public Host remote();
   
   public ByteBuffer data();
   
@@ -38,7 +38,7 @@ public interface Packet {
   
   
   
-  public static Packet of(String channelID, ByteBuffer data, HostConfig remote, long ord, int originalLength, boolean encoded) {
+  public static Packet of(String channelID, ByteBuffer data, Host remote, long ord, int originalLength, boolean encoded) {
     return new PacketImpl(channelID, data, remote, ord, originalLength, encoded);
   }
   
@@ -55,7 +55,7 @@ public interface Packet {
     buf.get(addr);
     int port = buf.getInt();
     InetAddress iadr = Unchecked.call(()->InetAddress.getByAddress(addr));
-    HostConfig rem = HostConfig.of(iadr.getHostAddress(), port);
+    Host rem = Host.of(iadr.getHostAddress(), port);
     boolean enc = buf.get() == 1;
     int idlen = buf.getInt();
     String sid = getUTF(buf, idlen);
@@ -88,9 +88,9 @@ public interface Packet {
 
     private final boolean encoded;
 
-    private final HostConfig remote;
+    private final Host remote;
 
-    public PacketImpl(String channelID, ByteBuffer data, HostConfig remote, long ord, int originalLength, boolean encoded) {
+    public PacketImpl(String channelID, ByteBuffer data, Host remote, long ord, int originalLength, boolean encoded) {
       this.cid = Objects.requireNonNull(channelID, "Bad null Source ID");
       this.remote = Objects.requireNonNull(remote, "Bad null remote HostConfig");
       this.order = ord;
@@ -105,7 +105,7 @@ public interface Packet {
     }
 
     @Override
-    public HostConfig remote() {
+    public Host remote() {
       return remote;
     }
 
