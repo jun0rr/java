@@ -20,6 +20,7 @@ import net.jun0rr.doxy.common.DoxyChannel;
 import net.jun0rr.doxy.common.DoxyChannel.DoxyChannelImpl;
 import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.common.Packet;
+import net.jun0rr.doxy.tcp.TcpClient;
 import us.pserver.tools.Unchecked;
 
 
@@ -54,6 +55,7 @@ public class RemoteTransport extends AbstractRunnable {
   private Runnable writing(Packet p) {
     return () -> {
       try {
+        System.out.println("* RemoteTransport.writing: " + p);
         env.getChannelById(p.channelID())
             .orElse(createChannel(p))
             .writePacket(p);
@@ -65,23 +67,19 @@ public class RemoteTransport extends AbstractRunnable {
   }
   
   private DoxyChannel createChannel(Packet p) throws IOException {
-    Channel ch = new Bootstrap()
-        .channel(NioSocketChannel.class)
-        .group(group)
-        .option(ChannelOption.SO_SNDBUF, env.configuration().getBufferSize())
-        .option(ChannelOption.SO_RCVBUF, env.configuration().getBufferSize())
-        .option(ChannelOption.TCP_NODELAY, true)
-        .option(ChannelOption.AUTO_READ, true)
-        .remoteAddress(p.remote().toSocketAddr())
-        .handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel c) throws Exception {
-              c.pipeline().addLast(new RemoteInputHandler(env, p.channelID()));
-            }
-        })
-        .connect().syncUninterruptibly()
-        .channel();
-    DoxyChannel dc = new DoxyChannelImpl(env, p.channelID(), ch);
+    System.out.println("* RemoteTransport.createChannel1: creating...");
+    Channel ch = TcpClient.create(group)
+        .addHandler(new RemoteInputHandler(env, p.channelID()))
+        .connect(p.remote())
+        .sync();
+    System.out.println("* RemoteTransport.createChannel2: " + ch);
+    DoxyChannel dc = new DoxyChannelImpl(
+        env, p.channelID(), ch
+        //TcpClient.create(group)
+            //.addHandler(new RemoteInputHandler(env, p.channelID()))
+            //.connect(p.remote())
+            //.sync()
+    );
     env.channels().add(dc);
     return dc;
   }

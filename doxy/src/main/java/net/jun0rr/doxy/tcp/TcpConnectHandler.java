@@ -15,27 +15,20 @@ import java.util.Objects;
  *
  * @author Juno
  */
-public class TcpChannelHandler implements ChannelInboundHandler {
+public class TcpConnectHandler implements ChannelInboundHandler {
   
   private final TcpHandler handler;
   
   private final Closeable closeable;
   
-  public TcpChannelHandler(Closeable cls, TcpHandler handler) {
+  public TcpConnectHandler(Closeable cls, TcpHandler handler) {
     this.closeable = cls;
     this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
   }
   
   @Override 
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    TcpExchange ex;
-    if(msg instanceof TcpExchange) {
-      ex = (TcpExchange)msg;
-    }
-    else {
-      ex = TcpExchange.of(closeable, ctx, msg);
-    }
-    handler.handle(ex).ifPresent(ctx::fireChannelRead);
+    ctx.fireChannelRead(msg);
   }
   
   @Override 
@@ -60,7 +53,7 @@ public class TcpChannelHandler implements ChannelInboundHandler {
   
   @Override 
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelActive();
+    handler.handle(TcpExchange.of(closeable, ctx));
   }
   
   @Override 

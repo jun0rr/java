@@ -86,9 +86,9 @@ public interface DoxyEnvironment {
       this.inbox = new LinkedBlockingDeque<>();
       this.outbox = new LinkedBlockingDeque<>();
       this.channels = new CopyOnWriteArrayList<>();
-      this.http = new HttpPacketRequest(this);
       this.pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(config.getSecurityConfig().getPublicKeyPath()));
       this.pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(config.getSecurityConfig().getPrivateKeyPath()));
+      this.http = new HttpPacketRequest(this);
       this.alloc = config.isDirectBuffer() ? ByteBuffer::allocateDirect : ByteBuffer::allocate;
     }
 

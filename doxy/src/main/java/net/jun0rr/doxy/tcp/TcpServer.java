@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import us.pserver.tools.Unchecked;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
@@ -35,7 +36,8 @@ public class TcpServer implements Closeable {
   private final Host bind;
   private final InternalLogger log;
   private final ServerBootstrap boot;
-  private final List<TcpHandler> handlers;
+  private final List<TcpHandler> acceptHandlers;
+  private final List<TcpHandler> connectHandlers;
   
   public TcpServer(ServerBootstrap bootstrap, Host bind) {
     this.boot = bootstrap != null ? bootstrap : bootstrap();
@@ -43,27 +45,40 @@ public class TcpServer implements Closeable {
     this.handle = boot.config().childGroup();
     this.bind = bind;
     this.log = InternalLoggerFactory.getInstance(getClass());
-    this.handlers = new LinkedList<>();
+    this.acceptHandlers = new LinkedList<>();
+    this.connectHandlers = new LinkedList<>();
   }
   
   public TcpServer(Host bind) {
     this(null, bind);
   }
   
-  public List<TcpHandler> handlers() {
-    return handlers;
+  public List<TcpHandler> acceptHandlers() {
+    return acceptHandlers;
   }
   
-  public TcpServer addHandler(TcpHandler handler) {
-    if(handler != null) handlers.add(handler);
+  public List<TcpHandler> connectHandlers() {
+    return acceptHandlers;
+  }
+  
+  public TcpServer addAcceptHandler(TcpHandler handler) {
+    if(handler != null) acceptHandlers.add(handler);
+    return this;
+  }
+  
+  public TcpServer addConnectHandler(TcpHandler handler) {
+    if(handler != null) connectHandlers.add(handler);
     return this;
   }
   
   private ServerBootstrap initHandlers(ServerBootstrap sbt) {
     List<ChannelHandler> ls = new LinkedList<>();
     ls.add(new TcpOutboundHandler());
-    handlers.stream()
-        .map(h->new TcpChannelHandler(this, h))
+    connectHandlers.stream()
+        .map(h->new TcpConnectHandler(this, h))
+        .forEach(ls::add);
+    acceptHandlers.stream()
+        .map(h->new TcpAcceptHandler(this, h))
         .forEach(ls::add);
     ls.add(new TcpUcaughtExceptionHandler());
     return sbt.childHandler(new AddingLastChannelInitializer(ls));

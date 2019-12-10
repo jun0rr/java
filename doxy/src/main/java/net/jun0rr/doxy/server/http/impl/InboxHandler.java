@@ -7,6 +7,8 @@ package net.jun0rr.doxy.server.http.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +41,9 @@ public class InboxHandler implements HttpHandler {
   
   private Runnable longPollHandler(HttpExchange he) {
     return () -> {
-      Optional<Packet> opt = Optional.ofNullable(Unchecked.call(()->env.inbox().pollFirst(env.configuration().getServerTimeout(), TimeUnit.MILLISECONDS)));
+      Optional<Packet> opt = Optional.ofNullable(Unchecked.call(()->
+          env.inbox().pollFirst(env.configuration().getServerTimeout(), TimeUnit.MILLISECONDS)
+      ));
       HttpResponse res;
       if(opt.isEmpty()) {
         res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.NO_CONTENT, he.response().headers());
@@ -52,6 +56,7 @@ public class InboxHandler implements HttpHandler {
         ByteBuf buf = Unpooled.copiedBuffer(col.toByteBuffer());
         res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.OK, he.response().headers(), buf);
       }
+      res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
       he.send(res);
     };
   }

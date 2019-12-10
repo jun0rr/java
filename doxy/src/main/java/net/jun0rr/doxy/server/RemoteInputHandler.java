@@ -10,19 +10,22 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.common.Packet;
 import net.jun0rr.doxy.common.Packet.PacketImpl;
 import net.jun0rr.doxy.common.PacketEncoder;
 import net.jun0rr.doxy.cfg.Host;
+import net.jun0rr.doxy.tcp.TcpExchange;
+import net.jun0rr.doxy.tcp.TcpHandler;
 
 
 /**
  *
  * @author Juno
  */
-public class RemoteInputHandler implements ChannelInboundHandler {
+public class RemoteInputHandler implements TcpHandler {
   
   private final DoxyEnvironment env;
   
@@ -42,61 +45,18 @@ public class RemoteInputHandler implements ChannelInboundHandler {
     );
   }
   
-  @Override 
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    ByteBuf buf = (ByteBuf) msg;
-    ByteBuffer cont = env.alloc(buf.readableBytes());
-    buf.readBytes(cont);
-    cont.flip();
-    buf.release();
-    InetSocketAddress addr = (InetSocketAddress) ctx.channel().remoteAddress();
-    Host rem = Host.of(addr.getAddress().getHostAddress(), addr.getPort());
-    Packet p = new PacketImpl(cid, cont, rem, order.getAndIncrement(), cont.remaining(), false);
-    env.inbox().offerLast(encoder.encodePacket(p));
-  }
-  
-  @Override 
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    ctx.fireExceptionCaught(e);
-  }
-  
   @Override
-  public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelReadComplete();
+  public Optional<TcpExchange> handle(TcpExchange ex) throws Exception {
+    if(ex.message().isPresent()) {
+      ByteBuf buf = (ByteBuf) ex.message().get();
+      ByteBuffer cont = env.alloc(buf.readableBytes());
+      buf.readBytes(cont);
+      cont.flip();
+      buf.release();
+      Packet p = new PacketImpl(cid, cont, env.configuration().getRemoteHost(), order.getAndIncrement(), cont.remaining(), false);
+      env.inbox().offerLast(encoder.encodePacket(p));
+    }
+    return ex.empty();
   }
-  
-  @Override 
-  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelRegistered();
-  }
-  
-  @Override 
-  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelUnregistered();
-  }
-  
-  @Override 
-  public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelActive();
-  }
-  
-  @Override 
-  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelInactive();
-  }
-  
-  @Override 
-  public void userEventTriggered(ChannelHandlerContext ctx, Object o) throws Exception {
-    ctx.fireUserEventTriggered(o);
-  }
-  
-  @Override 
-  public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelWritabilityChanged();
-  }
-  
-  @Override public void handlerAdded(ChannelHandlerContext ctx) throws Exception {}
-  
-  @Override public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {}
   
 }

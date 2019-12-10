@@ -24,7 +24,7 @@ public class TestDoxyConfigBuilder {
   @Test
   public void testLoadResourceProperties() throws Exception {
     System.out.println("------ testLoadResourceProperties ------");
-    try (InputStream is = getClass().getClassLoader().getResourceAsStream("doxy.properties")) {
+    try {
       DoxyConfig cfg = DoxyConfigBuilder.newBuilder().configSources().fromResourceProps().load().build();
       System.out.println(cfg);
     }

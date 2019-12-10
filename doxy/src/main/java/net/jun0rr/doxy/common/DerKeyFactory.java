@@ -40,8 +40,8 @@ public class DerKeyFactory {
     try {
       KeyFactory kf = KeyFactory.getInstance("RSA");
       X509EncodedKeySpec spec = new X509EncodedKeySpec(bob);
-      PublicKey pk = kf.generatePublic(spec);
-      return pk;
+      PublicKey pub = kf.generatePublic(spec);
+      return pub;
     }
     catch(NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new IOException(e.toString(), e);

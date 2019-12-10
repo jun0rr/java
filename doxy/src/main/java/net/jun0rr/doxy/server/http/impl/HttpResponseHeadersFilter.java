@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -52,7 +53,12 @@ public class HttpResponseHeadersFilter implements HttpResponseFilter {
     headers.add(HttpHeaderNames.DATE, datefmt.format(Instant.now()))
         .add(HttpHeaderNames.SERVER, config.getServerName());
     res.headers().setAll(headers());
-    return send(ctx, res);
+    return isClosing(res.headers()) ? sendAndClose(ctx, res) : send(ctx, res);
+  }
+  
+  private boolean isClosing(HttpHeaders hds) {
+    String hconn = hds.get(HttpHeaderNames.CONNECTION);
+    return hconn != null && hconn.equalsIgnoreCase(HttpHeaderValues.CLOSE.toString());
   }
   
 }

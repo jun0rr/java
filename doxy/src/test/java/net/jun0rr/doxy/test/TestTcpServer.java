@@ -10,6 +10,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient;
@@ -26,6 +27,7 @@ public class TestTcpServer {
   
   @Test
   public void echoServer() {
+    System.out.println("------ echoServer ------");
     final AtomicInteger count = new AtomicInteger(1);
     TcpHandler hnd = x->{
       x.send();
@@ -35,7 +37,7 @@ public class TestTcpServer {
       return x.empty();
     };
     TcpServer server = new TcpServer(Host.of("0.0.0.0", 3344))
-        .addHandler(hnd)
+        .addAcceptHandler(hnd)
         .start();
     hnd = x->{
       if(x.message().isPresent()) {
@@ -44,14 +46,43 @@ public class TestTcpServer {
       }
       return x.empty();
     };
-    Channel ch = new TcpClient()
-        .addHandler(hnd)
-        .connect(Host.of("localhost:3344"))
-        .syncUninterruptibly()
-        .channel();
     ByteBuf msg = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
     System.out.printf("* Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
-    ch.writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
+    TcpClient.create()
+        .addHandler(hnd)
+        .send(msg)
+        .closeOnComplete()
+        .connect(Host.of("localhost:3344"));
+    server.sync();
+  }
+  
+  @Test
+  public void timestampServer() {
+    System.out.println("------ timestampServer ------");
+    final AtomicInteger count = new AtomicInteger(1);
+    TcpHandler hnd = x->{
+      ByteBuf msg = x.context().alloc().buffer(Long.BYTES);
+      msg.writeLong(Instant.now().toEpochMilli());
+      x.sendAndClose(msg);
+      if(count.decrementAndGet() <= 0) {
+        x.shutdown();
+      }
+      return x.empty();
+    };
+    TcpServer server = new TcpServer(Host.of("0.0.0.0", 3344))
+        .addConnectHandler(hnd)
+        .start();
+    hnd = x->{
+      if(x.message().isPresent()) {
+        ByteBuf buf = (ByteBuf) x.message().get();
+        Instant timestamp = Instant.ofEpochMilli(buf.readLong());
+        System.out.printf("* Server Timestamp: %s%n", timestamp);
+      }
+      return x.close();
+    };
+    TcpClient.create()
+        .addHandler(hnd)
+        .connect(Host.of("localhost:3344"));
     server.sync();
   }
   

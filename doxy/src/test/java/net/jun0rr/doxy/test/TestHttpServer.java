@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy.test;
 
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -25,7 +26,8 @@ import org.junit.jupiter.api.Test;
  * @author Juno
  */
 public class TestHttpServer {
-  @Test
+  
+  //@Test
   public void method() {
     DoxyConfig cfg = DoxyConfigBuilder.newBuilder()
         //.keystorePath(Paths.get("/home/juno/java/doxy.jks"))
@@ -65,4 +67,11 @@ public class TestHttpServer {
         .addRouteHandler(HttpRoute.of("\\/decode.*", HttpMethod.GET), DecodeHandler::new);
     server.start();
   }
+  
+  @Test
+  public void testHttpHeaderValueEquals() {
+    System.out.println("HttpHeaderValues.CLOSE.equals(\"close\"): " + HttpHeaderValues.CLOSE.equals("close"));
+    System.out.println("HttpHeaderValues.CLOSE.equals(\"CLOSE\"): " + HttpHeaderValues.CLOSE.equals("CLOSE"));
+  }
+  
 }
