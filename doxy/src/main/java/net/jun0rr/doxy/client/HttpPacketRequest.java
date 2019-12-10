@@ -98,15 +98,22 @@ public class HttpPacketRequest {
     return String.format(AUTH_BASIC, Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8)));
   }
   
-  public void send(Packet p) {
-    HttpRequest req = HttpRequest.newBuilder(sendUri)
+  private HttpRequest createSendRequest(Packet p) {
+    return HttpRequest.newBuilder(sendUri)
         .POST(new BufferBodyPublisher(p.toByteBuffer()))
         .version(HttpClient.Version.HTTP_1_1)
         .header(HEADER_USER_AGENT, VALUE_USER_AGENT)
         .header(HEADER_AUTHORIZATION, String.format(AUTH_BEARER, authorization))
         .header(HEADER_PROXY_AUTH, getProxyAuthorization())
         .build();
-    Unchecked.call(()->client.send(req, BodyHandlers.discarding()));
+  }
+  
+  public void send(Packet p) {
+    Unchecked.call(()->client.send(createSendRequest(p), BodyHandlers.discarding()));
+  }
+  
+  public void sendAsync(Packet p) {
+    Unchecked.call(()->client.sendAsync(createSendRequest(p), BodyHandlers.discarding()));
   }
   
   public Optional<PacketCollection> receive() {
@@ -124,7 +131,7 @@ public class HttpPacketRequest {
     return Optional.empty();
   }
   
-  public void close(String channelID) {
+  public void closeAsync(String channelID) {
     URI closeUri = Unchecked.call(()->new URI(new StringBuilder(HTTPS)
         .append(env.configuration().getServerHost())
         .append(URI_CLOSE)

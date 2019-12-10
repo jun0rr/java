@@ -48,7 +48,7 @@ public class InputServerHandler implements ChannelInboundHandler {
     env.channels().add(dc);
     c.closeFuture().addListener(f->{
       env.channels().remove(dc);
-      env.http().close(cid);
+      env.http().closeAsync(cid);
     });
     return dc;
   }
