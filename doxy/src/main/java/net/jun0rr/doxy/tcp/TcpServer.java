@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import us.pserver.tools.Unchecked;
 import net.jun0rr.doxy.cfg.Host;
@@ -36,8 +37,8 @@ public class TcpServer implements Closeable {
   private final Host bind;
   private final InternalLogger log;
   private final ServerBootstrap boot;
-  private final List<TcpHandler> acceptHandlers;
-  private final List<TcpHandler> connectHandlers;
+  private final List<Supplier<TcpHandler>> acceptHandlers;
+  private final List<Supplier<TcpHandler>> connectHandlers;
   
   public TcpServer(ServerBootstrap bootstrap, Host bind) {
     this.boot = bootstrap != null ? bootstrap : bootstrap();
@@ -53,34 +54,32 @@ public class TcpServer implements Closeable {
     this(null, bind);
   }
   
-  public List<TcpHandler> acceptHandlers() {
+  public List<Supplier<TcpHandler>> acceptHandlers() {
     return acceptHandlers;
   }
   
-  public List<TcpHandler> connectHandlers() {
+  public List<Supplier<TcpHandler>> connectHandlers() {
     return acceptHandlers;
   }
   
-  public TcpServer addAcceptHandler(TcpHandler handler) {
+  public TcpServer addAcceptHandler(Supplier<TcpHandler> handler) {
     if(handler != null) acceptHandlers.add(handler);
     return this;
   }
   
-  public TcpServer addConnectHandler(TcpHandler handler) {
+  public TcpServer addConnectHandler(Supplier<TcpHandler> handler) {
     if(handler != null) connectHandlers.add(handler);
     return this;
   }
   
   private ServerBootstrap initHandlers(ServerBootstrap sbt) {
-    List<ChannelHandler> ls = new LinkedList<>();
-    ls.add(new TcpOutboundHandler());
-    connectHandlers.stream()
-        .map(h->new TcpConnectHandler(this, h))
-        .forEach(ls::add);
-    acceptHandlers.stream()
-        .map(h->new TcpAcceptHandler(this, h))
-        .forEach(ls::add);
-    ls.add(new TcpUcaughtExceptionHandler());
+    List<Supplier<ChannelHandler>> ls = new LinkedList<>();
+    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpConnectHandler(this, s.get());
+    ls.add(TcpOutboundHandler::new);
+    connectHandlers.stream().map(fn).forEach(ls::add);
+    fn = s->()->new TcpAcceptHandler(this, s.get());
+    acceptHandlers.stream().map(fn).forEach(ls::add);
+    ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.childHandler(new AddingLastChannelInitializer(ls));
   }
   

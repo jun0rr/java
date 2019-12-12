@@ -11,6 +11,7 @@ import io.netty.channel.socket.SocketChannel;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 
 /**
@@ -19,13 +20,13 @@ import java.util.Objects;
  */
 public class AddingLastChannelInitializer extends ChannelInitializer<SocketChannel> {
   
-  private final Collection<ChannelHandler> handlers;
+  private final Collection<Supplier<ChannelHandler>> handlers;
   
-  public AddingLastChannelInitializer(ChannelHandler... handlers) {
+  public AddingLastChannelInitializer(Supplier<ChannelHandler>... handlers) {
     this(Arrays.asList(handlers));
   }
   
-  public AddingLastChannelInitializer(Collection<ChannelHandler> handlers) {
+  public AddingLastChannelInitializer(Collection<Supplier<ChannelHandler>> handlers) {
     this.handlers = Objects.requireNonNull(handlers, "Bad null ChannelHandler Collection");
     if(handlers.isEmpty()) {
       throw new IllegalArgumentException("ChannelHandler Collection is Empty!");
@@ -34,7 +35,9 @@ public class AddingLastChannelInitializer extends ChannelInitializer<SocketChann
 
   @Override
   protected void initChannel(SocketChannel c) throws Exception {
-    handlers.forEach(c.pipeline()::addLast);
+    handlers.stream()
+        .map(Supplier::get)
+        .forEach(c.pipeline()::addLast);
   }
   
 }

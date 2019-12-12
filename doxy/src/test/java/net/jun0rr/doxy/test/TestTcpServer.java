@@ -7,11 +7,10 @@ package net.jun0rr.doxy.test;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpHandler;
@@ -29,7 +28,7 @@ public class TestTcpServer {
   public void echoServer() {
     System.out.println("------ echoServer ------");
     final AtomicInteger count = new AtomicInteger(1);
-    TcpHandler hnd = x->{
+    Supplier<TcpHandler> hnd = ()-> x->{
       x.send();
       if(count.decrementAndGet() <= 0) {
         x.shutdown();
@@ -39,7 +38,7 @@ public class TestTcpServer {
     TcpServer server = new TcpServer(Host.of("0.0.0.0", 3344))
         .addAcceptHandler(hnd)
         .start();
-    hnd = x->{
+    hnd = ()-> x->{
       if(x.message().isPresent()) {
         ByteBuf buf = (ByteBuf) x.message().get();
         System.out.printf("* Server: '%s'%n", buf.toString(StandardCharsets.UTF_8));
@@ -48,11 +47,12 @@ public class TestTcpServer {
     };
     ByteBuf msg = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
     System.out.printf("* Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
-    TcpClient.create()
+    TcpClient.open()
         .addHandler(hnd)
         .send(msg)
         .closeOnComplete()
-        .connect(Host.of("localhost:3344"));
+        .connect(Host.of("localhost:3344"))
+        .sync();
     server.sync();
   }
   
@@ -60,7 +60,7 @@ public class TestTcpServer {
   public void timestampServer() {
     System.out.println("------ timestampServer ------");
     final AtomicInteger count = new AtomicInteger(1);
-    TcpHandler hnd = x->{
+    Supplier<TcpHandler> hnd = ()-> x->{
       ByteBuf msg = x.context().alloc().buffer(Long.BYTES);
       msg.writeLong(Instant.now().toEpochMilli());
       x.sendAndClose(msg);
@@ -72,7 +72,7 @@ public class TestTcpServer {
     TcpServer server = new TcpServer(Host.of("0.0.0.0", 3344))
         .addConnectHandler(hnd)
         .start();
-    hnd = x->{
+    hnd = ()-> x->{
       if(x.message().isPresent()) {
         ByteBuf buf = (ByteBuf) x.message().get();
         Instant timestamp = Instant.ofEpochMilli(buf.readLong());
@@ -80,7 +80,7 @@ public class TestTcpServer {
       }
       return x.close();
     };
-    TcpClient.create()
+    TcpClient.open()
         .addHandler(hnd)
         .connect(Host.of("localhost:3344"));
     server.sync();
