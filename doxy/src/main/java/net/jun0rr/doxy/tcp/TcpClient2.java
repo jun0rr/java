@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -37,17 +38,16 @@ import us.pserver.tools.Unchecked;
  *
  * @author juno
  */
-public class TcpClient implements Closeable {
+public class TcpClient2 implements Closeable {
   
   private final EventLoopGroup group;
   private ChannelFuture future;
   private final InternalLogger log;
   private final Bootstrap boot;
   private final List<Supplier<TcpHandler>> handlers;
-  private final BlockingDeque<Pair<Consumer<Channel>,Consumer<Throwable>>> completers;
-  private final AtomicInteger events;
+  private final BlockingDeque<TcpEvent> events;
   
-  public TcpClient(Bootstrap bootstrap) {
+  public TcpClient2(Bootstrap bootstrap) {
     System.out.println("* TcpClient<init>: " + bootstrap);
     this.boot = Objects.requireNonNull(bootstrap, "Bad null Bootstrap");
     System.out.println("* TcpClient<init>: boot OK!");
@@ -57,31 +57,29 @@ public class TcpClient implements Closeable {
     System.out.println("* TcpClient<init>: log OK!");
     this.handlers = new LinkedList<>();
     System.out.println("* TcpClient<init>: handlers OK!");
-    this.completers = new LinkedBlockingDeque<>();
-    System.out.println("* TcpClient<init>: completers OK!");
-    this.events = new AtomicInteger(0);
+    this.events = new LinkedBlockingDeque<>();
     System.out.println("* TcpClient<init>: events OK!");
     System.out.println("* TcpClient<init>: Done!");
   }
   
-  public TcpClient(EventLoopGroup group) {
+  public TcpClient2(EventLoopGroup group) {
     this(bootstrap(group));
   }
   
-  public TcpClient() {
+  public TcpClient2() {
     this(bootstrap());
   }
   
-  public static TcpClient open() {
-    return new TcpClient();
+  public static TcpClient2 open() {
+    return new TcpClient2();
   }
   
-  public static TcpClient create(EventLoopGroup group) {
-    return new TcpClient(group);
+  public static TcpClient2 create(EventLoopGroup group) {
+    return new TcpClient2(group);
   }
   
-  public static TcpClient create(Bootstrap boot) {
-    return new TcpClient(boot);
+  public static TcpClient2 create(Bootstrap boot) {
+    return new TcpClient2(boot);
   }
   
   private static Bootstrap bootstrap() {
@@ -114,7 +112,7 @@ public class TcpClient implements Closeable {
     return handlers;
   }
   
-  public TcpClient addHandler(Supplier<TcpHandler> handler) {
+  public TcpClient2 addHandler(Supplier<TcpHandler> handler) {
     System.out.printf("* TcpClient.addHandler( %s )%n", handler);
     if(handler != null) handlers.add(handler);
     return this;
@@ -139,32 +137,41 @@ public class TcpClient implements Closeable {
     if(future != null) throw new IllegalStateException("Channel already connected");
   }
   
-  public TcpClient connect(Host host) {
-    System.out.printf("TcpClient.connect( %s )%n", host);
-    channelNotConnected();
-    events.incrementAndGet();
-    future = initHandlers(boot).connect(host.toSocketAddr()).addListener(listener());
-    log.info("TcpClient connected at: {}", host);
+  public TcpClient2 connect(Host host) {
+    System.out.printf("TcpClient2.connect( %s )%n", host);
+    TcpEvent.ConnectEvent evt = b -> {
+      System.out.println("--- CONNECT ---");
+      ChannelFuture f = initHandlers(b).connect(host.toSocketAddr());
+      log.info("TcpClient connected at: {}", host);
+      return f;
+    };
+    events.offerLast(evt);
     return this;
   }
   
-  public TcpClient send(Object msg) {
+  public TcpClient2 send(Object msg) {
     if(msg != null) {
-      onComplete(c -> {
-        events.incrementAndGet();
-        future = c.writeAndFlush(msg).addListener(listener());
-      });
+      TcpEvent.FutureEvent evt = f -> {
+        System.out.println("--- SEND ---");
+        return f.channel().write(msg);
+      };
+      events.offerLast(evt);
     }
     return this;
   }
   
-  public TcpClient onComplete(Consumer<Channel> success) {
+  public TcpClient2 onComplete(Consumer<Channel> success) {
     return onComplete(success, t->Unchecked.unchecked(t));
   }
   
-  public TcpClient onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
+  public TcpClient2 onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
     if(success != null && error != null) {
-      completers.offerLast(new Pair<>(success, error));
+      TcpEvent.FutureEvent evt = f -> {
+        if(f.isSuccess()) success.accept(f.channel());
+        else error.accept(f.cause());
+        return f;
+      };
+      events.add(evt);
     }
     return this;
   }
@@ -173,22 +180,27 @@ public class TcpClient implements Closeable {
     return new ChannelFutureListener() { 
       @Override 
       public void operationComplete(ChannelFuture f) throws Exception {
-        while(completers.size() >= events.get()) {
-          Pair<Consumer<Channel>,Consumer<Throwable>> p = completers.pollFirst();
-          if(p != null) {
-            if(f.isSuccess()) p.a.accept(f.channel());
-            else p.b.accept(f.cause());
-          }
+        TcpEvent<ChannelFuture> evt = events.pollFirst();
+        System.out.println("--- LISTENER: " + evt + " ---");
+        if(evt != null) {
+          future = evt.process(f).addListener(listener());
+          System.out.println(future);
         }
-        events.decrementAndGet();
       }
     };
   }
   
-  public Channel sync() {
-    channelConnected();
+  public Channel startSync() {
     CountDownLatch count = new CountDownLatch(1);
-    onComplete(c->count.countDown());
+    TcpEvent.FutureEvent evt = f -> {
+      System.out.println("--- SYNC ---");
+      count.countDown();
+      return f;
+    };
+    events.offerLast(evt);
+    TcpEvent<Bootstrap> con = events.pollFirst();
+    System.out.println("--- process connect ---");
+    future = con.process(boot).addListener(listener());
     Unchecked.call(()->count.await());
     return future.channel();
   }
@@ -198,14 +210,22 @@ public class TcpClient implements Closeable {
     closeOnComplete();
   }
   
-  public TcpClient closeOnComplete() {
-    return onComplete(c->{
-      events.incrementAndGet();
-      future = c.close().addListener(listener());
-    });
+  public TcpClient2 closeOnComplete() {
+    TcpEvent.FutureEvent evt = f->{
+      System.out.println("--- CLOSE ---");
+      return f.channel().close();
+    };
+    events.offerLast(evt);
+    return this;
   }
   
-  public TcpClient shutdownOnComplete() {
+  public TcpClient2 shutdownOnComplete() {
+    TcpEvent.FutureEvent evt = f-> {
+      ChannelFuture cf = f.channel().close();
+      group.shutdownGracefully();
+      return cf;
+    };
+    events.offerLast(evt);
     onComplete(c -> { 
       future = c.close().addListener(listener());
       group.shutdownGracefully();

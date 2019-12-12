@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient;
+import net.jun0rr.doxy.tcp.TcpClient2;
 import net.jun0rr.doxy.tcp.TcpHandler;
 import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
@@ -47,12 +48,13 @@ public class TestTcpServer {
     };
     ByteBuf msg = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
     System.out.printf("* Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
-    TcpClient.open()
+    TcpClient2.open()
         .addHandler(hnd)
+        .connect(Host.of("localhost:3344"))
+        .send(msg)
         .send(msg)
         .closeOnComplete()
-        .connect(Host.of("localhost:3344"))
-        .sync();
+        .startSync();
     server.sync();
   }
   
