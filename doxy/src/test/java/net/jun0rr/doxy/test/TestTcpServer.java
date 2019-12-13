@@ -28,7 +28,7 @@ public class TestTcpServer {
   @Test
   public void echoServer() {
     System.out.println("------ echoServer ------");
-    final AtomicInteger count = new AtomicInteger(1);
+    final AtomicInteger count = new AtomicInteger(2);
     Supplier<TcpHandler> hnd = ()-> x->{
       x.send();
       if(count.decrementAndGet() <= 0) {
@@ -48,14 +48,12 @@ public class TestTcpServer {
     };
     ByteBuf msg = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
     System.out.printf("* Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
-    TcpClient2.open()
+    TcpClient2 cli = TcpClient2.open()
         .addHandler(hnd)
         .connect(Host.of("localhost:3344"))
-        .send(msg)
-        .send(msg)
-        .closeOnComplete()
-        .startSync();
+        .send(msg);
     server.sync();
+    cli.close();
   }
   
   @Test
