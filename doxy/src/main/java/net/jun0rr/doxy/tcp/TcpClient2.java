@@ -193,8 +193,7 @@ public class TcpClient2 implements Closeable {
             System.out.flush();
           }
         });
-        f.channel().writeAndFlush(msg, cp);
-        return f.channel().newSucceededFuture();
+        return f.channel().writeAndFlush(msg, cp);
       };
       events.offerLast(evt);
     }
