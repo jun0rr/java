@@ -77,7 +77,7 @@ public class TcpServer implements Closeable {
     Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpConnectHandler(this, s.get());
     ls.add(TcpOutboundHandler::new);
     connectHandlers.stream().map(fn).forEach(ls::add);
-    fn = s->()->new TcpAcceptHandler(this, s.get());
+    fn = s->()->new TcpInboundHandler(this, s.get());
     acceptHandlers.stream().map(fn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.childHandler(new AddingLastChannelInitializer(ls));

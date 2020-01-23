@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
  */
 public class TestTcpClient2 {
   
-  @Test
+  //@Test
   public void echoServer() {
     System.out.println("------ echoServer ------");
     final AtomicInteger count = new AtomicInteger(1);
@@ -141,17 +141,25 @@ public class TestTcpClient2 {
       }
     });
     
-    ChannelFuture f = boot.connect(Host.of("localhost", 3344).toSocketAddr());
-    f.addListener(new ChannelFutureListener() {
+    ChannelFutureListener close = new ChannelFutureListener() {
       @Override
       public void operationComplete(ChannelFuture f) throws Exception {
-        System.out.println("operationComplete");
-        f.channel().writeAndFlush(Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8))
-            .addListener(ChannelFutureListener.CLOSE);
+        System.out.println("!! closing");
       }
-    });
-    
+    };
+    ChannelFutureListener send = new ChannelFutureListener() {
+      @Override
+      public void operationComplete(ChannelFuture f) throws Exception {
+        System.out.println("!! writing");
+        f.channel().writeAndFlush(Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8))
+            .addListener(close);
+      }
+    };
+    ChannelFuture fut = boot
+        .connect(Host.of("localhost", 3344).toSocketAddr())
+        .addListener(send);
     server.sync();
+    fut.channel().close();
   }
   
   //@Test

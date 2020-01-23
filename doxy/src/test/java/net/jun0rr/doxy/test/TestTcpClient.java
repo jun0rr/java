@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient2;
 import org.junit.jupiter.api.Test;
-import us.pserver.tools.Unchecked;
 
 
 /**

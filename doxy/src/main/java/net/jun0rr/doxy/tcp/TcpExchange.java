@@ -31,23 +31,62 @@ public interface TcpExchange {
   
   public Optional<Object> message();
   
+  /**
+   * Close the channel.
+   * @return Empty Optional
+   */
+  public Optional<TcpExchange> close();
+  
+  /**
+   * Shutdown the EventLoopGroup.
+   * @return Empty Optional
+   */
   public Optional<TcpExchange> shutdown();
   
+  /**
+   * Send the message, aborting the inbound pipeline.
+   * @param msg Message to send.
+   * @return Emtpy Optional.
+   */
   public Optional<TcpExchange> send(Object msg);
   
+  /**
+   * Send the message, aborting the inbound pipeline.
+   * @return Emtpy Optional.
+   */
   public Optional<TcpExchange> send();
   
+  /**
+   * Send the message, closing the channel after. The inbound pipeline is aborted.
+   * @param msg Message to send.
+   * @return Emtpy Optional.
+   */
   public Optional<TcpExchange> sendAndClose(Object msg);
   
+  /**
+   * Send the message, closing the channel after. The inbound pipeline is aborted.
+   * @return Emtpy Optional.
+   */
   public Optional<TcpExchange> sendAndClose();
   
+  /**
+   * Return an empty optional.
+   * @return Emtpy Optional.
+   */
   public Optional<TcpExchange> empty();
   
+  /**
+   * Return a TcpExchange with the new message.
+   * @param msg New message.
+   * @return TcpExchange with new message.
+   */
   public Optional<TcpExchange> withMessage(Object msg);
   
+  /**
+   * Return a TcpExchange without message.
+   * @return TcpExchange without message.
+   */
   public Optional<TcpExchange> noMessage();
-  
-  public Optional<TcpExchange> close();
   
   
   

@@ -106,7 +106,7 @@ public class TcpClient2 implements Closeable {
   private Bootstrap initHandlers(Bootstrap sbt) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
     ls.add(TcpOutboundHandler::new);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpAcceptHandler(this, s.get());
+    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(this, s.get());
     handlers.stream().map(fn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.handler(new AddingLastChannelInitializer(ls));
@@ -180,20 +180,7 @@ public class TcpClient2 implements Closeable {
     if(msg != null) {
       TcpEvent.FutureEvent evt = f -> {
         System.out.println("--- SEND ---");
-        ChannelProgressivePromise cp = f.channel().newProgressivePromise();
-        cp.addListener(new ChannelProgressiveFutureListener() {
-          @Override
-          public void operationProgressed(ChannelProgressiveFuture f, long p, long t) throws Exception {
-            System.out.printf("--- SEND OPERATION PROGRESSED: %6.2f (%d, %d) ---%n", (p / Long.valueOf(t).doubleValue() * 100.0), p, t);
-            System.out.flush();
-          }
-          @Override
-          public void operationComplete(ChannelProgressiveFuture f) throws Exception {
-            System.out.println("--- SEND OPERATION COMPLETED ---");
-            System.out.flush();
-          }
-        });
-        return f.channel().writeAndFlush(msg, cp);
+        return f.channel().writeAndFlush(msg);
       };
       events.offerLast(evt);
     }

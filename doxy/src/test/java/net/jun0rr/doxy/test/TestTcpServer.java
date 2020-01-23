@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient;
-import net.jun0rr.doxy.tcp.TcpClient2;
 import net.jun0rr.doxy.tcp.TcpHandler;
 import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,7 @@ public class TestTcpServer {
   @Test
   public void echoServer() {
     System.out.println("------ echoServer ------");
-    final AtomicInteger count = new AtomicInteger(2);
+    final AtomicInteger count = new AtomicInteger(1);
     Supplier<TcpHandler> hnd = ()-> x->{
       x.send();
       if(count.decrementAndGet() <= 0) {
@@ -42,18 +41,18 @@ public class TestTcpServer {
     hnd = ()-> x->{
       if(x.message().isPresent()) {
         ByteBuf buf = (ByteBuf) x.message().get();
-        System.out.printf("* Server: '%s'%n", buf.toString(StandardCharsets.UTF_8));
+        System.out.printf(">> Server: '%s'%n", buf.toString(StandardCharsets.UTF_8));
       }
       return x.empty();
     };
     ByteBuf msg = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
-    System.out.printf("* Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
-    TcpClient2 cli = TcpClient2.open()
+    System.out.printf("<< Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
+    TcpClient cli = TcpClient.open()
         .addHandler(hnd)
         .connect(Host.of("localhost:3344"))
         .send(msg);
     server.sync();
-    cli.close();
+    cli.closeSync();
   }
   
   //@Test

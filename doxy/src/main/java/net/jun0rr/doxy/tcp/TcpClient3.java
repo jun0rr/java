@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
@@ -35,41 +34,37 @@ import us.pserver.tools.Unchecked;
  *
  * @author juno
  */
-public class TcpClient implements Closeable {
+public class TcpClient3 implements Closeable {
   
   private volatile ChannelFuture future;
   private final EventLoopGroup group;
-  private final InternalLogger log;
   private final Bootstrap boot;
-  private final List<Supplier<TcpHandler>> handlers;
-  private final Deque<Object> sending;
+  private final List<TcpHandler> handlers;
   
-  public TcpClient(Bootstrap bootstrap) {
+  public TcpClient3(Bootstrap bootstrap) {
     this.boot = Objects.requireNonNull(bootstrap, "Bad null Bootstrap");
     this.group = boot.config().group();
-    this.log = InternalLoggerFactory.getInstance(getClass());
     this.handlers = new LinkedList<>();
-    this.sending = new LinkedBlockingDeque<>();
   }
   
-  public TcpClient(EventLoopGroup group) {
+  public TcpClient3(EventLoopGroup group) {
     this(bootstrap(group));
   }
   
-  public TcpClient() {
+  public TcpClient3() {
     this(bootstrap(new NioEventLoopGroup(1)));
   }
   
-  public static TcpClient open() {
-    return new TcpClient();
+  public static TcpClient3 open() {
+    return new TcpClient3();
   }
   
-  public static TcpClient open(EventLoopGroup group) {
-    return new TcpClient(group);
+  public static TcpClient3 open(EventLoopGroup group) {
+    return new TcpClient3(group);
   }
   
-  public static TcpClient open(Bootstrap boot) {
-    return new TcpClient(boot);
+  public static TcpClient3 open(Bootstrap boot) {
+    return new TcpClient3(boot);
   }
   
   private static Bootstrap bootstrap(EventLoopGroup group) {
@@ -81,11 +76,11 @@ public class TcpClient implements Closeable {
         .group(group);
   }
   
-  public List<Supplier<TcpHandler>> handlers() {
+  public List<TcpHandler> handlers() {
     return handlers;
   }
   
-  public TcpClient addHandler(Supplier<TcpHandler> handler) {
+  public TcpClient3 addHandler(TcpHandler handler) {
     if(handler != null) handlers.add(handler);
     return this;
   }
@@ -93,7 +88,7 @@ public class TcpClient implements Closeable {
   private Bootstrap initHandlers(Bootstrap sbt) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
     ls.add(TcpOutboundHandler::new);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(this, s.get());
+    Function<TcpHandler,Supplier<ChannelHandler>> fn = h->()->new TcpInboundHandler(this, h);
     handlers.stream().map(fn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.handler(new AddingLastChannelInitializer(ls));
@@ -109,34 +104,26 @@ public class TcpClient implements Closeable {
     if(future != null) throw new IllegalStateException("Channel already connected");
   }
   
-  public TcpClient connect(Host host) {
+  public TcpFuture connect(Host host) {
     System.out.printf("TcpClient.connect( %s )%n", host);
     channelNotConnected();
-    ChannelFutureListener close = new ChannelFutureListener() {
+    ChannelFutureListener sendl = new ChannelFutureListener() {
       @Override
       public void operationComplete(ChannelFuture f) throws Exception {
-        System.out.println("!! closing");
-        System.out.flush();
-      }
-    };
-    ChannelFutureListener send = new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture f) throws Exception {
-        log.info("TcpClient connected at: {}", host);
         Object msg;
         while((msg = sending.pollFirst()) != null) {
           System.out.println("<< Sending: " + msg);
-          f.channel().writeAndFlush(msg).addListener(close);
+          f.channel().writeAndFlush(msg);
         }
       }
     };
-    future = initHandlers(boot)
-        .connect(host.toSocketAddr())
-        .addListener(send);
+    future = initHandlers(boot).connect(host.toSocketAddr());
+    future.addListener(sendl);
+    log.info("TcpClient connected at: {}", host);
     return this;
   }
   
-  public TcpClient send(Object msg) {
+  public TcpClient3 send(Object msg) {
     if(msg != null) {
       sending.offerLast(msg);
     }

@@ -10,6 +10,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -27,7 +28,9 @@ public class AddingLastChannelInitializer extends ChannelInitializer<SocketChann
   }
   
   public AddingLastChannelInitializer(Collection<Supplier<ChannelHandler>> handlers) {
-    this.handlers = Objects.requireNonNull(handlers, "Bad null ChannelHandler Collection");
+    this.handlers = Collections.unmodifiableCollection(
+        Objects.requireNonNull(handlers, "Bad null ChannelHandler Collection")
+    );
     if(handlers.isEmpty()) {
       throw new IllegalArgumentException("ChannelHandler Collection is Empty!");
     }

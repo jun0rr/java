@@ -15,13 +15,13 @@ import java.util.Objects;
  *
  * @author Juno
  */
-public class TcpAcceptHandler implements ChannelInboundHandler {
+public class TcpInboundHandler implements ChannelInboundHandler {
   
   private final TcpHandler handler;
   
   private final Closeable closeable;
   
-  public TcpAcceptHandler(Closeable cls, TcpHandler handler) {
+  public TcpInboundHandler(Closeable cls, TcpHandler handler) {
     this.closeable = cls;
     this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
   }
