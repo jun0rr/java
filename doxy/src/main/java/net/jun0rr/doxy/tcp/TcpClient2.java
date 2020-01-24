@@ -11,9 +11,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelProgressiveFuture;
-import io.netty.channel.ChannelProgressiveFutureListener;
-import io.netty.channel.ChannelProgressivePromise;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -180,6 +178,7 @@ public class TcpClient2 implements Closeable {
     if(msg != null) {
       TcpEvent.FutureEvent evt = f -> {
         System.out.println("--- SEND ---");
+        ChannelPromise cp = f.channel().newPromise();
         return f.channel().writeAndFlush(msg);
       };
       events.offerLast(evt);

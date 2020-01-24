@@ -42,14 +42,14 @@ public class TcpClient implements Closeable {
   private final InternalLogger log;
   private final Bootstrap boot;
   private final List<Supplier<TcpHandler>> handlers;
-  private final Deque<Object> sending;
+  //private final Deque<Object> sending;
   
   public TcpClient(Bootstrap bootstrap) {
     this.boot = Objects.requireNonNull(bootstrap, "Bad null Bootstrap");
     this.group = boot.config().group();
     this.log = InternalLoggerFactory.getInstance(getClass());
     this.handlers = new LinkedList<>();
-    this.sending = new LinkedBlockingDeque<>();
+    //this.sending = new LinkedBlockingDeque<>();
   }
   
   public TcpClient(EventLoopGroup group) {
@@ -119,35 +119,35 @@ public class TcpClient implements Closeable {
         System.out.flush();
       }
     };
-    ChannelFutureListener send = new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture f) throws Exception {
-        log.info("TcpClient connected at: {}", host);
-        Object msg;
-        while((msg = sending.pollFirst()) != null) {
-          System.out.println("<< Sending: " + msg);
-          f.channel().writeAndFlush(msg).addListener(close);
-        }
-      }
-    };
+    //ChannelFutureListener send = new ChannelFutureListener() {
+      //@Override
+      //public void operationComplete(ChannelFuture f) throws Exception {
+        //log.info("TcpClient connected at: {}", host);
+        //Object msg;
+        //while((msg = sending.pollFirst()) != null) {
+          //System.out.println("<< Sending: " + msg);
+          //f.channel().writeAndFlush(msg).addListener(close);
+        //}
+      //}
+    //};
     future = initHandlers(boot)
-        .connect(host.toSocketAddr())
-        .addListener(send);
+        .connect(host.toSocketAddr());
+        //.addListener(send);
     return this;
   }
   
   public TcpClient send(Object msg) {
-    if(msg != null) {
-      sending.offerLast(msg);
-    }
+    //if(msg != null) {
+      //sending.offerLast(msg);
+    //}
     channelConnected();
     //future = future.channel().writeAndFlush(msg);
-    //future.addListener(new ChannelFutureListener() {
-      //@Override
-      //public void operationComplete(ChannelFuture f) throws Exception {
-        //future = f.channel().writeAndFlush(msg);
-      //}
-    //});
+    future.addListener(new ChannelFutureListener() {
+      @Override
+      public void operationComplete(ChannelFuture f) throws Exception {
+        future = f.channel().writeAndFlush(msg);
+      }
+    });
     return this;
   }
   

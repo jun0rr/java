@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient;
+import net.jun0rr.doxy.tcp.TcpClient2;
 import net.jun0rr.doxy.tcp.TcpHandler;
 import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ import org.junit.jupiter.api.Test;
  */
 public class TestTcpClient2 {
   
-  //@Test
+  @Test
   public void echoServer() {
     System.out.println("------ echoServer ------");
     final AtomicInteger count = new AtomicInteger(1);
@@ -57,16 +58,17 @@ public class TestTcpClient2 {
     };
     ByteBuf msg = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
     System.out.printf("* Sending '%s'...%n", msg.toString(StandardCharsets.UTF_8));
-    TcpClient cli = TcpClient.open()
+    TcpClient2 cli = TcpClient2.open()
         .addHandler(hnd)
         .connect(Host.of("localhost:3344"))
-        .send(msg);
+        .send(msg)
+        .start();
         //.closeOnComplete();
     server.sync();
     cli.close();
   }
   
-  @Test
+  //@Test
   public void echoServerNettyClient() {
     System.out.println("------ echoServerNettyClient ------");
     final AtomicInteger count = new AtomicInteger(1);

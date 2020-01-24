@@ -30,10 +30,10 @@ public class TcpOutboundHandler implements ChannelOutboundHandler {
     try {
       if(msg instanceof TcpExchange) {
         TcpExchange ex = (TcpExchange) msg;
-        ex.message().ifPresent(ctx::writeAndFlush);
+        ex.message().ifPresent(o->ctx.writeAndFlush(o, cp));
       }
       else {
-        ctx.writeAndFlush(msg);
+        ctx.writeAndFlush(msg, cp);
       }
     }
     catch(Exception e) {
