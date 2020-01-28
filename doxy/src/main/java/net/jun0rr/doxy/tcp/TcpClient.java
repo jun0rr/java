@@ -6,66 +6,38 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.InternalLoggerFactory;
-import java.io.Closeable;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
-import us.pserver.tools.Unchecked;
 
 
 /**
  *
  * @author juno
  */
-public class TcpClient implements Closeable {
-  
-  private volatile ChannelFuture future;
-  private final EventLoopGroup group;
-  private final InternalLogger log;
-  private final Bootstrap boot;
-  private final List<Supplier<TcpHandler>> handlers;
-  //private final Deque<Object> sending;
+public class TcpClient extends AbstractTcpChannel {
   
   public TcpClient(Bootstrap bootstrap) {
-    this.boot = Objects.requireNonNull(bootstrap, "Bad null Bootstrap");
-    this.group = boot.config().group();
-    this.log = InternalLoggerFactory.getInstance(getClass());
-    this.handlers = new LinkedList<>();
-    //this.sending = new LinkedBlockingDeque<>();
-  }
-  
-  public TcpClient(EventLoopGroup group) {
-    this(bootstrap(group));
-  }
-  
-  public TcpClient() {
-    this(bootstrap(new NioEventLoopGroup(1)));
+    super(bootstrap);
   }
   
   public static TcpClient open() {
-    return new TcpClient();
+    return open(bootstrap(new NioEventLoopGroup(1)));
   }
   
   public static TcpClient open(EventLoopGroup group) {
-    return new TcpClient(group);
+    return open(bootstrap(group));
   }
   
   public static TcpClient open(Bootstrap boot) {
@@ -81,12 +53,9 @@ public class TcpClient implements Closeable {
         .group(group);
   }
   
-  public List<Supplier<TcpHandler>> handlers() {
-    return handlers;
-  }
-  
-  public TcpClient addHandler(Supplier<TcpHandler> handler) {
-    if(handler != null) handlers.add(handler);
+  @Override
+  public TcpClient addMessageHandler(Supplier<TcpHandler> handler) {
+    super.addMessageHandler(handler);
     return this;
   }
   
@@ -94,96 +63,66 @@ public class TcpClient implements Closeable {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
     ls.add(TcpOutboundHandler::new);
     Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(this, s.get());
-    handlers.stream().map(fn).forEach(ls::add);
+    messageHandlers.stream().map(fn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.handler(new AddingLastChannelInitializer(ls));
   }
   
-  private void channelConnected() {
-    System.out.printf("TcpClient.channelConnected( %s )%n", future);
-    if(future == null) throw new IllegalStateException("Channel not connected");
-  }
-  
-  private void channelNotConnected() {
-    System.out.printf("TcpClient.channelNotConnected( %s )%n", future);
-    if(future != null) throw new IllegalStateException("Channel already connected");
-  }
-  
   public TcpClient connect(Host host) {
-    System.out.printf("TcpClient.connect( %s )%n", host);
-    channelNotConnected();
-    ChannelFutureListener close = new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture f) throws Exception {
-        System.out.println("!! closing");
-        System.out.flush();
-      }
+    TcpEvent.ConnectEvent evt = b -> {
+      //System.out.println("--- [CLIENT] CONNECT ---");
+      ChannelFuture f = initHandlers((Bootstrap)b).connect(host.toSocketAddr());
+      return f;
     };
-    //ChannelFutureListener send = new ChannelFutureListener() {
-      //@Override
-      //public void operationComplete(ChannelFuture f) throws Exception {
-        //log.info("TcpClient connected at: {}", host);
-        //Object msg;
-        //while((msg = sending.pollFirst()) != null) {
-          //System.out.println("<< Sending: " + msg);
-          //f.channel().writeAndFlush(msg).addListener(close);
-        //}
-      //}
-    //};
-    future = initHandlers(boot)
-        .connect(host.toSocketAddr());
-        //.addListener(send);
+    addListener(evt);
     return this;
   }
   
   public TcpClient send(Object msg) {
-    //if(msg != null) {
-      //sending.offerLast(msg);
-    //}
-    channelConnected();
-    //future = future.channel().writeAndFlush(msg);
-    future.addListener(new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture f) throws Exception {
-        future = f.channel().writeAndFlush(msg);
-      }
-    });
+    if(msg != null) {
+      TcpEvent.ChannelFutureEvent evt = f -> {
+        //System.out.println("--- [CLIENT] SEND ---");
+        return f.channel().writeAndFlush(msg);
+      };
+      addListener(evt);
+    }
     return this;
   }
   
   @Override
-  public void close() {
-    close(null);
+  public TcpClient onComplete(Consumer<Channel> success) {
+    super.onComplete(success);
+    return this;
   }
   
-  public void closeSync() {
-    CountDownLatch cl = new CountDownLatch(1);
-    close(new GenericFutureListener() {
-      @Override
-      public void operationComplete(Future f) throws Exception {
-        cl.countDown();
-      }
-    });
-    Unchecked.call(()->cl.await());
+  @Override
+  public TcpClient onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
+    super.onComplete(success, error);
+    return this;
   }
   
-  private void close(GenericFutureListener fl) {
-    channelConnected();
-    ChannelFutureListener shutdown = new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture f) throws Exception {
-        System.out.println("SHUTDOWN");
-        Future ft = group.shutdownGracefully();
-        if(fl != null) ft.addListener(fl);
-      }
-    };
-    future.addListener(new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture f) throws Exception {
-        System.out.println("CLOSE");
-        f.channel().close().addListener(shutdown);
-      }
-    });
+  @Override
+  public TcpClient onShutdown(Consumer<EventLoopGroup> success) {
+    super.onShutdown(success);
+    return this;
+  }
+  
+  @Override
+  public TcpClient onShutdown(Consumer<EventLoopGroup> success, Consumer<Throwable> error) {
+    super.onShutdown(success, error);
+    return this;
+  }
+  
+  @Override
+  public TcpClient start() {
+    super.start();
+    return this;
+  }
+  
+  @Override
+  public TcpClient sync() {
+    super.sync();
+    return this;
   }
   
 }

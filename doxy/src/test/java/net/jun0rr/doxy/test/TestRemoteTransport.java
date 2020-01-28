@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.DoxyConfig;
 import net.jun0rr.doxy.cfg.DoxyConfigBuilder;
 import net.jun0rr.doxy.cfg.Host;
@@ -33,7 +34,7 @@ public class TestRemoteTransport {
     System.out.println("------ remoteTransport ------");
     try {
       final AtomicInteger count = new AtomicInteger(1);
-      TcpHandler hnd = x->{
+      Supplier<TcpHandler> hnd = ()->x->{
         System.out.println("* Client connected: " + x.context().channel().remoteAddress());
         if(x.message().isPresent()) {
           ByteBuf buf = (ByteBuf) x.message().get();
@@ -46,9 +47,12 @@ public class TestRemoteTransport {
         }
         return x.empty();
       };
-      TcpServer server = new TcpServer(Host.of("0.0.0.0", 3344))
-          .addAcceptHandler(hnd)
-          .start();
+      TcpServer server = TcpServer.open()
+          .addMessageHandler(hnd)
+          .bind(Host.of("0.0.0.0", 3344))
+          .onComplete(c->System.out.println("- Server listening on " + c.localAddress()))
+          .start()
+          .sync();
 
       DoxyConfig cfg = DoxyConfigBuilder.newBuilder().configSources().fromResourceProps().load().build();
       System.out.println(cfg);

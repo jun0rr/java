@@ -38,33 +38,34 @@ public interface TcpExchange {
   public Optional<TcpExchange> close();
   
   /**
-   * Shutdown the EventLoopGroup.
+   * Close and shutdown the EventLoopGroup.
    * @return Empty Optional
+   * @see net.jun0rr.doxy.tcp.TcpExchange#close() 
    */
   public Optional<TcpExchange> shutdown();
   
   /**
-   * Send the message, aborting the inbound pipeline.
+   * Send the message (aborting the inbound pipeline).
    * @param msg Message to send.
    * @return Emtpy Optional.
    */
   public Optional<TcpExchange> send(Object msg);
   
   /**
-   * Send the message, aborting the inbound pipeline.
+   * Send the message (aborting the inbound pipeline).
    * @return Emtpy Optional.
    */
   public Optional<TcpExchange> send();
   
   /**
-   * Send the message, closing the channel after. The inbound pipeline is aborted.
+   * Send the message (aborting the inbound pipeline) and close the channel.
    * @param msg Message to send.
    * @return Emtpy Optional.
    */
   public Optional<TcpExchange> sendAndClose(Object msg);
   
   /**
-   * Send the message, closing the channel after. The inbound pipeline is aborted.
+   * Send the message (aborting the inbound pipeline) and close the channel.
    * @return Emtpy Optional.
    */
   public Optional<TcpExchange> sendAndClose();
@@ -90,12 +91,12 @@ public interface TcpExchange {
   
   
   
-  public static TcpExchange of(Closeable cls, ChannelHandlerContext ctx, Object msg) {
-    return new TcpExchangeImpl(cls, ctx, new TreeMap<>(), Optional.of(msg));
+  public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
+    return new TcpExchangeImpl(channel, ctx, new TreeMap<>(), Optional.of(msg));
   }
   
-  public static TcpExchange of(Closeable cls, ChannelHandlerContext ctx) {
-    return new TcpExchangeImpl(cls, ctx, new TreeMap<>(), Optional.empty());
+  public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx) {
+    return new TcpExchangeImpl(channel, ctx, new TreeMap<>(), Optional.empty());
   }
   
   
@@ -104,7 +105,7 @@ public interface TcpExchange {
   
   static class TcpExchangeImpl implements TcpExchange {
     
-    private final Closeable cls;
+    private final TcpChannel channel;
     
     private final ChannelHandlerContext context;
     
@@ -112,8 +113,8 @@ public interface TcpExchange {
     
     private final Optional<Object> message;
     
-    public TcpExchangeImpl(Closeable cls, ChannelHandlerContext ctx, Map<String,Object> attrs, Optional<Object> msg) {
-      this.cls = cls;
+    public TcpExchangeImpl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Optional<Object> msg) {
+      this.channel = channel;
       this.context = ctx;
       this.attributes = attrs;
       this.message = msg;
@@ -121,7 +122,7 @@ public interface TcpExchange {
     
     @Override
     public Optional<TcpExchange> shutdown() {
-      Unchecked.call(()->cls.close());
+      channel.shutdown();
       return empty();
     }
     
@@ -155,12 +156,12 @@ public interface TcpExchange {
     
     @Override
     public Optional<TcpExchange> withMessage(Object msg) {
-      return Optional.of(new TcpExchangeImpl(cls, context, attributes, Optional.of(msg)));
+      return Optional.of(new TcpExchangeImpl(channel, context, attributes, Optional.of(msg)));
     }
     
     @Override
     public Optional<TcpExchange> noMessage() {
-      return Optional.of(new TcpExchangeImpl(cls, context, attributes, Optional.empty()));
+      return Optional.of(new TcpExchangeImpl(channel, context, attributes, Optional.empty()));
     }
     
     @Override

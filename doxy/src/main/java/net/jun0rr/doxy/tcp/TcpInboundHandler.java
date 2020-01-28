@@ -7,7 +7,6 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
-import java.io.Closeable;
 import java.util.Objects;
 
 
@@ -19,10 +18,10 @@ public class TcpInboundHandler implements ChannelInboundHandler {
   
   private final TcpHandler handler;
   
-  private final Closeable closeable;
+  private final TcpChannel channel;
   
-  public TcpInboundHandler(Closeable cls, TcpHandler handler) {
-    this.closeable = cls;
+  public TcpInboundHandler(TcpChannel cls, TcpHandler handler) {
+    this.channel = cls;
     this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
   }
   
@@ -33,7 +32,7 @@ public class TcpInboundHandler implements ChannelInboundHandler {
       ex = (TcpExchange)msg;
     }
     else {
-      ex = TcpExchange.of(closeable, ctx, msg);
+      ex = TcpExchange.of(channel, ctx, msg);
     }
     handler.handle(ex).ifPresent(ctx::fireChannelRead);
   }

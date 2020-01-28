@@ -5,8 +5,9 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
 
 
 /**
@@ -16,12 +17,14 @@ import io.netty.channel.ChannelFuture;
 @FunctionalInterface
 public interface TcpEvent<T> {
   
-  public ChannelFuture process(T obj);
+  public Future process(T obj);
   
   
   
-  public static interface ConnectEvent extends TcpEvent<Bootstrap> {}
+  public static interface ConnectEvent extends TcpEvent<AbstractBootstrap> {}
   
-  public static interface FutureEvent extends TcpEvent<ChannelFuture> {}
+  public static interface ChannelFutureEvent extends TcpEvent<ChannelFuture> {}
+  
+  public static interface FutureEvent extends TcpEvent<Future> {}
   
 }

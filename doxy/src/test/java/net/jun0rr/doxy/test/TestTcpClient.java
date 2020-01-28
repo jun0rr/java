@@ -9,7 +9,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.StandardCharsets;
 import net.jun0rr.doxy.cfg.Host;
-import net.jun0rr.doxy.tcp.TcpClient2;
+import net.jun0rr.doxy.tcp.TcpClient;
 import org.junit.jupiter.api.Test;
 
 
@@ -22,8 +22,8 @@ public class TestTcpClient {
   @Test
   public void method() {
     //TcpClient2 cli = TcpClient2.open()
-    TcpClient2.open()
-        .addHandler(()-> x->{
+    TcpClient.open()
+        .addMessageHandler(()-> x->{
           System.out.printf("--- TcpHandler: message=%s ---%n", x.message().orElse("<empty>"));
           if(x.message().isEmpty()) return x.empty();
           ByteBuf msg = (ByteBuf) x.message().get();
