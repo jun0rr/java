@@ -193,6 +193,7 @@ public class AbstractTcpChannel implements TcpChannel {
   
   /**
    * Close the channel (do not shutdown the EventLoopGroup).
+   * @see net.jun0rr.doxy.tcp.TcpChannel#shutdown() 
    */
   @Override
   public void close() {

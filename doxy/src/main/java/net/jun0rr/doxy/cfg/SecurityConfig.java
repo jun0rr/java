@@ -6,9 +6,13 @@
 package net.jun0rr.doxy.cfg;
 
 import java.nio.file.Path;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Objects;
+import net.jun0rr.doxy.common.DerKeyFactory;
 import us.pserver.tools.StringPad;
+import us.pserver.tools.Unchecked;
 
 
 /**
@@ -27,6 +31,9 @@ public interface SecurityConfig {
   
   public String getCryptAlgorithm();
   
+  public PublicKey createPublicKey();
+  
+  public PrivateKey createPrivateKey();
   
   
   public static SecurityConfig of(Path privateKey, Path publicKey, Path keystore, char[] keystorePassword, String cryptAlg) {
@@ -82,6 +89,15 @@ public interface SecurityConfig {
       return cryptAlg;
     }
     
+    public PublicKey createPublicKey() {
+      return Unchecked.call(()->DerKeyFactory.loadPublicKey(getPublicKeyPath()));
+
+    }
+
+    public PrivateKey createPrivateKey() {
+      return Unchecked.call(()->DerKeyFactory.loadPrivateKey(getPrivateKeyPath()));
+    }
+  
     @Override
     public int hashCode() {
       int hash = 7;
