@@ -67,7 +67,7 @@ public class TestTcpServer {
     TcpClient cli = TcpClient.open()
         .addMessageHandler(hnd)
         .connect(Host.of("localhost:3344"))
-        .onComplete(f->System.out.println("- Client Connected: " + f.localAddress()))
+        .onComplete(f->System.out.printf("- Client Connected: %s --> %s%n", f.localAddress(), f.remoteAddress()))
         .send(msg1)
         .send(msg2)
         .onComplete(f->System.out.println("- Message Sent"))
@@ -117,7 +117,7 @@ public class TestTcpServer {
     TcpClient cli = TcpClient.open()
         .addMessageHandler(hnd)
         .connect(Host.of("localhost:3344"))
-        .onComplete(f->System.out.println("- Client Connected: " + f.localAddress()))
+        .onComplete(f->System.out.printf("- Client Connected: %s --> %s%n", f.localAddress(), f.remoteAddress()))
         .start()
         .sync();
     Unchecked.call(()->server.group().awaitTermination(10, TimeUnit.MINUTES));

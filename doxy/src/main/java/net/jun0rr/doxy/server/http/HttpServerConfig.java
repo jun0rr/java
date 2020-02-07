@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy.server.http;
 
+import java.nio.file.Path;
 import net.jun0rr.doxy.cfg.*;
 
 
@@ -14,19 +15,13 @@ import net.jun0rr.doxy.cfg.*;
  */
 public interface HttpServerConfig {
   
-  public Host getBindHost();
+  public Path getKeystorePath();
   
-  public SecurityConfig getSecurityConfig();
+  public char[] getKeystorePassword();
   
   public String getServerName();
   
   public String getUserAgent();
-  
-  public int getBufferSize();
-  
-  public int getThreadPoolSize();
-  
-  public boolean isDirectBuffer();
   
   
   
@@ -34,8 +29,8 @@ public interface HttpServerConfig {
     return HttpServerConfigBuilder.newBuilder();
   }
   
-  public static HttpServerConfig of(Host bind, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
-    return new HttpServerConfigImpl(bind, security, serverName, userAgent, threadPoolSize, bufferSize, directBuffer);
+  public static HttpServerConfig of(Path kspath, char[] kspass, String serverName, String userAgent) {
+    return new HttpServerConfigImpl(kspath, kspass, serverName, userAgent);
   }
   
   
@@ -44,41 +39,32 @@ public interface HttpServerConfig {
   
   public static class HttpServerConfigImpl implements HttpServerConfig {
 
-    private final Host host;
-
-    private final SecurityConfig security;
-
-    private final int threadPoolSize;
-
-    private final int bufferSize;
-
-    private final boolean directBuffer;
+    private final Path kspath;
+    
+    private final char[] kspass;
 
     private final String serverName;
 
     private final String userAgent;
 
 
-    public HttpServerConfigImpl(Host bind, SecurityConfig security, String serverName, String userAgent, int threadPoolSize, int bufferSize, boolean directBuffer) {
-      this.host = bind;
-      this.security = security;
-      this.threadPoolSize = threadPoolSize;
-      this.bufferSize = bufferSize;
-      this.directBuffer = directBuffer;
+    public HttpServerConfigImpl(Path kspath, char[] kspass, String serverName, String userAgent) {
+      this.kspath = kspath;
+      this.kspass = kspass;
       this.serverName = serverName;
       this.userAgent = userAgent;
     }
 
     @Override
-    public Host getBindHost() {
-      return host;
+    public Path getKeystorePath() {
+      return kspath;
     }
-
+    
     @Override
-    public SecurityConfig getSecurityConfig() {
-      return security;
+    public char[] getKeystorePassword() {
+      return kspass;
     }
-
+    
     @Override
     public String getServerName() {
       return serverName;
@@ -90,30 +76,11 @@ public interface HttpServerConfig {
     }
 
     @Override
-    public int getBufferSize() {
-      return bufferSize;
-    }
-
-    @Override
-    public int getThreadPoolSize() {
-      return threadPoolSize;
-    }
-
-    @Override
-    public boolean isDirectBuffer() {
-      return directBuffer;
-    }
-
-    @Override
     public String toString() {
       return "HttpServerConfig{" 
-          + "  - bind=" + host + "\n"
           + "  - serverName=" + serverName + "\n"
           + "  - userAgent=" + userAgent + "\n"
-          + "  - security=" + security + "\n"
-          + "  - threadPoolSize=" + threadPoolSize + "\n"
-          + "  - bufferSize=" + bufferSize + "\n"
-          + "  - directBuffer=" + directBuffer + "\n"
+          + "  - keystore=" + kspath + "\n"
           + '}';
     }
 

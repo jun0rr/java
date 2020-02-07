@@ -10,7 +10,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslHandler;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +19,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import net.jun0rr.doxy.cfg.DoxyConfig;
 import net.jun0rr.doxy.server.http.impl.BadRequestHandler;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpFilter;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpHandler;
@@ -53,14 +51,14 @@ public class HttpHandlers {
   
   private Supplier<Function<Throwable,Optional<HttpResponse>>> exceptionHandler;
   
-  private final DoxyConfig config;
+  private final HttpServerConfig config;
   
-  public HttpHandlers(DoxyConfig cfg) {
+  public HttpHandlers(HttpServerConfig cfg) {
     this.handlers = new HashMap<>();
     this.requestFilters = new LinkedList<>();
     this.responseFilters = new LinkedList<>();
     this.exchangeFilters = new LinkedList<>();
-    this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig");
+    this.config = Objects.requireNonNull(cfg, "Bad null HttpServerConfig");
     this.defaultHandler = BadRequestHandler::new;
     this.exceptionHandler = ServerErrorFunction::new;
   }
@@ -137,11 +135,6 @@ public class HttpHandlers {
   
   public List<Supplier<HttpHandler>> filters() {
     return exchangeFilters;
-  }
-  
-  private boolean isKeystoreSetted() {
-    return config.getSecurityConfig().getKeystorePath() != null
-        && Files.exists(config.getSecurityConfig().getKeystorePath());
   }
   
   private SslHandler createSSLHandler() {

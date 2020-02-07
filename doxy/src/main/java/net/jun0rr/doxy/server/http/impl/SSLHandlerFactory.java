@@ -21,7 +21,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import net.jun0rr.doxy.cfg.DoxyConfig;
+import net.jun0rr.doxy.server.http.HttpServerConfig;
 
 
 /**
@@ -30,14 +30,14 @@ import net.jun0rr.doxy.cfg.DoxyConfig;
  */
 public class SSLHandlerFactory {
   
-  private final DoxyConfig config;
+  private final HttpServerConfig config;
   
-  public SSLHandlerFactory(DoxyConfig cfg) {
+  public SSLHandlerFactory(HttpServerConfig cfg) {
     this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig");
-    if(config.getSecurityConfig().getKeystorePath() == null || !Files.exists(config.getSecurityConfig().getKeystorePath())) {
-      throw new IllegalStateException("Bad null/missing keystore file (cfg.getKeystorePath): " + config.getSecurityConfig().getKeystorePath());
+    if(config.getKeystorePath() == null || !Files.exists(config.getKeystorePath())) {
+      throw new IllegalStateException("Bad null/missing keystore file (cfg.getKeystorePath): " + config.getKeystorePath());
     }
-    if(config.getSecurityConfig().getKeystorePassword()== null || config.getSecurityConfig().getKeystorePassword().length < 1) {
+    if(config.getKeystorePassword()== null || config.getKeystorePassword().length < 1) {
       throw new IllegalStateException("Bad null/empty keystore password (cfg.getKeystorePass)");
     }
   }
@@ -45,11 +45,11 @@ public class SSLHandlerFactory {
   private SSLContext createSSLContext() throws IOException {
     try {
       KeyStore ks = KeyStore.getInstance(
-          config.getSecurityConfig().getKeystorePath().toFile(), 
-          config.getSecurityConfig().getKeystorePassword()
+          config.getKeystorePath().toFile(), 
+          config.getKeystorePassword()
       );
       KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      kmf.init(ks, config.getSecurityConfig().getKeystorePassword());
+      kmf.init(ks, config.getKeystorePassword());
       SSLContext ctx = SSLContext.getInstance("TLS");
       ctx.init(kmf.getKeyManagers(), TRUST_ALL_CERTS, null);
       return ctx;

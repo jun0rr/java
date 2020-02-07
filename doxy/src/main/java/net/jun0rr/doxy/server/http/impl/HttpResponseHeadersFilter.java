@@ -16,9 +16,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
-import net.jun0rr.doxy.cfg.DoxyConfig;
 import net.jun0rr.doxy.server.http.HttpResponse;
 import net.jun0rr.doxy.server.http.HttpResponseFilter;
+import net.jun0rr.doxy.server.http.HttpServerConfig;
 
 
 /**
@@ -31,9 +31,9 @@ public class HttpResponseHeadersFilter implements HttpResponseFilter {
   
   private final DateTimeFormatter datefmt;
   
-  private final DoxyConfig config;
+  private final HttpServerConfig config;
   
-  public HttpResponseHeadersFilter(DoxyConfig cfg) {
+  public HttpResponseHeadersFilter(HttpServerConfig cfg) {
     this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig");
     this.headers = new DefaultHttpHeaders();
     this.datefmt = DateTimeFormatter

@@ -55,7 +55,7 @@ public class HttpServer {
         .channel(NioServerSocketChannel.class)
         .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
         .childOption(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
-        .childOption(ChannelOption.AUTO_READ, true)
+        .childOption(ChannelOption.AUTO_READ, Boolean.TRUE)
         .group(accept, handle)
         .childHandler(handlers.createInitializer());
   }
