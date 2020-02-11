@@ -21,7 +21,7 @@ public class ServerErrorFunction implements Function<Throwable,Optional<HttpResp
   
   @Override
   public Optional<HttpResponse> apply(Throwable th) {
-    th.printStackTrace();
+    //th.printStackTrace();
     HttpResponse res = HttpResponse.of(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     new XErrorHeaders().setError(th).toHeaders(res.headers());
     res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);

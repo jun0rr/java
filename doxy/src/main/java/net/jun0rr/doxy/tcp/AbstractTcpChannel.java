@@ -11,6 +11,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -28,7 +29,7 @@ import us.pserver.tools.Unchecked;
  *
  * @author juno
  */
-public class AbstractTcpChannel implements TcpChannel {
+public abstract class AbstractTcpChannel implements TcpChannel {
   
   protected final EventLoopGroup group;
   protected final AtomicReference<Future> future;
@@ -88,7 +89,7 @@ public class AbstractTcpChannel implements TcpChannel {
       public void operationComplete(Future f) throws Exception {
         TcpEvent<Future> evt = events.pollFirst();
         if(evt != null) {
-          future.set(evt.process(f).addListener(listener()));
+          future.set(evt.apply(f).addListener(listener()));
         }
       }
     };
@@ -169,6 +170,7 @@ public class AbstractTcpChannel implements TcpChannel {
    */
   @Override
   public AbstractTcpChannel sync() {
+    channelCreated();
     CountDownLatch count = new CountDownLatch(1);
     TcpEvent.FutureEvent evt = f -> {
       count.countDown();
@@ -187,7 +189,7 @@ public class AbstractTcpChannel implements TcpChannel {
   public AbstractTcpChannel start() {
     channelNotCreated();
     TcpEvent<AbstractBootstrap> con = events.pollFirst();
-    future.set(con.process(boot).addListener(listener()));
+    future.set(con.apply(boot).addListener(listener()));
     return this;
   }
   
@@ -197,7 +199,6 @@ public class AbstractTcpChannel implements TcpChannel {
    */
   @Override
   public void close() {
-    channelCreated();
     TcpEvent.ChannelFutureEvent e = f->{
       if(f.channel().isOpen()) {
         return f.channel().close();

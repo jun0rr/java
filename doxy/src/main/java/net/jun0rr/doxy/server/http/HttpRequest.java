@@ -5,35 +5,44 @@
  */
 package net.jun0rr.doxy.server.http;
 
-import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import java.util.Objects;
 import java.util.Optional;
+import net.jun0rr.doxy.common.MessageContainer;
 
 
 /**
  *
  * @author Juno
  */
-public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest {
+public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, MessageContainer {
   
-  public <T> Optional<T> body();
+  @Override public Optional<HttpRequest> withMessage(Object msg);
+  
+  @Override public Optional<HttpRequest> noMessage();
+  
+  @Override public Optional<HttpRequest> forward();
+  
+  @Override public Optional<HttpRequest> empty();
   
   
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
-    return new HttpRequestImpl(vrs, mth, uri, hds, body);
+    return new Impl(vrs, mth, uri, hds, body);
   }
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
-    return new HttpRequestImpl(vrs, mth, uri, hds);
+    return new Impl(vrs, mth, uri, hds);
   }
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri) {
-    return new HttpRequestImpl(vrs, mth, uri);
+    return new Impl(vrs, mth, uri);
   }
   
   public static HttpRequest of(FullHttpRequest fr) {
@@ -48,27 +57,47 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest {
   
   
   
-  public static class HttpRequestImpl extends DefaultHttpRequest implements HttpRequest {
+  public static class Impl extends DefaultFullHttpRequest implements HttpRequest {
     
     private final Optional<? extends Object> body;
     
-    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
-      super(vrs, mth, uri, hds);
+    public Impl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
+      super(vrs, mth, uri, (body instanceof ByteBuf) ? (ByteBuf)body : Unpooled.EMPTY_BUFFER);
       this.body = Optional.ofNullable(body);
     }
     
-    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
+    public Impl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
       this(vrs, mth, uri, hds, null);
     }
     
-    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri) {
+    public Impl(HttpVersion vrs, HttpMethod mth, String uri) {
       super(vrs, mth, uri);
       this.body = Optional.empty();
     }
     
     @Override
-    public <T> Optional<T> body() {
+    public <T> Optional<T> message() {
       return (Optional<T>) body;
+    }
+    
+    @Override
+    public Optional<HttpRequest> withMessage(Object msg) {
+      return Optional.of(new Impl(protocolVersion(), method(), uri(), headers(), msg));
+    }
+    
+    @Override
+    public Optional<HttpRequest> noMessage() {
+      return Optional.of(new Impl(protocolVersion(), method(), uri(), headers()));
+    }
+    
+    @Override
+    public Optional<HttpRequest> forward() {
+      return Optional.of(this);
+    }
+    
+    @Override
+    public Optional<HttpRequest> empty() {
+      return Optional.empty();
     }
     
     @Override

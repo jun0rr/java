@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.tcp;
+package net.jun0rr.doxy.server.http;
 
+import net.jun0rr.doxy.tcp.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -26,22 +27,29 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
  *
  * @author juno
  */
-public class TcpClient extends AbstractTcpChannel {
+public class HttpClient extends AbstractTcpChannel {
   
-  public TcpClient(Bootstrap bootstrap) {
+  private final List<HttpHandler> handlers;
+  
+  public HttpClient(Bootstrap bootstrap) {
     super(bootstrap);
+    this.handlers = new LinkedList<>();
   }
   
-  public static TcpClient open() {
+  protected HttpClient(ChannelFuture future) {
+    super(future);
+  }
+  
+  public static HttpClient open() {
     return open(bootstrap(new NioEventLoopGroup(1)));
   }
   
-  public static TcpClient open(EventLoopGroup group) {
+  public static HttpClient open(EventLoopGroup group) {
     return open(bootstrap(group));
   }
   
-  public static TcpClient open(Bootstrap boot) {
-    return new TcpClient(boot);
+  public static HttpClient open(Bootstrap boot) {
+    return new HttpClient(boot);
   }
   
   private static Bootstrap bootstrap(EventLoopGroup group) {
@@ -54,7 +62,7 @@ public class TcpClient extends AbstractTcpChannel {
   }
   
   @Override
-  public TcpClient addMessageHandler(Supplier<TcpHandler> handler) {
+  public HttpClient addMessageHandler(Supplier<TcpHandler> handler) {
     channelNotCreated();
     super.addMessageHandler(handler);
     return this;
@@ -69,7 +77,7 @@ public class TcpClient extends AbstractTcpChannel {
     return sbt.handler(new AddingLastChannelInitializer(ls));
   }
   
-  public TcpClient connect(Host host) {
+  public HttpClient connect(Host host) {
     channelNotCreated();
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [CLIENT] CONNECT ---");
@@ -80,7 +88,7 @@ public class TcpClient extends AbstractTcpChannel {
     return this;
   }
   
-  public TcpClient send(Object msg) {
+  public HttpClient send(Object msg) {
     if(msg != null) {
       TcpEvent.ChannelFutureEvent evt = f -> {
         //System.out.println("--- [CLIENT] SEND ---");
@@ -92,37 +100,37 @@ public class TcpClient extends AbstractTcpChannel {
   }
   
   @Override
-  public TcpClient onComplete(Consumer<Channel> success) {
+  public HttpClient onComplete(Consumer<Channel> success) {
     super.onComplete(success);
     return this;
   }
   
   @Override
-  public TcpClient onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
+  public HttpClient onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
     super.onComplete(success, error);
     return this;
   }
   
   @Override
-  public TcpClient onShutdown(Consumer<EventLoopGroup> success) {
+  public HttpClient onShutdown(Consumer<EventLoopGroup> success) {
     super.onShutdown(success);
     return this;
   }
   
   @Override
-  public TcpClient onShutdown(Consumer<EventLoopGroup> success, Consumer<Throwable> error) {
+  public HttpClient onShutdown(Consumer<EventLoopGroup> success, Consumer<Throwable> error) {
     super.onShutdown(success, error);
     return this;
   }
   
   @Override
-  public TcpClient start() {
+  public HttpClient start() {
     super.start();
     return this;
   }
   
   @Override
-  public TcpClient sync() {
+  public HttpClient sync() {
     super.sync();
     return this;
   }

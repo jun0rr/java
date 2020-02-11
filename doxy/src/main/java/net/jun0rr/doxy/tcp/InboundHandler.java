@@ -3,59 +3,28 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.impl;
+package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandler;
-import io.netty.handler.codec.http.FullHttpRequest;
-import java.util.Objects;
-import java.util.Optional;
-import net.jun0rr.doxy.server.http.HttpExchange;
-import net.jun0rr.doxy.server.http.HttpHandler;
-import net.jun0rr.doxy.server.http.HttpRequest;
 
 
 /**
  *
  * @author Juno
  */
-public class DefaultHttpFilter implements ChannelInboundHandler, HttpHandler {
+public abstract class InboundHandler implements ChannelInboundHandler {
   
-  private final HttpHandler filter;
-  
-  public DefaultHttpFilter(HttpHandler hnd) {
-    this.filter = Objects.requireNonNull(hnd, "Bad null HttpHandler");
-  }
-  
-  @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-    return filter.handle(he);
-  }
-  
-  @Override 
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    try {
-      if(msg instanceof HttpRequest) {
-        handle(HttpExchange.of(ctx, (HttpRequest)msg)).ifPresent(ctx::fireChannelRead);
-      }
-      else if(msg instanceof FullHttpRequest) {
-        handle(HttpExchange.of(ctx, HttpRequest.of((FullHttpRequest)msg))).ifPresent(ctx::fireChannelRead);
-      }
-      else if(msg instanceof HttpExchange) {
-        handle((HttpExchange)msg).ifPresent(ctx::fireChannelRead);
-      }
-      else {
-        throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
-      }
-    }
-    catch(Exception e) {
-      this.exceptionCaught(ctx, e);
-    }
-  }
+  public InboundHandler() {}
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
     ctx.fireExceptionCaught(e);
+  }
+  
+  @Override 
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    ctx.fireChannelRead(msg);
   }
   
   @Override

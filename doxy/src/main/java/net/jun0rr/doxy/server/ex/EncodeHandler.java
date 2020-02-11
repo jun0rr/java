@@ -64,7 +64,7 @@ public class EncodeHandler implements HttpHandler {
         buf.append("\r\n");
     }
     
-    Optional<ByteBuf> body = req.body();
+    Optional<ByteBuf> body = req.content();
     if (body.isPresent() && body.get().isReadable()) {
         buf.append("CONTENT: ");
         buf.append(body.get().toString(CharsetUtil.UTF_8));

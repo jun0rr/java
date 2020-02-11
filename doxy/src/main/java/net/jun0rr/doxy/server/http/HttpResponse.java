@@ -6,46 +6,53 @@
 package net.jun0rr.doxy.server.http;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import java.util.Objects;
 import java.util.Optional;
+import net.jun0rr.doxy.common.MessageContainer;
 
 
 /**
  *
  * @author Juno
  */
-public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse {
+public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, MessageContainer {
   
-  public <T> Optional<T> content();
+  @Override public Optional<HttpResponse> withMessage(Object msg);
   
-  public FullHttpResponse toNettyResponse();
+  @Override public Optional<HttpResponse> noMessage();
+  
+  @Override public Optional<HttpResponse> forward();
+  
+  @Override public Optional<HttpResponse> empty();
   
   
   
-  public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds, Object cnt) {
-    return new HttpResponseImpl(vrs, sts, hds, cnt);
+  public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds, Object msg) {
+    return new Impl(vrs, sts, hds, msg);
   }
   
   public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds) {
-    return new HttpResponseImpl(vrs, sts, hds);
+    return new Impl(vrs, sts, hds);
   }
   
   public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts) {
-    return new HttpResponseImpl(vrs, sts);
+    return new Impl(vrs, sts);
   }
   
-  public static HttpResponse of(HttpResponseStatus sts, Object cnt) {
-    return new HttpResponseImpl(sts, cnt);
+  public static HttpResponse of(HttpResponseStatus sts, Object msg) {
+    return new Impl(sts, msg);
   }
   
   public static HttpResponse of(HttpResponseStatus sts) {
-    return new HttpResponseImpl(sts);
+    return new Impl(sts);
   }
   
   public static HttpResponse of(FullHttpResponse fr) {
@@ -60,52 +67,56 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse {
   
   
   
-  public static class HttpResponseImpl extends DefaultHttpResponse implements HttpResponse {
+  public static class Impl extends DefaultFullHttpResponse implements HttpResponse {
 
-    private final Optional<? extends Object> content;
+    private final Optional<? extends Object> msg;
     
-    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, Object content) {
-      super(version, status, headers);
-      this.content = Optional.ofNullable(content);
+    public Impl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, Object msg) {
+      super(version, status, (msg instanceof ByteBuf) ? (ByteBuf)msg : Unpooled.EMPTY_BUFFER, headers, EmptyHttpHeaders.INSTANCE);
+      this.msg = Optional.ofNullable(msg);
     }
     
-    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers) {
+    public Impl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers) {
       this(version, status, headers, null);
     }
     
-    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status) {
+    public Impl(HttpVersion version, HttpResponseStatus status) {
       super(version, status);
-      this.content = Optional.empty();
+      this.msg = Optional.empty();
     }
     
-    public HttpResponseImpl(HttpResponseStatus status, Object content) {
+    public Impl(HttpResponseStatus status, Object msg) {
       super(HttpVersion.HTTP_1_1, status);
-      this.content = Optional.ofNullable(content);
+      this.msg = Optional.ofNullable(msg);
     }
     
-    public HttpResponseImpl(HttpResponseStatus status) {
+    public Impl(HttpResponseStatus status) {
       this(HttpVersion.HTTP_1_1, status);
     }
     
     @Override
-    public <T> Optional<T> content() {
-      return (Optional<T>) content;
+    public <T> Optional<T> message() {
+      return (Optional<T>) msg;
     }
     
     @Override
-    public FullHttpResponse toNettyResponse() {
-      FullHttpResponse res;
-      if(content.isEmpty()) {
-        res = new DefaultFullHttpResponse(protocolVersion(), status());
-      }
-      else if(content.get() instanceof ByteBuf) {
-        res = new DefaultFullHttpResponse(protocolVersion(), status(), (ByteBuf)content.get());
-      }
-      else {
-        throw new IllegalStateException("Content type not allowed: " + content.get().getClass().getName());
-      }
-      res.headers().setAll(headers());
-      return res;
+    public Optional<HttpResponse> withMessage(Object msg) {
+      return Optional.of(new Impl(protocolVersion(), status(), headers(), msg));
+    }
+    
+    @Override
+    public Optional<HttpResponse> noMessage() {
+      return Optional.of(new Impl(protocolVersion(), status(), headers()));
+    }
+    
+    @Override
+    public Optional<HttpResponse> forward() {
+      return Optional.of(this);
+    }
+    
+    @Override
+    public Optional<HttpResponse> empty() {
+      return Optional.empty();
     }
     
     @Override

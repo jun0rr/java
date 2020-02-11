@@ -5,6 +5,8 @@
  */
 package net.jun0rr.doxy.server.http;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -20,16 +22,17 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import net.jun0rr.doxy.server.http.impl.BadRequestHandler;
-import net.jun0rr.doxy.server.http.impl.DefaultHttpFilter;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpHandler;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpRequestFilter;
 import net.jun0rr.doxy.server.http.impl.DefaultHttpResponseFilter;
 import net.jun0rr.doxy.server.http.impl.HttpResponseHeadersFilter;
+import net.jun0rr.doxy.server.http.impl.HttpResponseWriter;
 import net.jun0rr.doxy.server.http.impl.HttpRouteHandler;
 import net.jun0rr.doxy.server.http.impl.RoutableHttpHandler;
 import net.jun0rr.doxy.server.http.impl.SSLHandlerFactory;
 import net.jun0rr.doxy.server.http.impl.ServerErrorFunction;
 import net.jun0rr.doxy.server.http.impl.UncaughtExceptionHandler;
+import net.jun0rr.doxy.tcp.InboundHandler;
 import us.pserver.tools.Unchecked;
 
 
@@ -49,7 +52,7 @@ public class HttpHandlers {
   
   private Supplier<HttpHandler> defaultHandler;
   
-  private Supplier<Function<Throwable,Optional<HttpResponse>>> exceptionHandler;
+  private Function<Throwable,Optional<HttpResponse>> exceptionHandler;
   
   private final HttpServerConfig config;
   
@@ -60,7 +63,7 @@ public class HttpHandlers {
     this.exchangeFilters = new LinkedList<>();
     this.config = Objects.requireNonNull(cfg, "Bad null HttpServerConfig");
     this.defaultHandler = BadRequestHandler::new;
-    this.exceptionHandler = ServerErrorFunction::new;
+    this.exceptionHandler = new ServerErrorFunction();
   }
   
   public HttpHandlers addRouteHandler(HttpRoute r, Supplier<HttpHandler> s) {
@@ -93,14 +96,14 @@ public class HttpHandlers {
     return defaultHandler;
   }
   
-  public HttpHandlers setUncaughtExceptionHandler(Supplier<Function<Throwable,Optional<HttpResponse>>> s) {
+  public HttpHandlers setUncaughtExceptionHandler(Function<Throwable,Optional<HttpResponse>> s) {
     if(s != null) {
       exceptionHandler = s;
     }
     return this;
   }
   
-  public Supplier<Function<Throwable,Optional<HttpResponse>>> getUncaughtExceptionHandler() {
+  public Function<Throwable,Optional<HttpResponse>> getUncaughtExceptionHandler() {
     return exceptionHandler;
   }
   
@@ -137,30 +140,30 @@ public class HttpHandlers {
     return exchangeFilters;
   }
   
-  private SslHandler createSSLHandler() {
-    return Unchecked.call(()->new SSLHandlerFactory(config).create());
+  private SslHandler createSSLHandler(ByteBufAllocator alloc) {
+    return Unchecked.call(()->SSLHandlerFactory.newServerHandler2(config, alloc));
   }
   
-  public ChannelInitializer<SocketChannel> createInitializer() {
+  protected ChannelInitializer<SocketChannel> createServerInitializer() {
     return new ChannelInitializer<>() {
       @Override
       protected void initChannel(SocketChannel c) throws Exception {
         c.pipeline().addLast(
-            createSSLHandler(),
+            createSSLHandler(c.alloc()),
             new HttpServerCodec(),
             new HttpObjectAggregator(1024*1024),
+            new HttpResponseWriter(),
             new DefaultHttpResponseFilter(new HttpResponseHeadersFilter(config))
         );
-        responseFilters.forEach(f->c.pipeline().addLast(new DefaultHttpResponseFilter(f.get())));
+        responseFilters.stream().forEach(f->c.pipeline().addLast(new DefaultHttpResponseFilter(f.get(), exceptionHandler)));
         requestFilters.forEach(f->c.pipeline().addLast(new DefaultHttpRequestFilter(f.get())));
-        exchangeFilters.forEach(f->c.pipeline().addLast(new DefaultHttpFilter(f.get())));
+        exchangeFilters.forEach(f->c.pipeline().addLast(new DefaultHttpHandler(f.get())));
         List<RoutableHttpHandler> routables = new LinkedList<>();
         streamRouteHandlers().forEach(e->routables.add(
             RoutableHttpHandler.of(e.getKey(), e.getValue().get()))
         );
-        HttpRouteHandler root = new HttpRouteHandler(routables, defaultHandler.get());
-        c.pipeline().addLast(new DefaultHttpHandler(root));
-        c.pipeline().addLast(new UncaughtExceptionHandler(exceptionHandler.get()));
+        c.pipeline().addLast(new DefaultHttpHandler(new HttpRouteHandler(routables, defaultHandler.get())));
+        c.pipeline().addLast(new UncaughtExceptionHandler(exceptionHandler));
       }
     };
   }

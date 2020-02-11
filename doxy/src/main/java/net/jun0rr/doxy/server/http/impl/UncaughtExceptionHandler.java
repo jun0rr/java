@@ -21,7 +21,7 @@ import net.jun0rr.doxy.server.http.HttpRequestFilter;
  *
  * @author Juno
  */
-public class UncaughtExceptionHandler implements ChannelInboundHandler, HttpRequestFilter {
+public class UncaughtExceptionHandler implements ChannelInboundHandler {
   
   private final Function<Throwable,Optional<HttpResponse>> exceptionHandler;
   
@@ -33,26 +33,10 @@ public class UncaughtExceptionHandler implements ChannelInboundHandler, HttpRequ
     this(new ServerErrorFunction());
   }
   
-  @Override
-  public Optional<HttpRequest> filter(ChannelHandlerContext ctx, HttpRequest he) throws Exception {
-    return Optional.of(he);
-  }
-  
   @Override 
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     try {
-      if(msg instanceof HttpRequest) {
-        filter(ctx, (HttpRequest)msg).ifPresent(ctx::fireChannelRead);
-      }
-      else if(msg instanceof FullHttpRequest) {
-        filter(ctx, HttpRequest.of((FullHttpRequest)msg)).ifPresent(ctx::fireChannelRead);
-      }
-      else if(msg instanceof HttpExchange) {
-        filter(ctx, ((HttpExchange)msg).request()).ifPresent(ctx::fireChannelRead);
-      }
-      else {
-        throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
-      }
+      ctx.write(msg);
     }
     catch(Exception e) {
       this.exceptionCaught(ctx, e);

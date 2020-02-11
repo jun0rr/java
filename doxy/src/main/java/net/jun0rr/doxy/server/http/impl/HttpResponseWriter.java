@@ -5,68 +5,54 @@
  */
 package net.jun0rr.doxy.server.http.impl;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import java.net.SocketAddress;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpResponse;
-import net.jun0rr.doxy.server.http.HttpResponseFilter;
-import us.pserver.tools.Unchecked;
 
 
 /**
  *
  * @author Juno
  */
-public class DefaultHttpResponseFilter implements ChannelOutboundHandler, HttpResponseFilter {
+public class HttpResponseWriter implements ChannelOutboundHandler {
   
-  private final HttpResponseFilter filter;
-  
-  private final Function<Throwable,Optional<HttpResponse>> exceptionHandler;
-  
-  public DefaultHttpResponseFilter(HttpResponseFilter flt, Function<Throwable,Optional<HttpResponse>> exceptionHandler) {
-    this.filter = Objects.requireNonNull(flt, "Bad null HttpHandler");
-    this.exceptionHandler = Objects.requireNonNull(exceptionHandler, "Bad null exception handler Function");
-  }
-  
-  public DefaultHttpResponseFilter(HttpResponseFilter flt) {
-    this(flt, new ServerErrorFunction());
-  }
-  
-  @Override
-  public Optional<HttpResponse> filter(ChannelHandlerContext ctx, HttpResponse he) throws Exception {
-    return filter.filter(ctx, he);
-  }
+  public HttpResponseWriter() {}
   
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
+      Object res = msg;
+      boolean close = false;
       if(msg instanceof HttpResponse) {
-        filter(ctx, (HttpResponse)msg).ifPresent(r->ctx.write(r, cp));
-      }
-      else if(msg instanceof FullHttpResponse) {
-        filter(ctx, HttpResponse.of((FullHttpResponse)msg)).ifPresent(r->ctx.write(r, cp));
+        //res = ((HttpResponse) msg).toNettyResponse();
+        res = ((HttpResponse) msg);
       }
       else if(msg instanceof HttpExchange) {
-        filter(ctx, ((HttpExchange)msg).response()).ifPresent(r->ctx.write(r, cp));
+        //res = ((HttpExchange) msg).response().toNettyResponse();
+        res = ((HttpExchange) msg).response();
       }
-      else {
-        throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
+      if(msg instanceof FullHttpResponse) {
+        close = ((FullHttpResponse) msg).headers().contains(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE, true);
       }
+      ChannelFuture f = ctx.writeAndFlush(res, cp);
+      if(close) f.addListener(ChannelFutureListener.CLOSE);
     }
-    catch(Throwable e) {
+    catch(Exception e) {
       this.exceptionCaught(ctx, e);
     }
   }
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    exceptionHandler.apply(e).ifPresent(ctx::write);
+    ctx.fireExceptionCaught(e);
   }
   
   @Override

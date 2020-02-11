@@ -47,18 +47,13 @@ public class HttpResponseHeadersFilter implements HttpResponseFilter {
   
   @Override
   public Optional<HttpResponse> filter(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
-    res.<ByteBuf>content().ifPresent(b->{
+    res.<ByteBuf>message().ifPresent(b->{
       if(b.readableBytes() > 0) headers.set(HttpHeaderNames.CONTENT_LENGTH, b.readableBytes());
     });
     headers.add(HttpHeaderNames.DATE, datefmt.format(Instant.now()))
         .add(HttpHeaderNames.SERVER, config.getServerName());
     res.headers().setAll(headers());
-    return isClosing(res.headers()) ? sendAndClose(ctx, res) : send(ctx, res);
-  }
-  
-  private boolean isClosing(HttpHeaders hds) {
-    String hconn = hds.get(HttpHeaderNames.CONNECTION);
-    return hconn != null && hconn.equalsIgnoreCase(HttpHeaderValues.CLOSE.toString());
+    return send(ctx, res);
   }
   
 }

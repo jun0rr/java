@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.impl;
+package net.jun0rr.doxy.server;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -31,7 +31,7 @@ public class CloseHandler implements HttpHandler {
 
   @Override
   public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-    Optional<Packet> body = he.request().body();
+    Optional<Packet> body = he.request().content();
     body.ifPresent(p->env.getChannelById(p.channelID()).ifPresent(DoxyChannel::close));
     HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.OK, he.response().headers());
     res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);

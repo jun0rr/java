@@ -15,6 +15,6 @@ import java.util.Optional;
 @FunctionalInterface
 public interface TcpHandler {
   
-  public Optional<TcpExchange> handle(TcpExchange ex) throws Exception;
+  public Optional<? extends TcpExchange> handle(TcpExchange ex) throws Exception;
   
 }

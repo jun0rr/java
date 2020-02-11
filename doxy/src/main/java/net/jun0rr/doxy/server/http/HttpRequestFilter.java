@@ -19,9 +19,4 @@ public interface HttpRequestFilter {
   
   public Optional<HttpRequest> filter(ChannelHandlerContext ctx, HttpRequest req) throws Exception;
   
-  public default Optional<HttpRequest> send(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
-    ctx.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
-    return Optional.empty();
-  }
-  
 }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.impl;
+package net.jun0rr.doxy.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -35,10 +35,10 @@ public class PacketDecoderRequestFilter implements HttpRequestFilter {
   
   @Override
   public Optional<HttpRequest> filter(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-    Optional<ByteBuf> body = req.body();
+    Optional<ByteBuf> body = req.content();
     if(!HttpMethod.POST.equals(req.method()) 
-        || req.body().isEmpty() 
-        || req.<ByteBuf>body().get().readableBytes() < 1) {
+        || req.content().isEmpty() 
+        || req.<ByteBuf>content().get().readableBytes() < 1) {
       return Optional.of(req);
     }
     ByteBuffer cont = env.alloc(body.get().readableBytes());

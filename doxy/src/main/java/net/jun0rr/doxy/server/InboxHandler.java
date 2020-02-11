@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.impl;
+package net.jun0rr.doxy.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

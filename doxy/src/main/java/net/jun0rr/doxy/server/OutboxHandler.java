@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.impl;
+package net.jun0rr.doxy.server;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -14,6 +14,7 @@ import net.jun0rr.doxy.common.Packet;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpResponse;
+import net.jun0rr.doxy.server.http.impl.XErrorHeaders;
 
 
 /**
@@ -30,7 +31,7 @@ public class OutboxHandler implements HttpHandler {
 
   @Override
   public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-    Optional<Packet> opt = he.request().body();
+    Optional<Packet> opt = he.request().content();
     HttpResponse res;
     if(opt.isEmpty()) {
       res = HttpResponse.of(he.response().protocolVersion(), HttpResponseStatus.BAD_REQUEST, he.response().headers());

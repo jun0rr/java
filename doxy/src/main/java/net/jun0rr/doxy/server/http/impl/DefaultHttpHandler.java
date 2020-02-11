@@ -15,6 +15,7 @@ import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpRequest;
 import net.jun0rr.doxy.server.http.HttpResponse;
+import net.jun0rr.doxy.tcp.ConnectedTcpChannel;
 
 
 /**
@@ -38,13 +39,18 @@ public class DefaultHttpHandler implements ChannelInboundHandler, HttpHandler {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     try {
       if(msg instanceof HttpRequest) {
-        handle(HttpExchange.of(ctx, (HttpRequest)msg)).ifPresent(ctx::write);
+        handle(HttpExchange.of(
+            new ConnectedTcpChannel(ctx.newSucceededFuture()), ctx, (HttpRequest)msg)
+        ).ifPresent(ctx::fireChannelRead);
       }
       else if(msg instanceof FullHttpRequest) {
-        handle(HttpExchange.of(ctx, HttpRequest.of((FullHttpRequest)msg))).ifPresent(ctx::write);
+        handle(HttpExchange.of(
+            new ConnectedTcpChannel(ctx.newSucceededFuture()), ctx, 
+            HttpRequest.of((FullHttpRequest)msg))
+        ).ifPresent(ctx::fireChannelRead);
       }
       else if(msg instanceof HttpExchange) {
-        handle((HttpExchange)msg).ifPresent(ctx::write);
+        handle((HttpExchange)msg).ifPresent(ctx::fireChannelRead);
       }
       else {
         throw new IllegalArgumentException("Unexpected message type: " + msg.getClass());
@@ -60,9 +66,9 @@ public class DefaultHttpHandler implements ChannelInboundHandler, HttpHandler {
     ctx.fireExceptionCaught(e);
   }
   
-  public void writeAndClose(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
-    ctx.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
-  }
+  //public void writeAndClose(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
+    //ctx.writeAndFlush(res.toNettyResponse()).addListener(ChannelFutureListener.CLOSE);
+  //}
   
   @Override
   public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {

@@ -8,112 +8,121 @@ package net.jun0rr.doxy.tcp;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import java.io.Closeable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import us.pserver.tools.Unchecked;
+import net.jun0rr.doxy.common.MessageContainer;
 
 
 /**
  *
  * @author Juno
  */
-public interface TcpExchange {
+public interface TcpExchange extends MessageContainer {
   
   public ChannelHandlerContext context();
   
   public Map<String,Object> attributes();
   
-  public TcpExchange setAttribute(String key, Object val);
+  public TcpExchange setAttr(String key, Object val);
   
-  public Optional<Object> getAttribute(String key);
+  public <A> Optional<A> getAttr(String key);
   
-  public Optional<Object> message();
+  public TcpChannel channel();
   
   /**
    * Close the channel.
    * @return Empty Optional
    */
-  public Optional<TcpExchange> close();
+  public Optional<? extends TcpExchange> close();
   
   /**
    * Close and shutdown the EventLoopGroup.
    * @return Empty Optional
    * @see net.jun0rr.doxy.tcp.TcpExchange#close() 
    */
-  public Optional<TcpExchange> shutdown();
+  public Optional<? extends TcpExchange> shutdown();
   
   /**
    * Send the message (aborting the inbound pipeline).
    * @param msg Message to send.
    * @return Emtpy Optional.
    */
-  public Optional<TcpExchange> send(Object msg);
+  public Optional<? extends TcpExchange> send(Object msg);
   
   /**
    * Send the message (aborting the inbound pipeline).
    * @return Emtpy Optional.
    */
-  public Optional<TcpExchange> send();
+  public Optional<? extends TcpExchange> send();
   
   /**
    * Send the message (aborting the inbound pipeline) and close the channel.
    * @param msg Message to send.
    * @return Emtpy Optional.
    */
-  public Optional<TcpExchange> sendAndClose(Object msg);
+  public Optional<? extends TcpExchange> sendAndClose(Object msg);
   
   /**
    * Send the message (aborting the inbound pipeline) and close the channel.
    * @return Emtpy Optional.
    */
-  public Optional<TcpExchange> sendAndClose();
+  public Optional<? extends TcpExchange> sendAndClose();
   
   /**
    * Return an empty optional.
    * @return Emtpy Optional.
    */
-  public Optional<TcpExchange> empty();
+  @Override
+  public Optional<? extends TcpExchange> empty();
   
   /**
    * Return a TcpExchange with the new message.
    * @param msg New message.
    * @return TcpExchange with new message.
    */
-  public Optional<TcpExchange> withMessage(Object msg);
+  @Override
+  public Optional<? extends TcpExchange> withMessage(Object msg);
   
   /**
    * Return a TcpExchange without message.
    * @return TcpExchange without message.
    */
-  public Optional<TcpExchange> noMessage();
+  @Override
+  public Optional<? extends TcpExchange> noMessage();
+  
+  /**
+   * Return a TcpExchange without message.
+   * @return TcpExchange without message.
+   */
+  @Override
+  public Optional<? extends TcpExchange> forward();
   
   
   
   public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
-    return new TcpExchangeImpl(channel, ctx, new TreeMap<>(), Optional.of(msg));
+    return new Impl(channel, ctx, new TreeMap<>(), Optional.of(msg));
   }
   
   public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx) {
-    return new TcpExchangeImpl(channel, ctx, new TreeMap<>(), Optional.empty());
+    return new Impl(channel, ctx, new TreeMap<>(), Optional.empty());
   }
   
   
   
   
   
-  static class TcpExchangeImpl implements TcpExchange {
+  static class Impl implements TcpExchange {
     
-    private final TcpChannel channel;
+    protected final TcpChannel channel;
     
-    private final ChannelHandlerContext context;
+    protected final ChannelHandlerContext context;
     
-    private final Map<String,Object> attributes;
+    protected final Map<String,Object> attributes;
     
-    private final Optional<Object> message;
+    protected final Optional<Object> message;
     
-    public TcpExchangeImpl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Optional<Object> msg) {
+    public Impl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Optional<Object> msg) {
       this.channel = channel;
       this.context = ctx;
       this.attributes = attrs;
@@ -121,7 +130,7 @@ public interface TcpExchange {
     }
     
     @Override
-    public Optional<TcpExchange> shutdown() {
+    public Optional<? extends TcpExchange> shutdown() {
       channel.shutdown();
       return empty();
     }
@@ -132,12 +141,17 @@ public interface TcpExchange {
     }
     
     @Override
+    public TcpChannel channel() {
+      return channel;
+    }
+    
+    @Override
     public Map<String, Object> attributes() {
       return attributes;
     }
     
     @Override
-    public TcpExchange setAttribute(String key, Object val) {
+    public TcpExchange setAttr(String key, Object val) {
       if(key != null && val != null) {
         attributes.put(key, val);
       }
@@ -145,56 +159,62 @@ public interface TcpExchange {
     }
     
     @Override
-    public Optional<Object> getAttribute(String key) {
-      return Optional.ofNullable(attributes.get(key));
+    public <T> Optional<T> getAttr(String key) {
+      return Optional.ofNullable((T)attributes.get(key));
     }
     
     @Override
-    public Optional<Object> message() {
-      return message;
+    public <T> Optional<T> message() {
+      return message.map(o->(T)o);
     }
     
     @Override
-    public Optional<TcpExchange> withMessage(Object msg) {
-      return Optional.of(new TcpExchangeImpl(channel, context, attributes, Optional.of(msg)));
+    public Optional<? extends TcpExchange> withMessage(Object msg) {
+      return Optional.of(new Impl(channel, context, attributes, Optional.of(msg)));
     }
     
     @Override
-    public Optional<TcpExchange> noMessage() {
-      return Optional.of(new TcpExchangeImpl(channel, context, attributes, Optional.empty()));
+    public Optional<? extends TcpExchange> noMessage() {
+      return Optional.of(new Impl(channel, context, attributes, Optional.empty()));
     }
     
     @Override
-    public Optional<TcpExchange> send(Object msg) {
+    public Optional<? extends TcpExchange> send(Object msg) {
       context.writeAndFlush(msg);
       return empty();
     }
     
     @Override
-    public Optional<TcpExchange> send() {
+    public Optional<? extends TcpExchange> send() {
       return send(message.orElse(Unpooled.EMPTY_BUFFER));
     }
     
     @Override
-    public Optional<TcpExchange> sendAndClose(Object msg) {
+    public Optional<? extends TcpExchange> sendAndClose(Object msg) {
       context.writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
       return empty();
     }
     
     @Override
-    public Optional<TcpExchange> sendAndClose() {
+    public Optional<? extends TcpExchange> sendAndClose() {
       return sendAndClose(message.orElse(Unpooled.EMPTY_BUFFER));
     }
     
     @Override
-    public Optional<TcpExchange> close() {
+    public Optional<? extends TcpExchange> close() {
       context.close();
       return empty();
     }
     
     @Override
-    public Optional<TcpExchange> empty() {
+    public Optional<? extends TcpExchange> empty() {
       return Optional.empty();
+    }
+
+
+    @Override
+    public Optional<? extends TcpExchange> forward() {
+      return Optional.of(this);
     }
     
   }

@@ -5,7 +5,11 @@
  */
 package net.jun0rr.doxy.server.http.impl;
 
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.KeyManagementException;
@@ -15,7 +19,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -30,26 +33,14 @@ import net.jun0rr.doxy.server.http.HttpServerConfig;
  */
 public class SSLHandlerFactory {
   
-  private final HttpServerConfig config;
-  
-  public SSLHandlerFactory(HttpServerConfig cfg) {
-    this.config = Objects.requireNonNull(cfg, "Bad null DoxyConfig");
-    if(config.getKeystorePath() == null || !Files.exists(config.getKeystorePath())) {
-      throw new IllegalStateException("Bad null/missing keystore file (cfg.getKeystorePath): " + config.getKeystorePath());
-    }
-    if(config.getKeystorePassword()== null || config.getKeystorePassword().length < 1) {
-      throw new IllegalStateException("Bad null/empty keystore password (cfg.getKeystorePass)");
-    }
-  }
-  
-  private SSLContext createSSLContext() throws IOException {
+  private static SSLContext newServerSSLContext(HttpServerConfig cfg) throws IOException {
     try {
       KeyStore ks = KeyStore.getInstance(
-          config.getKeystorePath().toFile(), 
-          config.getKeystorePassword()
+          cfg.getKeystorePath().toFile(), 
+          cfg.getKeystorePassword()
       );
       KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      kmf.init(ks, config.getKeystorePassword());
+      kmf.init(ks, cfg.getKeystorePassword());
       SSLContext ctx = SSLContext.getInstance("TLS");
       ctx.init(kmf.getKeyManagers(), TRUST_ALL_CERTS, null);
       return ctx;
@@ -62,12 +53,52 @@ public class SSLHandlerFactory {
     }
   }
   
-  public SslHandler create() throws IOException {
-    SSLContext ctx = createSSLContext();
+  public static SslHandler newServerHandler(HttpServerConfig cfg) throws IOException {
+    if(cfg.getKeystorePath() == null || !Files.exists(cfg.getKeystorePath())) {
+      throw new IllegalStateException("Bad null/missing keystore file (cfg.getKeystorePath): " + cfg.getKeystorePath());
+    }
+    if(cfg.getKeystorePassword()== null || cfg.getKeystorePassword().length < 1) {
+      throw new IllegalStateException("Bad null/empty keystore password (cfg.getKeystorePass)");
+    }
+    SSLContext ctx = newServerSSLContext(cfg);
     SSLEngine eng = ctx.createSSLEngine();
     eng.setUseClientMode(false);
     eng.setNeedClientAuth(false);
     return new SslHandler(eng);
+  }
+  
+  public static SslHandler newServerHandler2(HttpServerConfig cfg, ByteBufAllocator alloc) throws IOException {
+    if(cfg.getKeystorePath() == null || !Files.exists(cfg.getKeystorePath())) {
+      throw new IllegalStateException("Bad null/missing keystore file (cfg.getKeystorePath): " + cfg.getKeystorePath());
+    }
+    if(cfg.getKeystorePassword()== null || cfg.getKeystorePassword().length < 1) {
+      throw new IllegalStateException("Bad null/empty keystore password (cfg.getKeystorePass)");
+    }
+    try {
+      KeyStore ks = KeyStore.getInstance(
+          cfg.getKeystorePath().toFile(), 
+          cfg.getKeystorePassword()
+      );
+      KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      kmf.init(ks, cfg.getKeystorePassword());
+      return SslContextBuilder.forServer(kmf)
+          .trustManager(InsecureTrustManagerFactory.INSTANCE)
+          .build()
+          .newHandler(alloc);
+    } 
+    catch(KeyStoreException 
+        | NoSuchAlgorithmException 
+        | UnrecoverableKeyException 
+        | CertificateException ex) {
+      throw new IOException(ex.toString(), ex);
+    }
+  }
+  
+  public static SslHandler newClientHandler(ByteBufAllocator alloc) throws IOException {
+    return SslContextBuilder.forClient()
+        .trustManager(InsecureTrustManagerFactory.INSTANCE)
+        .build()
+        .newHandler(alloc);
   }
   
   

@@ -21,16 +21,10 @@ public interface HttpServerConfig {
   
   public String getServerName();
   
-  public String getUserAgent();
   
   
-  
-  public static HttpServerConfigBuilder builder() {
-    return HttpServerConfigBuilder.newBuilder();
-  }
-  
-  public static HttpServerConfig of(Path kspath, char[] kspass, String serverName, String userAgent) {
-    return new HttpServerConfigImpl(kspath, kspass, serverName, userAgent);
+  public static HttpServerConfig of(Path kspath, char[] kspass, String serverName) {
+    return new HttpServerConfigImpl(kspath, kspass, serverName);
   }
   
   
@@ -45,14 +39,11 @@ public interface HttpServerConfig {
 
     private final String serverName;
 
-    private final String userAgent;
 
-
-    public HttpServerConfigImpl(Path kspath, char[] kspass, String serverName, String userAgent) {
+    public HttpServerConfigImpl(Path kspath, char[] kspass, String serverName) {
       this.kspath = kspath;
       this.kspass = kspass;
       this.serverName = serverName;
-      this.userAgent = userAgent;
     }
 
     @Override
@@ -71,15 +62,9 @@ public interface HttpServerConfig {
     }
 
     @Override
-    public String getUserAgent() {
-      return userAgent;
-    }
-
-    @Override
     public String toString() {
       return "HttpServerConfig{" 
           + "  - serverName=" + serverName + "\n"
-          + "  - userAgent=" + userAgent + "\n"
           + "  - keystore=" + kspath + "\n"
           + '}';
     }
