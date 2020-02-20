@@ -36,10 +36,6 @@ public class HttpClient extends AbstractTcpChannel {
     this.handlers = new LinkedList<>();
   }
   
-  protected HttpClient(ChannelFuture future) {
-    super(future);
-  }
-  
   public static HttpClient open() {
     return open(bootstrap(new NioEventLoopGroup(1)));
   }

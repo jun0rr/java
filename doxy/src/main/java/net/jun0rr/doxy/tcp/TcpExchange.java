@@ -8,6 +8,7 @@ package net.jun0rr.doxy.tcp;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.ReferenceCountUtil;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -131,6 +132,7 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> shutdown() {
+      close();
       channel.shutdown();
       return empty();
     }
@@ -180,6 +182,9 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> send(Object msg) {
+      if(message().isPresent() && message().get() != msg) {
+        ReferenceCountUtil.release(message.get());
+      }
       context.writeAndFlush(msg);
       return empty();
     }
@@ -191,6 +196,9 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> sendAndClose(Object msg) {
+      if(message().isPresent() && message().get() != msg) {
+        ReferenceCountUtil.release(message.get());
+      }
       context.writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
       return empty();
     }
@@ -202,6 +210,7 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> close() {
+      message().ifPresent(m->ReferenceCountUtil.release(m));
       context.close();
       return empty();
     }

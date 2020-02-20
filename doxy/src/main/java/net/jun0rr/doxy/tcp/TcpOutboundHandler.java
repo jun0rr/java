@@ -5,6 +5,7 @@
  */
 package net.jun0rr.doxy.tcp;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandler;
 import io.netty.channel.ChannelPromise;
@@ -30,7 +31,20 @@ public class TcpOutboundHandler implements ChannelOutboundHandler {
     try {
       if(msg instanceof TcpExchange) {
         TcpExchange ex = (TcpExchange) msg;
+        if(ex.message().isPresent()) {
+          ctx.writeAndFlush(ex.message().get(), cp)/*.addListener(f->{
+            if(ex.<ByteBuf>message().get().refCnt() > 0) {
+              ex.<ByteBuf>message().get().release();
+            }
+          })*/;
+        }
         ex.message().ifPresent(o->ctx.writeAndFlush(o, cp));
+      }
+      else if(msg instanceof ByteBuf) {
+        ByteBuf b = (ByteBuf) msg;
+        ctx.writeAndFlush(b, cp)/*.addListener(f->{
+          if(b.refCnt() > 0) b.release();
+        })*/;
       }
       else {
         ctx.writeAndFlush(msg, cp);
