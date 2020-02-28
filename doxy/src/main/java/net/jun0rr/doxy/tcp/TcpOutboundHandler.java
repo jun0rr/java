@@ -5,20 +5,18 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundHandler;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import java.net.SocketAddress;
 
 
 /**
  *
  * @author Juno
  */
-public class TcpOutboundHandler implements ChannelOutboundHandler {
+public class TcpOutboundHandler extends ChannelOutboundHandlerAdapter {
   
   private final InternalLogger log;
   
@@ -30,21 +28,7 @@ public class TcpOutboundHandler implements ChannelOutboundHandler {
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
       if(msg instanceof TcpExchange) {
-        TcpExchange ex = (TcpExchange) msg;
-        if(ex.message().isPresent()) {
-          ctx.writeAndFlush(ex.message().get(), cp)/*.addListener(f->{
-            if(ex.<ByteBuf>message().get().refCnt() > 0) {
-              ex.<ByteBuf>message().get().release();
-            }
-          })*/;
-        }
-        ex.message().ifPresent(o->ctx.writeAndFlush(o, cp));
-      }
-      else if(msg instanceof ByteBuf) {
-        ByteBuf b = (ByteBuf) msg;
-        ctx.writeAndFlush(b, cp)/*.addListener(f->{
-          if(b.refCnt() > 0) b.release();
-        })*/;
+        ctx.writeAndFlush(((TcpExchange)msg).message(), cp);
       }
       else {
         ctx.writeAndFlush(msg, cp);
@@ -59,44 +43,5 @@ public class TcpOutboundHandler implements ChannelOutboundHandler {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
     log.error(e);
   }
-  
-  @Override
-  public void bind(ChannelHandlerContext ctx, SocketAddress sa, ChannelPromise cp) throws Exception {
-    ctx.bind(sa, cp);
-  }
-  
-  @Override
-  public void connect(ChannelHandlerContext ctx, SocketAddress sa, SocketAddress sa1, ChannelPromise cp) throws Exception {
-    ctx.connect(sa, sa1, cp);
-  }
-  
-  @Override
-  public void disconnect(ChannelHandlerContext ctx, ChannelPromise cp) throws Exception {
-    ctx.disconnect(cp);
-  }
-  
-  @Override
-  public void close(ChannelHandlerContext ctx, ChannelPromise cp) throws Exception {
-    ctx.close(cp);
-  }
-  
-  @Override
-  public void deregister(ChannelHandlerContext ctx, ChannelPromise cp) throws Exception {
-    ctx.deregister(cp);
-  }
-  
-  @Override
-  public void read(ChannelHandlerContext ctx) throws Exception {
-    ctx.read();
-  }
-  
-  @Override
-  public void flush(ChannelHandlerContext ctx) throws Exception {
-    ctx.flush();
-  }
-  
-  @Override public void handlerAdded(ChannelHandlerContext ctx) throws Exception {}
-  
-  @Override public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {}
   
 }

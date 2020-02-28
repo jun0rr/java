@@ -9,11 +9,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
+import net.jun0rr.doxy.tcp.OutputTcpChannel;
 import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpHandler;
 import net.jun0rr.doxy.tcp.TcpServer;
@@ -33,10 +34,7 @@ public class TestTcpServer {
     System.out.println("------ echoServer ------");
     final AtomicInteger count = new AtomicInteger(1);
     Supplier<TcpHandler> hnd = ()-> x->{
-      if(x.message().isPresent()) {
-        ByteBuf buf = (ByteBuf) x.message().get();
-        System.out.println("[SERVER] " + buf.toString(StandardCharsets.UTF_8));
-      }
+      System.out.println("[SERVER] " + x.<ByteBuf>message().toString(StandardCharsets.UTF_8));
       x.send();
       if(count.decrementAndGet() <= 0) {
         x.shutdown();
@@ -48,13 +46,9 @@ public class TestTcpServer {
         .bind(Host.of("0.0.0.0", 3344))
         .onComplete(c->System.out.println("- Server listening on " + c.localAddress()))
         .start()
-        .sync()
-        ;
+        .sync();
     hnd = ()-> x->{
-      if(x.message().isPresent()) {
-        ByteBuf buf = (ByteBuf) x.message().get();
-        System.out.println("[CLIENT] " + buf.toString(StandardCharsets.UTF_8));
-      }
+      System.out.println("[CLIENT] " + x.<ByteBuf>message().toString(StandardCharsets.UTF_8));
       return x.empty();
     };
     ByteBuf msg1 = Unpooled.copiedBuffer("Hello", StandardCharsets.UTF_8);
@@ -90,28 +84,24 @@ public class TestTcpServer {
   public void timestampServer() {
     System.out.println("------ timestampServer ------");
     final AtomicInteger count = new AtomicInteger(1);
-    Supplier<TcpHandler> hnd = ()-> x->{
-      ByteBuf msg = x.context().alloc().buffer(Long.BYTES);
+    Supplier<Consumer<OutputTcpChannel>> chandler = ()-> c->{
+      ByteBuf msg = c.channel().get().alloc().buffer(Long.BYTES);
       msg.writeLong(Instant.now().toEpochMilli());
-      x.sendAndClose(msg);
+      c.send(msg).closeChannel();
       if(count.decrementAndGet() <= 0) {
-        x.shutdown();
+        c.shutdown();
       }
-      return x.empty();
     };
     TcpServer server = TcpServer.open()
-        .addConnectHandler(hnd)
+        .addConnectHandler(chandler)
         .bind(Host.of("0.0.0.0", 3344))
         .onComplete(c->System.out.println("- Server listening on " + c.localAddress()))
         .start()
         .sync()
         ;
-    hnd = ()-> x->{
-      if(x.message().isPresent()) {
-        ByteBuf buf = (ByteBuf) x.message().get();
-        Instant timestamp = Instant.ofEpochMilli(buf.readLong());
-        System.out.printf("[CLIENT] Timestamp: %s%n", timestamp);
-      }
+    Supplier<TcpHandler> hnd = ()-> x->{
+      Instant timestamp = Instant.ofEpochMilli(x.<ByteBuf>message().readLong());
+      System.out.printf("[CLIENT] Timestamp: %s%n", timestamp);
       return x.close();
     };
     TcpClient cli = TcpClient.open()

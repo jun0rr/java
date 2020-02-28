@@ -7,12 +7,12 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import us.pserver.tools.Unchecked;
@@ -22,14 +22,14 @@ import us.pserver.tools.Unchecked;
  *
  * @author juno
  */
-public class ConnectedTcpChannel implements TcpChannel {
+public class ConnectedTcpChannel implements OutputTcpChannel {
   
   protected final EventLoopGroup group;
-  protected final AtomicReference<Future> future;
+  protected volatile Future future;
   
   public ConnectedTcpChannel(ChannelFuture future) {
     this.group = future.channel().eventLoop().parent();
-    this.future = new AtomicReference<>(future);
+    this.future = future;
   }
   
   /**
@@ -69,7 +69,7 @@ public class ConnectedTcpChannel implements TcpChannel {
   @Override
   public ConnectedTcpChannel onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
     if(success != null && error != null) {
-      future.get().addListener(f->{
+      future.addListener(f->{
         if(f.isSuccess()) success.accept(((ChannelFuture)f).channel());
         else error.accept(f.cause());
       });
@@ -96,7 +96,7 @@ public class ConnectedTcpChannel implements TcpChannel {
   @Override
   public ConnectedTcpChannel onShutdown(Consumer<EventLoopGroup> success, Consumer<Throwable> error) {
     if(success != null && error != null) {
-      future.get().addListener(f->{
+      future.addListener(f->{
         if(f.isSuccess()) success.accept(group);
         else error.accept(f.cause());
       });
@@ -110,7 +110,7 @@ public class ConnectedTcpChannel implements TcpChannel {
    */
   @Override
   public ConnectedTcpChannel sync() {
-    future.get().syncUninterruptibly();
+    future.syncUninterruptibly();
     return this;
   }
   
@@ -129,11 +129,12 @@ public class ConnectedTcpChannel implements TcpChannel {
    */
   @Override
   public void close() {
-    future.get().addListener(f->future.set(((ChannelFuture)f).channel().close()));
+    future.addListener(f->{ future = ((ChannelFuture)f).channel().close(); });
   }
   
+  @Override
   public ConnectedTcpChannel send(Object obj) {
-    future.get().addListener(f->future.set(((ChannelFuture)f).channel().writeAndFlush(obj)));
+    future.addListener(f->{ future = ((ChannelFuture)f).channel().writeAndFlush(obj); });
     return this;
   }
   
@@ -155,8 +156,8 @@ public class ConnectedTcpChannel implements TcpChannel {
    */
   @Override
   public ConnectedTcpChannel shutdown() {
-    future.get().addListener(f->((ChannelFuture)f).channel().close()
-        .addListener(ff->future.set(group.shutdownGracefully())));
+    future.addListener(f->((ChannelFuture)f).channel().close()
+        .addListener(ff->{ future = group.shutdownGracefully(); }));
     return this;
   }
   
@@ -175,9 +176,8 @@ public class ConnectedTcpChannel implements TcpChannel {
    */
   @Override
   public Optional<Channel> channel() {
-    Future f = future.get();
-    if(f != null && f instanceof ChannelFuture) {
-      ChannelFuture cf = (ChannelFuture) f;
+    if(future != null && future instanceof ChannelFuture) {
+      ChannelFuture cf = (ChannelFuture) future;
       return Optional.of(cf.channel());
     }
     return Optional.empty();

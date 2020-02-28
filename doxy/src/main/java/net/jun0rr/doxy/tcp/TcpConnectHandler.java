@@ -6,72 +6,26 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 
 /**
  *
  * @author Juno
  */
-public class TcpConnectHandler implements ChannelInboundHandler {
+public class TcpConnectHandler extends ChannelInboundHandlerAdapter {
   
-  private final TcpHandler handler;
+  private final Consumer<OutputTcpChannel> handler;
   
-  private final TcpChannel channel;
-  
-  public TcpConnectHandler(TcpChannel channel, TcpHandler handler) {
-    this.channel = channel;
+  public TcpConnectHandler(Consumer<OutputTcpChannel> handler) {
     this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
   }
   
   @Override 
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    ctx.fireChannelRead(msg);
-  }
-  
-  @Override 
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    ctx.fireExceptionCaught(e);
-  }
-  
-  @Override
-  public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelReadComplete();
-  }
-  
-  @Override 
-  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelRegistered();
-  }
-  
-  @Override 
-  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelUnregistered();
-  }
-  
-  @Override 
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    handler.handle(TcpExchange.of(channel, ctx));
+    handler.accept(new ConnectedTcpChannel(ctx.channel().newSucceededFuture()));
   }
-  
-  @Override 
-  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelInactive();
-  }
-  
-  @Override 
-  public void userEventTriggered(ChannelHandlerContext ctx, Object o) throws Exception {
-    ctx.fireUserEventTriggered(o);
-  }
-  
-  @Override 
-  public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-    ctx.fireChannelWritabilityChanged();
-  }
-  
-  @Override public void handlerAdded(ChannelHandlerContext ctx) throws Exception {}
-  
-  @Override public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {}
   
 }

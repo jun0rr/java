@@ -90,23 +90,12 @@ public interface TcpExchange extends MessageContainer {
    * @return TcpExchange without message.
    */
   @Override
-  public Optional<? extends TcpExchange> noMessage();
-  
-  /**
-   * Return a TcpExchange without message.
-   * @return TcpExchange without message.
-   */
-  @Override
   public Optional<? extends TcpExchange> forward();
   
   
   
   public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
-    return new Impl(channel, ctx, new TreeMap<>(), Optional.of(msg));
-  }
-  
-  public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx) {
-    return new Impl(channel, ctx, new TreeMap<>(), Optional.empty());
+    return new Impl(channel, ctx, new TreeMap<>(), msg);
   }
   
   
@@ -121,9 +110,9 @@ public interface TcpExchange extends MessageContainer {
     
     protected final Map<String,Object> attributes;
     
-    protected final Optional<Object> message;
+    protected final Object message;
     
-    public Impl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Optional<Object> msg) {
+    public Impl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
       this.channel = channel;
       this.context = ctx;
       this.attributes = attrs;
@@ -166,8 +155,8 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public <T> Optional<T> message() {
-      return message.map(o->(T)o);
+    public <T> T message() {
+      return (T) message;
     }
     
     @Override
@@ -176,14 +165,9 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public Optional<? extends TcpExchange> noMessage() {
-      return Optional.of(new Impl(channel, context, attributes, Optional.empty()));
-    }
-    
-    @Override
     public Optional<? extends TcpExchange> send(Object msg) {
-      if(message().isPresent() && message().get() != msg) {
-        ReferenceCountUtil.release(message.get());
+      if(message() != msg) {
+        ReferenceCountUtil.release(message);
       }
       context.writeAndFlush(msg);
       return empty();
@@ -191,13 +175,13 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> send() {
-      return send(message.orElse(Unpooled.EMPTY_BUFFER));
+      return send(message);
     }
     
     @Override
     public Optional<? extends TcpExchange> sendAndClose(Object msg) {
-      if(message().isPresent() && message().get() != msg) {
-        ReferenceCountUtil.release(message.get());
+      if(message() != msg) {
+        ReferenceCountUtil.release(message);
       }
       context.writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
       return empty();
@@ -205,12 +189,12 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> sendAndClose() {
-      return sendAndClose(message.orElse(Unpooled.EMPTY_BUFFER));
+      return sendAndClose(message);
     }
     
     @Override
     public Optional<? extends TcpExchange> close() {
-      message().ifPresent(m->ReferenceCountUtil.release(m));
+      ReferenceCountUtil.release(message);
       context.close();
       return empty();
     }

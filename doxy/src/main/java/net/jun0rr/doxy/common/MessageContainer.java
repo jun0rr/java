@@ -14,11 +14,9 @@ import java.util.Optional;
  */
 public interface MessageContainer {
   
-  public <T> Optional<T> message();
+  public <T> T message();
   
   public Optional<? extends MessageContainer> withMessage(Object msg);
-  
-  public Optional<? extends MessageContainer> noMessage();
   
   public Optional<? extends MessageContainer> forward();
   

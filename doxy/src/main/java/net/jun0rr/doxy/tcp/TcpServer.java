@@ -28,7 +28,7 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 public class TcpServer extends AbstractTcpChannel {
   
   private final EventLoopGroup childGroup;
-  private final List<Supplier<TcpHandler>> connectHandlers;
+  private final List<Supplier<Consumer<OutputTcpChannel>>> connectHandlers;
   
   public TcpServer(ServerBootstrap bootstrap) {
     super(bootstrap);
@@ -48,7 +48,7 @@ public class TcpServer extends AbstractTcpChannel {
     return new TcpServer(boot);
   }
   
-  public List<Supplier<TcpHandler>> connectHandlers() {
+  public List<Supplier<Consumer<OutputTcpChannel>>> connectHandlers() {
     return connectHandlers;
   }
   
@@ -58,18 +58,19 @@ public class TcpServer extends AbstractTcpChannel {
     return this;
   }
   
-  public TcpServer addConnectHandler(Supplier<TcpHandler> handler) {
+  public TcpServer addConnectHandler(Supplier<Consumer<OutputTcpChannel>> handler) {
+    channelNotCreated();
     if(handler != null) connectHandlers.add(handler);
     return this;
   }
   
   private ServerBootstrap initHandlers(ServerBootstrap sbt) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpConnectHandler(this, s.get());
     ls.add(TcpOutboundHandler::new);
-    connectHandlers.stream().map(fn).forEach(ls::add);
-    fn = s->()->new TcpInboundHandler(this, s.get());
-    messageHandlers.stream().map(fn).forEach(ls::add);
+    Function<Supplier<Consumer<OutputTcpChannel>>,Supplier<ChannelHandler>> cfn = s->()->new TcpConnectHandler(s.get());
+    connectHandlers.stream().map(cfn).forEach(ls::add);
+    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> hfn = s->()->new TcpInboundHandler(this, s.get());
+    messageHandlers.stream().map(hfn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.childHandler(new AddingLastChannelInitializer(ls));
   }

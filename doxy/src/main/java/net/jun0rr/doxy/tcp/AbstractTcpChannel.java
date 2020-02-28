@@ -11,7 +11,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import us.pserver.tools.Unchecked;
@@ -32,17 +31,19 @@ import us.pserver.tools.Unchecked;
 public abstract class AbstractTcpChannel implements TcpChannel {
   
   protected final EventLoopGroup group;
-  protected final AtomicReference<Future> future;
+  protected volatile Future future;
   protected final AbstractBootstrap boot;
   protected final List<Supplier<TcpHandler>> messageHandlers;
   protected final BlockingDeque<TcpEvent> events;
+  protected final AtomicBoolean listening;
   
   public AbstractTcpChannel(AbstractBootstrap bootstrap) {
     this.boot = Objects.requireNonNull(bootstrap, "Bad null Bootstrap");
     this.group = boot.config().group();
     this.messageHandlers = new LinkedList<>();
     this.events = new LinkedBlockingDeque<>();
-    this.future = new AtomicReference<>();
+    this.future = null;
+    this.listening = new AtomicBoolean(false);
   }
   
   /**
@@ -52,6 +53,7 @@ public abstract class AbstractTcpChannel implements TcpChannel {
    */
   @Override
   public AbstractTcpChannel addMessageHandler(Supplier<TcpHandler> handler) {
+    channelNotCreated();
     if(handler != null) messageHandlers.add(handler);
     return this;
   }
@@ -69,14 +71,14 @@ public abstract class AbstractTcpChannel implements TcpChannel {
    * Throws an IllegalStateException if channel is NOT created.
    */
   protected void channelCreated() {
-    if(future.get() == null) throw new IllegalStateException("Channel not connected");
+    if(future == null) throw new IllegalStateException("Channel not connected");
   }
   
   /**
    * Throws an IllegalStateException if channel is created.
    */
   protected void channelNotCreated() {
-    if(future.get() != null) throw new IllegalStateException("Channel already connected");
+    if(future != null) throw new IllegalStateException("Channel already connected");
   }
   
   /**
@@ -89,8 +91,9 @@ public abstract class AbstractTcpChannel implements TcpChannel {
       public void operationComplete(Future f) throws Exception {
         TcpEvent<Future> evt = events.pollFirst();
         if(evt != null) {
-          future.set(evt.apply(f).addListener(listener()));
+          future = evt.apply(f).addListener(listener());
         }
+        else listening.compareAndSet(true, false);
       }
     };
   }
@@ -101,8 +104,8 @@ public abstract class AbstractTcpChannel implements TcpChannel {
    */
   protected void addListener(TcpEvent evt) {
     events.offerLast(evt);
-    if(future.get() != null) {
-      future.get().addListener(listener());
+    if(future != null && listening.compareAndSet(false, true)) {
+      future.addListener(listener());
     }
   }
   
@@ -189,7 +192,7 @@ public abstract class AbstractTcpChannel implements TcpChannel {
   public AbstractTcpChannel start() {
     channelNotCreated();
     TcpEvent<AbstractBootstrap> con = events.pollFirst();
-    future.set(con.apply(boot).addListener(listener()));
+    future = con.apply(boot).addListener(listener());
     return this;
   }
   
@@ -249,9 +252,8 @@ public abstract class AbstractTcpChannel implements TcpChannel {
    */
   @Override
   public Optional<Channel> channel() {
-    Future f = future.get();
-    if(f != null && f instanceof ChannelFuture) {
-      ChannelFuture cf = (ChannelFuture) f;
+    if(future != null && future instanceof ChannelFuture) {
+      ChannelFuture cf = (ChannelFuture) future;
       return Optional.of(cf.channel());
     }
     return Optional.empty();

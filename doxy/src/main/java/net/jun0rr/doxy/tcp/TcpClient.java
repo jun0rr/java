@@ -7,7 +7,6 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -26,7 +25,7 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
  *
  * @author juno
  */
-public class TcpClient extends AbstractTcpChannel {
+public class TcpClient extends AbstractTcpChannel implements OutputTcpChannel {
   
   public TcpClient(Bootstrap bootstrap) {
     super(bootstrap);
@@ -73,13 +72,13 @@ public class TcpClient extends AbstractTcpChannel {
     channelNotCreated();
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [CLIENT] CONNECT ---");
-      ChannelFuture f = initHandlers((Bootstrap)b).connect(host.toSocketAddr());
-      return f;
+      return initHandlers((Bootstrap)b).connect(host.toSocketAddr());
     };
     addListener(evt);
     return this;
   }
   
+  @Override
   public TcpClient send(Object msg) {
     if(msg != null) {
       TcpEvent.ChannelFutureEvent evt = f -> {
