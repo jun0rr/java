@@ -48,6 +48,10 @@ public class HttpServer extends AbstractTcpChannel {
     return new HttpServer(cfg, boot);
   }
   
+  public HttpServerConfig config() {
+    return config;
+  }
+  
   public HttpHandlers httpHandlers() {
     return handlers;
   }
@@ -83,7 +87,7 @@ public class HttpServer extends AbstractTcpChannel {
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [SERVER] BIND ---");
       ServerBootstrap sb = (ServerBootstrap) b;
-      sb.childHandler(handlers.createInitializer());
+      sb.childHandler(handlers.createServerInitializer());
       return sb.bind(host.toSocketAddr());
     };
     addListener(evt);

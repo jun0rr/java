@@ -29,10 +29,6 @@ import us.pserver.tools.Unchecked;
  */
 public class TestNettyTcpPerformance {
   
-  private static final int TOTAL = 10000;
-  
-  private volatile int COUNT = TOTAL;
-  
   private ChannelFuture future = null;
   
   @Test

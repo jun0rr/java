@@ -8,7 +8,6 @@ package net.jun0rr.doxy.tcp;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import java.util.EventListener;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;

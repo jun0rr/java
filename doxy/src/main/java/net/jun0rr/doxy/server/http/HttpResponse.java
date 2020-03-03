@@ -8,7 +8,6 @@ package net.jun0rr.doxy.server.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -27,8 +26,6 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, 
   
   @Override public Optional<HttpResponse> withMessage(Object msg);
   
-  @Override public Optional<HttpResponse> noMessage();
-  
   @Override public Optional<HttpResponse> forward();
   
   @Override public Optional<HttpResponse> empty();
@@ -36,23 +33,23 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, 
   
   
   public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds, Object msg) {
-    return new Impl(vrs, sts, hds, msg);
+    return new HttpResponseImpl(vrs, sts, hds, msg);
   }
   
   public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts, HttpHeaders hds) {
-    return new Impl(vrs, sts, hds);
+    return new HttpResponseImpl(vrs, sts, hds);
   }
   
   public static HttpResponse of(HttpVersion vrs, HttpResponseStatus sts) {
-    return new Impl(vrs, sts);
+    return new HttpResponseImpl(vrs, sts);
   }
   
   public static HttpResponse of(HttpResponseStatus sts, Object msg) {
-    return new Impl(sts, msg);
+    return new HttpResponseImpl(sts, msg);
   }
   
   public static HttpResponse of(HttpResponseStatus sts) {
-    return new Impl(sts);
+    return new HttpResponseImpl(sts);
   }
   
   public static HttpResponse of(FullHttpResponse fr) {
@@ -67,46 +64,41 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, 
   
   
   
-  public static class Impl extends DefaultFullHttpResponse implements HttpResponse {
+  public static class HttpResponseImpl extends DefaultFullHttpResponse implements HttpResponse {
 
-    private final Optional<? extends Object> msg;
+    private final Object msg;
     
-    public Impl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, Object msg) {
+    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, Object msg) {
       super(version, status, (msg instanceof ByteBuf) ? (ByteBuf)msg : Unpooled.EMPTY_BUFFER, headers, EmptyHttpHeaders.INSTANCE);
       this.msg = Optional.ofNullable(msg);
     }
     
-    public Impl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers) {
+    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers) {
       this(version, status, headers, null);
     }
     
-    public Impl(HttpVersion version, HttpResponseStatus status) {
+    public HttpResponseImpl(HttpVersion version, HttpResponseStatus status) {
       super(version, status);
       this.msg = Optional.empty();
     }
     
-    public Impl(HttpResponseStatus status, Object msg) {
+    public HttpResponseImpl(HttpResponseStatus status, Object msg) {
       super(HttpVersion.HTTP_1_1, status);
       this.msg = Optional.ofNullable(msg);
     }
     
-    public Impl(HttpResponseStatus status) {
+    public HttpResponseImpl(HttpResponseStatus status) {
       this(HttpVersion.HTTP_1_1, status);
     }
     
     @Override
-    public <T> Optional<T> message() {
-      return (Optional<T>) msg;
+    public <T> T message() {
+      return (T) msg;
     }
     
     @Override
     public Optional<HttpResponse> withMessage(Object msg) {
-      return Optional.of(new Impl(protocolVersion(), status(), headers(), msg));
-    }
-    
-    @Override
-    public Optional<HttpResponse> noMessage() {
-      return Optional.of(new Impl(protocolVersion(), status(), headers()));
+      return Optional.of(new HttpResponseImpl(protocolVersion(), status(), headers(), msg));
     }
     
     @Override

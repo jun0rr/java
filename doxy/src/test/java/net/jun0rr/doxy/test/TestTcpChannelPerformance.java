@@ -11,7 +11,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 import net.jun0rr.doxy.tcp.TcpClient;
@@ -27,14 +27,14 @@ import us.pserver.tools.Timer;
  */
 public class TestTcpChannelPerformance {
   
-  private static final int COUNT = 1000;
+  private static final int TOTAL = 10000;
+  
+  public AtomicInteger COUNT = new AtomicInteger(TOTAL);
   
   @Test
   public void tcpClient() throws InterruptedException {
     System.out.println("----- tcpClient() -----");
     Timer tm = new Timer.Nanos();
-    for(int j = 0; j < 5; j++) {
-    CountDownLatch cd = new CountDownLatch(COUNT-1);
     Supplier<TcpHandler> h = ()->x->{
       return x.send();
     };
@@ -46,25 +46,38 @@ public class TestTcpChannelPerformance {
         .sync();
     Host target = Host.of("localhost:4321");
     EventLoopGroup clients = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()*2);
-    if(j == 0) tm.start();
-    for(int i = 0; i < COUNT; i++) {
+    tm.start();
+    for(int i = 0; i < TOTAL; i++) {
       ByteBuf msg = Unpooled.copiedBuffer("Hello World!", StandardCharsets.UTF_8);
       TcpClient.open(clients)
           .addMessageHandler(()->x->{
-            cd.countDown();
+            COUNT.decrementAndGet();
             return x.close();
           })
           .connect(target)
-          .send(msg)
+          .write(msg)
           .start();
     }
-    cd.await();
-    if(j == 4) tm.lapAndStop();
-    else tm.lap();
+    
+    System.out.println("* Waiting CountDown...");
+    int cc = COUNT.get();
+    int retry = 100;
+    while(COUNT.get() > 0) {
+      if(retry <= 0) {
+        System.out.println("# ERROR clients(): COUNT(" + COUNT + ") is static for " + 100*50 + " millis...");
+        break;
+      }
+      Thread.sleep(50);
+      if(COUNT.get() == cc) {
+        retry--;
+      }
+      cc = COUNT.get();
+    }
+      
+    tm.stop();
     System.out.println(tm);
     server.shutdown().sync();
     clients.shutdownGracefully();
-    }
   }
   
 }

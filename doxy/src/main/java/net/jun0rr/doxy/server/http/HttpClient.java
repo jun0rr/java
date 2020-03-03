@@ -27,9 +27,9 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
  *
  * @author juno
  */
-public class HttpClient extends AbstractTcpChannel {
+public class HttpClient extends AbstractTcpChannel implements WritableTcpChannel {
   
-  private final List<HttpHandler> handlers;
+  private final List<Supplier<HttpHandler>> handlers;
   
   public HttpClient(Bootstrap bootstrap) {
     super(bootstrap);
@@ -57,10 +57,19 @@ public class HttpClient extends AbstractTcpChannel {
         .group(group);
   }
   
+  /**
+   * Unsupported operation
+   * @param handler
+   * @throws UnsupportedOperationException
+   */
   @Override
-  public HttpClient addMessageHandler(Supplier<TcpHandler> handler) {
+  public HttpClient addMessageHandler(Supplier<TcpHandler> handler) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException();
+  }
+  
+  public HttpClient addHttpHandler(Supplier<HttpHandler> handler) {
     channelNotCreated();
-    super.addMessageHandler(handler);
+    handlers.add(handler);
     return this;
   }
   
@@ -84,7 +93,8 @@ public class HttpClient extends AbstractTcpChannel {
     return this;
   }
   
-  public HttpClient send(Object msg) {
+  @Override
+  public HttpClient write(Object msg) {
     if(msg != null) {
       TcpEvent.ChannelFutureEvent evt = f -> {
         //System.out.println("--- [CLIENT] SEND ---");

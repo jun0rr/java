@@ -129,12 +129,12 @@ public class ConnectedTcpChannel implements WritableTcpChannel {
    */
   @Override
   public void close() {
-    future.getAcquire().addListener(f->future.setRelease(((ChannelFuture)f).channel().close()));
+    future.get().addListener(f->future.set(((ChannelFuture)f).channel().close()));
   }
   
   @Override
   public ConnectedTcpChannel write(Object obj) {
-    future.getAcquire().addListener(f->future.setRelease(((ChannelFuture)f).channel().writeAndFlush(obj)));
+    future.get().addListener(f->future.set(((ChannelFuture)f).channel().writeAndFlush(obj)));
     return this;
   }
   
@@ -156,8 +156,8 @@ public class ConnectedTcpChannel implements WritableTcpChannel {
    */
   @Override
   public ConnectedTcpChannel shutdown() {
-    ((ChannelFuture)future.getAcquire()).channel().closeFuture().addListener(f->
-        future.setRelease(group.shutdownGracefully())
+    ((ChannelFuture)future.get()).channel().closeFuture().addListener(f->
+        future.set(group.shutdownGracefully())
     );
     close();
     return this;

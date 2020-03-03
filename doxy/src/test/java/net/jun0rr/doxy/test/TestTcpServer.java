@@ -62,8 +62,8 @@ public class TestTcpServer {
         .addMessageHandler(hnd)
         .connect(Host.of("localhost:3344"))
         .onComplete(f->System.out.printf("- Client Connected: %s --> %s%n", f.localAddress(), f.remoteAddress()))
-        .send(msg1)
-        .send(msg2)
+        .write(msg1)
+        .write(msg2)
         .onComplete(f->System.out.println("- Message Sent"))
         .start();
     cli.write(msg3)

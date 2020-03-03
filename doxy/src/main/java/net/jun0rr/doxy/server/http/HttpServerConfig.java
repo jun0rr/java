@@ -6,7 +6,6 @@
 package net.jun0rr.doxy.server.http;
 
 import java.nio.file.Path;
-import net.jun0rr.doxy.cfg.*;
 
 
 /**

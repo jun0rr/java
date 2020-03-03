@@ -24,9 +24,8 @@ public class TestTcpClient {
     //TcpClient2 cli = TcpClient2.open()
     TcpClient.open()
         .addMessageHandler(()-> x->{
-          System.out.printf("--- TcpHandler: message=%s ---%n", x.message().orElse("<empty>"));
-          if(x.message().isEmpty()) return x.empty();
-          ByteBuf msg = (ByteBuf) x.message().get();
+          //System.out.printf("--- TcpHandler: message=%s ---%n", x.message().orElse("<empty>"));
+          ByteBuf msg = (ByteBuf) x.message();
           System.out.printf("[server response]>> '%s'%n", msg.toString(StandardCharsets.UTF_8));
           return x.empty();
         })

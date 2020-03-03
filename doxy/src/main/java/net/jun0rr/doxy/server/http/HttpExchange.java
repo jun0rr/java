@@ -39,13 +39,6 @@ public interface HttpExchange extends TcpExchange {
   @Override public Optional<HttpExchange> withMessage(Object msg);
   
   /**
-   * Return a new HttpExchange (filled Optional) without HttpResponse message 
-   * <code>(HttpExchange.response().message().isEmpty() == true)</code>.
-   * @return Optional filled with a new HttpExchange.
-   */
-  @Override public Optional<HttpExchange> noMessage();
-  
-  /**
    * Return this HttpExchange (filled Optional).
    * @return Optional filled with this HttpExchange.
    */
@@ -69,7 +62,7 @@ public interface HttpExchange extends TcpExchange {
   
   @Override public Optional<HttpExchange> sendAndClose(Object content);
   
-  @Override public Optional<HttpRequest> message();
+  @Override public HttpRequest message();
   
   @Override public Optional<HttpExchange> close();
   
@@ -171,13 +164,13 @@ public interface HttpExchange extends TcpExchange {
     }
     
     @Override
-    public Optional<HttpRequest> message() {
-      return Optional.of(request);
+    public HttpRequest message() {
+      return request;
     }
     
     @Override
     public Optional<HttpExchange> withMessage(Object msg) {
-      Optional<HttpExchange> opt = noMessage();
+      Optional<HttpExchange> opt = empty();
       if(msg != null) {
         if(msg instanceof HttpRequest) {
           opt = Optional.of(of(channel, context, (HttpRequest)msg, response));
@@ -190,11 +183,6 @@ public interface HttpExchange extends TcpExchange {
         }
       }
       return opt;
-    }
-    
-    @Override
-    public Optional<HttpExchange> noMessage() {
-      return withResponse(HttpResponse.of(response.protocolVersion(), response.status(), response.headers()));
     }
     
     @Override

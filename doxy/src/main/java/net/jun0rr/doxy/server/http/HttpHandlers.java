@@ -6,7 +6,6 @@
 package net.jun0rr.doxy.server.http;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -32,7 +31,6 @@ import net.jun0rr.doxy.server.http.impl.RoutableHttpHandler;
 import net.jun0rr.doxy.server.http.impl.SSLHandlerFactory;
 import net.jun0rr.doxy.server.http.impl.ServerErrorFunction;
 import net.jun0rr.doxy.server.http.impl.UncaughtExceptionHandler;
-import net.jun0rr.doxy.tcp.InboundHandler;
 import us.pserver.tools.Unchecked;
 
 

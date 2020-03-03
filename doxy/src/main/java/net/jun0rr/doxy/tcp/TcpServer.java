@@ -54,6 +54,7 @@ public class TcpServer extends AbstractTcpChannel {
   
   @Override
   public TcpServer addMessageHandler(Supplier<TcpHandler> handler) {
+    channelNotCreated();
     super.addMessageHandler(handler);
     return this;
   }

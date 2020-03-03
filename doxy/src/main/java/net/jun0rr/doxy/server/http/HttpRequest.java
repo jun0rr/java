@@ -25,8 +25,6 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
   
   @Override public Optional<HttpRequest> withMessage(Object msg);
   
-  @Override public Optional<HttpRequest> noMessage();
-  
   @Override public Optional<HttpRequest> forward();
   
   @Override public Optional<HttpRequest> empty();
@@ -34,15 +32,15 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
   
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
-    return new Impl(vrs, mth, uri, hds, body);
+    return new HttpRequestImpl(vrs, mth, uri, hds, body);
   }
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
-    return new Impl(vrs, mth, uri, hds);
+    return new HttpRequestImpl(vrs, mth, uri, hds);
   }
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri) {
-    return new Impl(vrs, mth, uri);
+    return new HttpRequestImpl(vrs, mth, uri);
   }
   
   public static HttpRequest of(FullHttpRequest fr) {
@@ -57,37 +55,32 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
   
   
   
-  public static class Impl extends DefaultFullHttpRequest implements HttpRequest {
+  public static class HttpRequestImpl extends DefaultFullHttpRequest implements HttpRequest {
     
-    private final Optional<? extends Object> body;
+    private final Object body;
     
-    public Impl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
+    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
       super(vrs, mth, uri, (body instanceof ByteBuf) ? (ByteBuf)body : Unpooled.EMPTY_BUFFER);
-      this.body = Optional.ofNullable(body);
+      this.body = body;
     }
     
-    public Impl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
+    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
       this(vrs, mth, uri, hds, null);
     }
     
-    public Impl(HttpVersion vrs, HttpMethod mth, String uri) {
+    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri) {
       super(vrs, mth, uri);
       this.body = Optional.empty();
     }
     
     @Override
-    public <T> Optional<T> message() {
-      return (Optional<T>) body;
+    public <T> T message() {
+      return (T) body;
     }
     
     @Override
     public Optional<HttpRequest> withMessage(Object msg) {
-      return Optional.of(new Impl(protocolVersion(), method(), uri(), headers(), msg));
-    }
-    
-    @Override
-    public Optional<HttpRequest> noMessage() {
-      return Optional.of(new Impl(protocolVersion(), method(), uri(), headers()));
+      return Optional.of(new HttpRequestImpl(protocolVersion(), method(), uri(), headers(), msg));
     }
     
     @Override

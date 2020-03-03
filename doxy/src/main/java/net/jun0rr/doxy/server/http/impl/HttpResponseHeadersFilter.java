@@ -47,9 +47,8 @@ public class HttpResponseHeadersFilter implements HttpResponseFilter {
   
   @Override
   public Optional<HttpResponse> filter(ChannelHandlerContext ctx, HttpResponse res) throws Exception {
-    res.<ByteBuf>message().ifPresent(b->{
-      if(b.readableBytes() > 0) headers.set(HttpHeaderNames.CONTENT_LENGTH, b.readableBytes());
-    });
+    ByteBuf buf = res.message();
+    if(buf.readableBytes() > 0) headers.set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
     headers.add(HttpHeaderNames.DATE, datefmt.format(Instant.now()))
         .add(HttpHeaderNames.SERVER, config.getServerName());
     res.headers().setAll(headers());

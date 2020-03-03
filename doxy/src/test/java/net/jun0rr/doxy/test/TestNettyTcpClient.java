@@ -6,7 +6,6 @@
 package net.jun0rr.doxy.test;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -18,11 +17,11 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.jun0rr.doxy.cfg.Host;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Timer;
@@ -35,15 +34,15 @@ import us.pserver.tools.Unchecked;
  */
 public class TestNettyTcpClient {
   
-  private static final int TOTAL = 6000;
+  private static final int TOTAL = 10000;
   
-  private volatile int COUNT = TOTAL;
+  private AtomicInteger COUNT = new AtomicInteger(TOTAL);
   
   @Test
   public void clients() {
     try {
       EventLoopGroup clients = new NioEventLoopGroup(12);
-      //ForkJoinPool.commonPool().submit(()->new TestNettyTcpPerformance().server());
+      ForkJoinPool.commonPool().submit(()->new TestNettyTcpPerformance().server());
       Host target = Host.of("localhost:4322");
       
       Timer tm = new Timer.Nanos().start();
@@ -62,11 +61,11 @@ public class TestNettyTcpClient {
                   @Override
                   public void channelRead(ChannelHandlerContext ctx, java.lang.Object msg) {
                     ReferenceCountUtil.release(msg);
-                    if(COUNT % 100 == 0) {
+                    if(COUNT.get() % 1000 == 0) {
                       System.out.println("[" + ctx.channel().localAddress() + "] " + COUNT);
                     }
-                    COUNT--;
-                    if(COUNT <= 1) {
+                    COUNT.decrementAndGet();
+                    if(COUNT.get() <= 1) {
                       //System.out.printf("[%s] sending !!SHUTDOWN!!", ctx.channel().localAddress());
                       ctx.writeAndFlush(Unpooled.copiedBuffer("!!SHUTDOWN!!", StandardCharsets.UTF_8))
                           .addListener(ChannelFutureListener.CLOSE);
@@ -87,18 +86,18 @@ public class TestNettyTcpClient {
       }
       
       System.out.println("* Waiting CountDown...");
-      int cc = --COUNT;
+      int cc = COUNT.decrementAndGet();
       int retry = 100;
-      while(COUNT > 0) {
+      while(COUNT.get() > 0) {
         if(retry <= 0) {
           System.out.println("# ERROR clients(): COUNT(" + COUNT + ") is static for " + 100*50 + " millis...");
           break;
         }
         Thread.sleep(50);
-        if(COUNT == cc) {
+        if(COUNT.get() == cc) {
           retry--;
         }
-        cc = COUNT;
+        cc = COUNT.get();
       }
       //Thread.sleep(8000);
       //cd.await();

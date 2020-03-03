@@ -5,7 +5,6 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
