@@ -14,13 +14,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
-import net.jun0rr.doxy.tcp.OutputTcpChannel;
 import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpHandler;
 import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Timer;
 import us.pserver.tools.Unchecked;
+import net.jun0rr.doxy.tcp.WritableTcpChannel;
 
 
 /**
@@ -66,7 +66,7 @@ public class TestTcpServer {
         .send(msg2)
         .onComplete(f->System.out.println("- Message Sent"))
         .start();
-    cli.send(msg3)
+    cli.write(msg3)
         .onComplete(c->System.out.println("- Success send msg3"))
         .sync();
     tm.stop();
@@ -84,10 +84,10 @@ public class TestTcpServer {
   public void timestampServer() {
     System.out.println("------ timestampServer ------");
     final AtomicInteger count = new AtomicInteger(1);
-    Supplier<Consumer<OutputTcpChannel>> chandler = ()-> c->{
+    Supplier<Consumer<WritableTcpChannel>> chandler = ()-> c->{
       ByteBuf msg = c.channel().get().alloc().buffer(Long.BYTES);
       msg.writeLong(Instant.now().toEpochMilli());
-      c.send(msg).closeChannel();
+      c.write(msg).closeChannel();
       if(count.decrementAndGet() <= 0) {
         c.shutdown();
       }

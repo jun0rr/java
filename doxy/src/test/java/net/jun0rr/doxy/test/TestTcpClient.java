@@ -31,7 +31,7 @@ public class TestTcpClient {
           return x.empty();
         })
         .connect(Host.of("192.168.15.14", 2000))
-        .send(Unpooled.copiedBuffer("Hello\\ World!!\n", StandardCharsets.UTF_8))
+        .write(Unpooled.copiedBuffer("Hello\\ World!!\n", StandardCharsets.UTF_8))
         //.closeOnComplete()
         .start()
         .close();

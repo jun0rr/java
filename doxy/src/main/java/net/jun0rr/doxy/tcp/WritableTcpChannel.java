@@ -10,8 +10,8 @@ package net.jun0rr.doxy.tcp;
  *
  * @author Juno
  */
-public interface OutputTcpChannel extends TcpChannel {
+public interface WritableTcpChannel extends TcpChannel {
   
-  public OutputTcpChannel send(Object msg);
+  public WritableTcpChannel write(Object msg);
   
 }

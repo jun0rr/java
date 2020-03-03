@@ -25,7 +25,7 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
  *
  * @author juno
  */
-public class TcpClient extends AbstractTcpChannel implements OutputTcpChannel {
+public class TcpClient extends AbstractTcpChannel implements WritableTcpChannel {
   
   public TcpClient(Bootstrap bootstrap) {
     super(bootstrap);
@@ -79,7 +79,7 @@ public class TcpClient extends AbstractTcpChannel implements OutputTcpChannel {
   }
   
   @Override
-  public TcpClient send(Object msg) {
+  public TcpClient write(Object msg) {
     if(msg != null) {
       TcpEvent.ChannelFutureEvent evt = f -> {
         //System.out.println("--- [CLIENT] SEND ---");

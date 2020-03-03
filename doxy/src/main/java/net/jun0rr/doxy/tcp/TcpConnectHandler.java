@@ -17,9 +17,9 @@ import java.util.function.Consumer;
  */
 public class TcpConnectHandler extends ChannelInboundHandlerAdapter {
   
-  private final Consumer<OutputTcpChannel> handler;
+  private final Consumer<WritableTcpChannel> handler;
   
-  public TcpConnectHandler(Consumer<OutputTcpChannel> handler) {
+  public TcpConnectHandler(Consumer<WritableTcpChannel> handler) {
     this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
   }
   
