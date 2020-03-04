@@ -18,15 +18,12 @@ public class TcpInboundHandler extends ChannelInboundHandlerAdapter {
   
   private final TcpHandler handler;
   
-  private final TcpChannel channel;
-  
-  public TcpInboundHandler(TcpChannel cls, TcpHandler handler) {
-    this.channel = cls;
-    this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
+  public TcpInboundHandler(TcpHandler hnd) {
+    this.handler = Objects.requireNonNull(hnd, "Bad null TcpHandler");
   }
   
   private TcpExchange exchange(ChannelHandlerContext ctx, Object msg) {
-    return (msg instanceof TcpExchange) ? (TcpExchange)msg : TcpExchange.of(channel, ctx, msg);
+    return (msg instanceof TcpExchange) ? (TcpExchange)msg : TcpExchange.of(new ConnectedTcpChannel(ctx.newSucceededFuture()), ctx, msg);
   }
   
   @Override 

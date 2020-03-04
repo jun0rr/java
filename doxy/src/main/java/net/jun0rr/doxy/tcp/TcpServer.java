@@ -70,7 +70,7 @@ public class TcpServer extends AbstractTcpChannel {
     ls.add(TcpOutboundHandler::new);
     Function<Supplier<Consumer<WritableTcpChannel>>,Supplier<ChannelHandler>> cfn = s->()->new TcpConnectHandler(s.get());
     connectHandlers.stream().map(cfn).forEach(ls::add);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> hfn = s->()->new TcpInboundHandler(this, s.get());
+    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> hfn = s->()->new TcpInboundHandler(s.get());
     messageHandlers.stream().map(hfn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.childHandler(new AddingLastChannelInitializer(ls));

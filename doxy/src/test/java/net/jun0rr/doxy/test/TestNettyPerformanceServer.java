@@ -18,6 +18,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.jun0rr.doxy.cfg.Host;
 import org.junit.jupiter.api.Test;
 import us.pserver.tools.Unchecked;
@@ -27,7 +28,7 @@ import us.pserver.tools.Unchecked;
  *
  * @author Juno
  */
-public class TestNettyTcpPerformance {
+public class TestNettyPerformanceServer {
   
   private ChannelFuture future = null;
   
@@ -37,6 +38,7 @@ public class TestNettyTcpPerformance {
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
       Host bind = Host.of("0.0.0.0:4322");
+      AtomicBoolean closing = new AtomicBoolean(false);
       ServerBootstrap sb = new ServerBootstrap();
       sb.group(bossGroup, workerGroup)
         .channel(NioServerSocketChannel.class)
@@ -54,14 +56,15 @@ public class TestNettyTcpPerformance {
                     //String s = buf.toString(StandardCharsets.UTF_8);
                     //System.out.println("[SERVER] " + s);
                     //if(s.length() == 12) System.out.println("[SERVER] Client says: " + s);
-                    if("!!SHUTDOWN!!".equals(buf.toString(StandardCharsets.UTF_8))) {
+                    if("!!SHUTDOWN!!".equals(buf.toString(StandardCharsets.UTF_8)) && closing.compareAndSet(false, true)) {
                       buf.release();
                       System.out.println("[SERVER] closing...");
                       ctx.channel().close();
                       future.channel().close();
-                      return;
                     }
-                    ctx.writeAndFlush(msg);//.addListener(ChannelFutureListener.CLOSE);
+                    else {
+                      ctx.writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
+                    }
                   }
                 });
             }

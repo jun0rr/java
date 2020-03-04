@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.jun0rr.doxy.cfg.Host;
-import org.junit.jupiter.api.Test;
 import us.pserver.tools.Timer;
 import us.pserver.tools.Unchecked;
 
@@ -32,24 +31,24 @@ import us.pserver.tools.Unchecked;
  *
  * @author Juno
  */
-public class TestNettyTcpClient {
+public class TestNettyPerformanceClient {
   
   private static final int TOTAL = 10000;
   
   private AtomicInteger COUNT = new AtomicInteger(TOTAL);
   
-  @Test
+  //@Test
+  @org.junit.jupiter.api.RepeatedTest(5)
   public void clients() {
     try {
-      EventLoopGroup clients = new NioEventLoopGroup(12);
-      ForkJoinPool.commonPool().submit(()->new TestNettyTcpPerformance().server());
+      EventLoopGroup clients = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors()*8);
+      //ForkJoinPool.commonPool().submit(()->new TestNettyPerformanceServer().server());
       Host target = Host.of("localhost:4322");
       
       Timer tm = new Timer.Nanos().start();
       for(int i = 0; i < TOTAL; i++) {
         Bootstrap b = new Bootstrap();
-        b
-            .group(clients)
+        b.group(clients)
             //.group(new NioEventLoopGroup(1))
             .channel(NioSocketChannel.class)
             .option(ChannelOption.TCP_NODELAY, true)
@@ -65,12 +64,12 @@ public class TestNettyTcpClient {
                       System.out.println("[" + ctx.channel().localAddress() + "] " + COUNT);
                     }
                     COUNT.decrementAndGet();
-                    if(COUNT.get() <= 1) {
+                    //if(COUNT.get() <= 1) {
                       //System.out.printf("[%s] sending !!SHUTDOWN!!", ctx.channel().localAddress());
-                      ctx.writeAndFlush(Unpooled.copiedBuffer("!!SHUTDOWN!!", StandardCharsets.UTF_8))
-                          .addListener(ChannelFutureListener.CLOSE);
-                      return;
-                    }
+                      //ctx.writeAndFlush(Unpooled.copiedBuffer("!!SHUTDOWN!!", StandardCharsets.UTF_8))
+                          //.addListener(ChannelFutureListener.CLOSE);
+                    //}
+                    //else 
                     ctx.channel().close();
                   }
                 });

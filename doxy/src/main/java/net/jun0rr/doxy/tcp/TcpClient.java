@@ -62,7 +62,7 @@ public class TcpClient extends AbstractTcpChannel implements WritableTcpChannel 
   private Bootstrap initHandlers(Bootstrap sbt) {
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
     ls.add(TcpOutboundHandler::new);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(this, s.get());
+    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(s.get());
     messageHandlers.stream().map(fn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);
     return sbt.handler(new AddingLastChannelInitializer(ls));

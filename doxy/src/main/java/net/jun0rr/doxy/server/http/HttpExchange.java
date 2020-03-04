@@ -82,7 +82,7 @@ public interface HttpExchange extends TcpExchange {
   
   
   
-  public static class Impl extends TcpExchange.Impl implements HttpExchange {
+  public static class Impl extends TcpExchange.TcpExchangeImpl implements HttpExchange {
     
     private final HttpRequest request;
     

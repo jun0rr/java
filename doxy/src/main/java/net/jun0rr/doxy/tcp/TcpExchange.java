@@ -28,7 +28,7 @@ public interface TcpExchange extends MessageContainer {
   
   public <A> Optional<A> getAttr(String key);
   
-  public TcpChannel channel();
+  public TcpChannel tcpChannel();
   
   /**
    * Close the channel.
@@ -94,14 +94,14 @@ public interface TcpExchange extends MessageContainer {
   
   
   public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
-    return new Impl(channel, ctx, new TreeMap<>(), msg);
+    return new TcpExchangeImpl(channel, ctx, new TreeMap<>(), msg);
   }
   
   
   
   
   
-  static class Impl implements TcpExchange {
+  static class TcpExchangeImpl implements TcpExchange {
     
     protected final TcpChannel channel;
     
@@ -111,7 +111,7 @@ public interface TcpExchange extends MessageContainer {
     
     protected final Object message;
     
-    public Impl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
+    public TcpExchangeImpl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
       this.channel = channel;
       this.context = ctx;
       this.attributes = attrs;
@@ -131,7 +131,7 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public TcpChannel channel() {
+    public TcpChannel tcpChannel() {
       return channel;
     }
     
@@ -160,7 +160,7 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public Optional<? extends TcpExchange> withMessage(Object msg) {
-      return Optional.of(new Impl(channel, context, attributes, Optional.of(msg)));
+      return Optional.of(new TcpExchangeImpl(channel, context, attributes, Optional.of(msg)));
     }
     
     @Override
