@@ -14,7 +14,7 @@ import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpResponse;
-import net.jun0rr.doxy.server.http.impl.XErrorHeaders;
+import net.jun0rr.doxy.server.http.handler.HttpServerErrorHandler;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -65,10 +65,12 @@ public class JwtAuthFilter implements HttpHandler {
   }
 
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
+  public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
+    return Optional.empty();
+    /*
     if(!he.request().headers().contains(HttpHeaderNames.AUTHORIZATION)) {
       HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.UNAUTHORIZED);
-      new XErrorHeaders()
+      new HttpServerErrorHandler()
           .setErrorType("Authorization")
           .setErrorMessage("Authorization header not present")
           .setErrorTrace("JwtAuthFilter.handle():70")
@@ -84,10 +86,11 @@ public class JwtAuthFilter implements HttpHandler {
     }
     catch(InvalidJwtException e) {
       HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.UNAUTHORIZED);
-      new XErrorHeaders().setError(e).toHeaders(res.headers());
+      new HttpServerErrorHandler().setError(e).toHeaders(res.headers());
       res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
       return he.send(res);
     }
+    */
   }
   
 }

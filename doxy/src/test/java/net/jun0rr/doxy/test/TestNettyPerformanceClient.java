@@ -32,7 +32,7 @@ import us.pserver.tools.Unchecked;
  * @author Juno
  */
 public class TestNettyPerformanceClient {
-  
+  /*
   private static final int TOTAL = 10000;
   
   private AtomicInteger COUNT = new AtomicInteger(TOTAL);
@@ -108,5 +108,5 @@ public class TestNettyPerformanceClient {
       throw Unchecked.unchecked(e);
     }
   }
-  
+  */
 }

@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  * @author Juno
  */
 public class TestRemoteTransport {
-  
+  /*
   @Test
   public void remoteTransport() throws Exception {
     System.out.println("------ remoteTransport ------");
@@ -78,5 +78,5 @@ public class TestRemoteTransport {
       throw e;
     }
   }
-  
+  */
 }

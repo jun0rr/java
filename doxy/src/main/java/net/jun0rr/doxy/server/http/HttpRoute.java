@@ -17,12 +17,13 @@ import java.util.Objects;
  *
  * @author Juno
  */
-public interface HttpRoute {
+public interface HttpRoute extends Routable {
   
   public String uri();
   
   public List<HttpMethod> methods();
   
+  @Override
   public boolean match(HttpRoute r);
   
   public boolean match(String uri, HttpMethod... mts);

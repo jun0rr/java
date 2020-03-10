@@ -7,14 +7,12 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import us.pserver.tools.Unchecked;
 
 
@@ -24,30 +22,18 @@ import us.pserver.tools.Unchecked;
  */
 public class ConnectedTcpChannel implements WritableTcpChannel {
   
+  protected final ChannelPromise promise;
   protected final EventLoopGroup group;
   protected final AtomicReference<Future> future;
   
-  public ConnectedTcpChannel(ChannelFuture future) {
+  public ConnectedTcpChannel(ChannelFuture future, ChannelPromise prms) {
     this.group = future.channel().eventLoop().parent();
     this.future = new AtomicReference(future);
+    this.promise = prms;
   }
   
-  /**
-   * Unsupported operation
-   * @throws UnsupportedOperationException
-   */
-  @Override
-  public ConnectedTcpChannel addMessageHandler(Supplier<TcpHandler> handler) throws UnsupportedOperationException {
-    throw new UnsupportedOperationException();
-  }
-  
-  /**
-   * Return an empty list.
-   * @return Empty list.
-   */
-  @Override
-  public List<Supplier<TcpHandler>> messageHandlers() {
-    return Collections.EMPTY_LIST;
+  public ConnectedTcpChannel withPromise(ChannelPromise prms) {
+    return new ConnectedTcpChannel((ChannelFuture)future.get(), prms);
   }
   
   /**
@@ -123,6 +109,12 @@ public class ConnectedTcpChannel implements WritableTcpChannel {
     throw new UnsupportedOperationException();
   }
   
+  @Override
+  public ConnectedTcpChannel closeChannel() {
+    close();
+    return this;
+  }
+  
   /**
    * Close the channel (do not shutdown the EventLoopGroup).
    * @see net.jun0rr.doxy.tcp.TcpChannel#shutdown() 
@@ -134,18 +126,13 @@ public class ConnectedTcpChannel implements WritableTcpChannel {
   
   @Override
   public ConnectedTcpChannel write(Object obj) {
-    future.get().addListener(f->future.set(((ChannelFuture)f).channel().writeAndFlush(obj)));
-    return this;
-  }
-  
-  /**
-   * Close the channel (do not shutdown the EventLoopGroup).
-   * @return This TcpChannel.
-   * @see net.jun0rr.doxy.tcp.TcpChannel#close() 
-   */
-  @Override
-  public ConnectedTcpChannel closeChannel() {
-    close();
+    future.get().addListener(f->{
+      ChannelFuture ff = (ChannelFuture) f;
+      future.set(promise != null 
+          ? ff.channel().writeAndFlush(obj, promise) 
+          : ff.channel().writeAndFlush(obj)
+      );
+    });
     return this;
   }
   
@@ -163,6 +150,12 @@ public class ConnectedTcpChannel implements WritableTcpChannel {
     return this;
   }
   
+  @Override
+  public ConnectedTcpChannel awaitShutdown() {
+    group.terminationFuture().syncUninterruptibly();
+    return this;
+  }
+  
   /**
    * Return the main group.
    * @return Main EventLoopGroup.
@@ -177,7 +170,7 @@ public class ConnectedTcpChannel implements WritableTcpChannel {
    * @return Non-empty optional if channel is already created and is not closed, empty otherwise.
    */
   @Override
-  public Optional<Channel> channel() {
+  public Optional<Channel> nettyChannel() {
     Future f = future.get();
     if(f != null && f instanceof ChannelFuture) {
       ChannelFuture cf = (ChannelFuture) f;

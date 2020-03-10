@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
  * @author Juno
  */
 public class TestTcpClient {
-  
+  /*
   @Test
   public void method() {
     //TcpClient2 cli = TcpClient2.open()
@@ -37,5 +37,5 @@ public class TestTcpClient {
     //Unchecked.call(()->Thread.sleep(5000));
     //cli.close();
   }
-  
+  */
 }

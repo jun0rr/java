@@ -5,9 +5,8 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.ReferenceCountUtil;
+import io.netty.channel.ChannelPromise;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -28,53 +27,11 @@ public interface TcpExchange extends MessageContainer {
   
   public <A> Optional<A> getAttr(String key);
   
-  public TcpChannel tcpChannel();
+  public ConnectedTcpChannel connectedChannel();
   
-  /**
-   * Close the channel.
-   * @return Empty Optional
-   */
-  public Optional<? extends TcpExchange> close();
+  public TcpChannel mainChannel(); 
   
-  /**
-   * Close and shutdown the EventLoopGroup.
-   * @return Empty Optional
-   * @see net.jun0rr.doxy.tcp.TcpExchange#close() 
-   */
-  public Optional<? extends TcpExchange> shutdown();
-  
-  /**
-   * Send the message (aborting the inbound pipeline).
-   * @param msg Message to send.
-   * @return Emtpy Optional.
-   */
-  public Optional<? extends TcpExchange> send(Object msg);
-  
-  /**
-   * Send the message (aborting the inbound pipeline).
-   * @return Emtpy Optional.
-   */
-  public Optional<? extends TcpExchange> send();
-  
-  /**
-   * Send the message (aborting the inbound pipeline) and close the channel.
-   * @param msg Message to send.
-   * @return Emtpy Optional.
-   */
-  public Optional<? extends TcpExchange> sendAndClose(Object msg);
-  
-  /**
-   * Send the message (aborting the inbound pipeline) and close the channel.
-   * @return Emtpy Optional.
-   */
-  public Optional<? extends TcpExchange> sendAndClose();
-  
-  /**
-   * Return an empty optional.
-   * @return Emtpy Optional.
-   */
-  @Override
-  public Optional<? extends TcpExchange> empty();
+  public TcpExchange withPromise(ChannelPromise prms);
   
   /**
    * Return a TcpExchange with the new message.
@@ -82,7 +39,14 @@ public interface TcpExchange extends MessageContainer {
    * @return TcpExchange with new message.
    */
   @Override
-  public Optional<? extends TcpExchange> withMessage(Object msg);
+  public TcpExchange withMessage(Object msg);
+  
+  /**
+   * Return an empty optional.
+   * @return Emtpy Optional.
+   */
+  @Override
+  public Optional<? extends TcpExchange> empty();
   
   /**
    * Return a TcpExchange without message.
@@ -93,8 +57,8 @@ public interface TcpExchange extends MessageContainer {
   
   
   
-  public static TcpExchange of(TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
-    return new TcpExchangeImpl(channel, ctx, new TreeMap<>(), msg);
+  public static TcpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, Object msg) {
+    return new TcpExchangeImpl(channel, connected, ctx, new TreeMap<>(), msg);
   }
   
   
@@ -102,6 +66,8 @@ public interface TcpExchange extends MessageContainer {
   
   
   static class TcpExchangeImpl implements TcpExchange {
+    
+    protected final ConnectedTcpChannel connected;
     
     protected final TcpChannel channel;
     
@@ -111,18 +77,13 @@ public interface TcpExchange extends MessageContainer {
     
     protected final Object message;
     
-    public TcpExchangeImpl(TcpChannel channel, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
+    
+    public TcpExchangeImpl(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
       this.channel = channel;
+      this.connected = connected;
       this.context = ctx;
       this.attributes = attrs;
       this.message = msg;
-    }
-    
-    @Override
-    public Optional<? extends TcpExchange> shutdown() {
-      close();
-      channel.shutdown();
-      return empty();
     }
     
     @Override
@@ -131,7 +92,12 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public TcpChannel tcpChannel() {
+    public ConnectedTcpChannel connectedChannel() {
+      return connected;
+    }
+    
+    @Override
+    public TcpChannel mainChannel() {
       return channel;
     }
     
@@ -159,43 +125,13 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public Optional<? extends TcpExchange> withMessage(Object msg) {
-      return Optional.of(new TcpExchangeImpl(channel, context, attributes, Optional.of(msg)));
+    public TcpExchange withPromise(ChannelPromise prms) {
+      return new TcpExchangeImpl(channel, connected.withPromise(prms), context, attributes, message);
     }
     
     @Override
-    public Optional<? extends TcpExchange> send(Object msg) {
-      if(message() != msg) {
-        ReferenceCountUtil.release(message);
-      }
-      context.writeAndFlush(msg);
-      return empty();
-    }
-    
-    @Override
-    public Optional<? extends TcpExchange> send() {
-      return send(message);
-    }
-    
-    @Override
-    public Optional<? extends TcpExchange> sendAndClose(Object msg) {
-      if(message() != msg) {
-        ReferenceCountUtil.release(message);
-      }
-      context.writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
-      return empty();
-    }
-    
-    @Override
-    public Optional<? extends TcpExchange> sendAndClose() {
-      return sendAndClose(message);
-    }
-    
-    @Override
-    public Optional<? extends TcpExchange> close() {
-      ReferenceCountUtil.release(message);
-      context.close();
-      return empty();
+    public TcpExchange withMessage(Object msg) {
+      return new TcpExchangeImpl(channel, connected, context, attributes, msg);
     }
     
     @Override

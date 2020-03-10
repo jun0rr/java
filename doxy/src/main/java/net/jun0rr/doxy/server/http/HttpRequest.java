@@ -8,10 +8,12 @@ package net.jun0rr.doxy.server.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.ReferenceCounted;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.common.MessageContainer;
@@ -23,11 +25,13 @@ import net.jun0rr.doxy.common.MessageContainer;
  */
 public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, MessageContainer {
   
-  @Override public Optional<HttpRequest> withMessage(Object msg);
+  @Override public HttpRequest withMessage(Object msg);
   
   @Override public Optional<HttpRequest> forward();
   
   @Override public Optional<HttpRequest> empty();
+  
+  public void dispose();
   
   
   
@@ -60,7 +64,7 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
     private final Object body;
     
     public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
-      super(vrs, mth, uri, (body instanceof ByteBuf) ? (ByteBuf)body : Unpooled.EMPTY_BUFFER);
+      super(vrs, mth, uri, (body instanceof ByteBuf) ? (ByteBuf)body : Unpooled.EMPTY_BUFFER, hds, EmptyHttpHeaders.INSTANCE);
       this.body = body;
     }
     
@@ -79,8 +83,18 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
     }
     
     @Override
-    public Optional<HttpRequest> withMessage(Object msg) {
-      return Optional.of(new HttpRequestImpl(protocolVersion(), method(), uri(), headers(), msg));
+    public void dispose() {
+      if(this.refCnt() > 0) this.release(refCnt());
+      if(body != null && body instanceof ReferenceCounted) {
+        ReferenceCounted ref = (ReferenceCounted)body;
+        if(ref.refCnt() > 0) ref.release(ref.refCnt());
+      }
+    }
+    
+    @Override
+    public HttpRequest withMessage(Object msg) {
+      dispose();
+      return new HttpRequestImpl(protocolVersion(), method(), uri(), headers(), msg);
     }
     
     @Override

@@ -38,7 +38,7 @@ import us.pserver.tools.Unchecked;
  * @author juno
  */
 public class TestNettyHttpClient {
-  
+  /*
   @Test
   public void method() {
     EventLoopGroup group = new NioEventLoopGroup();
@@ -107,5 +107,5 @@ public class TestNettyHttpClient {
     }
     
   }
-  
+  */
 }

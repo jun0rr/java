@@ -5,6 +5,8 @@
  */
 package net.jun0rr.doxy.server.http;
 
+import net.jun0rr.doxy.server.http.HttpRoute;
+
 
 /**
  *

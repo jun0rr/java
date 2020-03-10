@@ -30,12 +30,13 @@ public class CloseHandler implements HttpHandler {
   }
 
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-    Optional<Packet> body = he.request().content();
-    body.ifPresent(p->env.getChannelById(p.channelID()).ifPresent(DoxyChannel::close));
-    HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.OK, he.response().headers());
-    res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-    return he.send(res);
+  public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
+    throw new UnsupportedOperationException();
+    //Optional<Packet> body = he.request().content();
+    //body.ifPresent(p->env.getChannelById(p.channelID()).ifPresent(DoxyChannel::close));
+    //HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.OK, he.response().headers());
+    //res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    //return he.send(res);
   }
   
 }

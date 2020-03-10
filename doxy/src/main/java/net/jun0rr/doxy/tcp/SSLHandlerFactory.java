@@ -33,39 +33,36 @@ public class SSLHandlerFactory {
   
   private final Optional<char[]> kspass;
   
-  private final ByteBufAllocator alloc;
   
-  
-  public SSLHandlerFactory(ByteBufAllocator alloc, Path kspath, char[] kspass) {
+  public SSLHandlerFactory(Path kspath, char[] kspass) {
     this.kspath = Optional.ofNullable(kspath);
     this.kspass = Optional.ofNullable(kspass);
-    this.alloc = Objects.requireNonNull(alloc, "Bad null ByteBufAllocator");
   }
   
-  public SSLHandlerFactory(ByteBufAllocator alloc) {
-    this(alloc, null, null);
+  public SSLHandlerFactory() {
+    this(null, null);
   }
   
   
-  public static SSLHandlerFactory forServer(ByteBufAllocator alloc, Path kspath, char[] kspass) {
-    return new SSLHandlerFactory(alloc,
+  public static SSLHandlerFactory forServer(Path kspath, char[] kspass) {
+    return new SSLHandlerFactory(
         Objects.requireNonNull(kspath, "Bad null keystore path"), 
         Objects.requireNonNull(kspass, "Bad null keystore password")
     );
   }
   
-  public static SSLHandlerFactory forClient(ByteBufAllocator alloc) {
-    return new SSLHandlerFactory(alloc);
+  public static SSLHandlerFactory forClient() {
+    return new SSLHandlerFactory();
   }
   
   
-  public SslHandler create() {
+  public SslHandler create(ByteBufAllocator alloc) {
     return (kspath.isPresent() && kspass.isPresent()) 
-        ? Unchecked.call(()->newServerHandler())
-        : Unchecked.call(()->newClientHandler());
+        ? Unchecked.call(()->newServerHandler(alloc))
+        : Unchecked.call(()->newClientHandler(alloc));
   }
   
-  private SslHandler newServerHandler() throws IOException {
+  private SslHandler newServerHandler(ByteBufAllocator alloc) throws IOException {
     if(kspath.isEmpty() || !Files.exists(kspath.get())) {
       throw new IllegalStateException("Bad null/missing keystore file: " + kspath);
     }
@@ -89,7 +86,7 @@ public class SSLHandlerFactory {
     }
   }
   
-  private SslHandler newClientHandler() throws IOException {
+  private SslHandler newClientHandler(ByteBufAllocator alloc) throws IOException {
     return SslContextBuilder.forClient()
         .trustManager(InsecureTrustManagerFactory.INSTANCE)
         .build()

@@ -33,7 +33,9 @@ public class DecodeHandler implements HttpHandler {
   }
 
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
+  public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
+    throw new UnsupportedOperationException();
+    /*
     if(true) throw new IllegalStateException("!!!###!!!");
     System.out.println("-> DECODE_HANDLER");
     HttpRequest req = he.request();
@@ -87,6 +89,7 @@ public class DecodeHandler implements HttpHandler {
     );
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
     return he.send(response);
+    */
   }
   
 }

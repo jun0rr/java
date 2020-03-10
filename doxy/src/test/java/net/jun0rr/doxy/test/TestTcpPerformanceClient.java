@@ -22,7 +22,7 @@ import us.pserver.tools.Timer;
  * @author Juno
  */
 public class TestTcpPerformanceClient {
-  
+  /*
   private static final int TOTAL = 10000;
   
   public AtomicInteger COUNT = new AtomicInteger(TOTAL);
@@ -67,5 +67,5 @@ public class TestTcpPerformanceClient {
     System.out.println(tm);
     clients.shutdownGracefully();
   }
-  
+  */
 }

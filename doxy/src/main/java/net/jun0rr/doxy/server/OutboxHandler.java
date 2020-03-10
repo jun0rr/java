@@ -14,7 +14,7 @@ import net.jun0rr.doxy.common.Packet;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpResponse;
-import net.jun0rr.doxy.server.http.impl.XErrorHeaders;
+import net.jun0rr.doxy.server.http.handler.HttpServerErrorHandler;
 
 
 /**
@@ -30,23 +30,24 @@ public class OutboxHandler implements HttpHandler {
   }
 
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-    Optional<Packet> opt = he.request().content();
-    HttpResponse res;
-    if(opt.isEmpty()) {
-      res = HttpResponse.of(he.response().protocolVersion(), HttpResponseStatus.BAD_REQUEST, he.response().headers());
-      XErrorHeaders xe = new XErrorHeaders();
-      xe.setErrorType("BadRequest")
-          .setErrorTrace(getClass().getName() + ".handle(HttpExchange):30")
-          .setErrorMessage("Body Request Missing")
-          .toHeaders(res.headers());
-    }
-    else {
-      env.outbox().offerLast(opt.get());
-      res = HttpResponse.of(he.response().protocolVersion(), HttpResponseStatus.OK, he.response().headers());
-      res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-    }
-    return he.send(res);
+  public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
+    throw new UnsupportedOperationException();
+    //Optional<Packet> opt = he.request().content();
+    //HttpResponse res;
+    //if(opt.isEmpty()) {
+      //res = HttpResponse.of(he.response().protocolVersion(), HttpResponseStatus.BAD_REQUEST, he.response().headers());
+      //XErrorHeaders xe = new XErrorHeaders();
+      //xe.setErrorType("BadRequest")
+          //.setErrorTrace(getClass().getName() + ".handle(HttpExchange):30")
+          //.setErrorMessage("Body Request Missing")
+          //.toHeaders(res.headers());
+    //}
+    //else {
+      //env.outbox().offerLast(opt.get());
+      //res = HttpResponse.of(he.response().protocolVersion(), HttpResponseStatus.OK, he.response().headers());
+      //res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    //}
+    //return he.send(res);
   }
   
 }

@@ -12,10 +12,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
 
 
@@ -26,52 +23,22 @@ import net.jun0rr.doxy.cfg.Host;
 public class HttpServer extends AbstractTcpChannel {
   
   private final EventLoopGroup childGroup;
-  private final HttpServerConfig config;
-  private final HttpHandlers handlers;
   
-  public HttpServer(HttpServerConfig cfg, ServerBootstrap bootstrap) {
-    super(bootstrap);
+  public HttpServer(ServerBootstrap bootstrap, ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
+    super(bootstrap, setup);
     this.childGroup = bootstrap.config().childGroup();
-    this.config = Objects.requireNonNull(cfg, "Bad null HttpServerConfig");
-    this.handlers = new HttpHandlers(cfg);
   }
   
-  public static HttpServer open(HttpServerConfig cfg) {
-    return new HttpServer(cfg, bootstrap(new NioEventLoopGroup(2), new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2)));
+  public static HttpServer open(ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
+    return new HttpServer(bootstrap(new NioEventLoopGroup(2), new NioEventLoopGroup()), setup);
   }
   
-  public static HttpServer open(HttpServerConfig cfg, EventLoopGroup parent, EventLoopGroup child) {
-    return open(cfg, bootstrap(parent, child));
+  public static HttpServer open(EventLoopGroup parent, EventLoopGroup child, ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
+    return open(bootstrap(parent, child), setup);
   }
   
-  public static HttpServer open(HttpServerConfig cfg, ServerBootstrap boot) {
-    return new HttpServer(cfg, boot);
-  }
-  
-  public HttpServerConfig config() {
-    return config;
-  }
-  
-  public HttpHandlers httpHandlers() {
-    return handlers;
-  }
-  
-  /**
-   * Unsupported operation.
-   * @throws UnsupportedOperationException
-   */
-  @Override
-  public HttpServer addMessageHandler(Supplier<TcpHandler> handler) {
-    throw new UnsupportedOperationException();
-  }
-  
-  /**
-   * Unsupported operation.
-   * @throws UnsupportedOperationException
-   */
-  @Override
-  public List<Supplier<TcpHandler>> messageHandlers() {
-    return messageHandlers;
+  public static HttpServer open(ServerBootstrap boot, ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
+    return new HttpServer(boot, setup);
   }
   
   private static ServerBootstrap bootstrap(EventLoopGroup parent, EventLoopGroup child) {
@@ -86,9 +53,7 @@ public class HttpServer extends AbstractTcpChannel {
   public HttpServer bind(Host host) {
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [SERVER] BIND ---");
-      ServerBootstrap sb = (ServerBootstrap) b;
-      sb.childHandler(handlers.createServerInitializer());
-      return sb.bind(host.toSocketAddr());
+      return setupServerBootstrap(this).bind(host.toSocketAddr());
     };
     addListener(evt);
     return this;
@@ -149,6 +114,12 @@ public class HttpServer extends AbstractTcpChannel {
   public HttpServer sync() {
     super.sync();
     return this;
+  }
+
+
+  @Override
+  public TcpChannel closeChannel() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
   
 }

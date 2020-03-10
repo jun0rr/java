@@ -34,7 +34,7 @@ public class InboxHandler implements HttpHandler {
   }
 
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
+  public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
     env.executor().submit(longPollHandler(he));
     return Optional.empty();
   }

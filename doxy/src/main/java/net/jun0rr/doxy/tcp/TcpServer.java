@@ -7,18 +7,12 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
-import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 
 
 /**
@@ -28,52 +22,26 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 public class TcpServer extends AbstractTcpChannel {
   
   private final EventLoopGroup childGroup;
-  private final List<Supplier<Consumer<WritableTcpChannel>>> connectHandlers;
   
-  public TcpServer(ServerBootstrap bootstrap) {
-    super(bootstrap);
+  public TcpServer(ServerBootstrap bootstrap, ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    super(bootstrap, factory);
     this.childGroup = bootstrap.config().childGroup();
-    this.connectHandlers = new LinkedList<>();
   }
   
-  public static TcpServer open() {
-    return new TcpServer(bootstrap(new NioEventLoopGroup(1), new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2)));
+  public static TcpServer open(ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    return new TcpServer(bootstrap(
+        new NioEventLoopGroup(1), 
+        new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2)), 
+        factory
+    );
   }
   
-  public static TcpServer open(EventLoopGroup parent, EventLoopGroup child) {
-    return open(bootstrap(parent, child));
+  public static TcpServer open(EventLoopGroup parent, EventLoopGroup child, ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    return open(bootstrap(parent, child), factory);
   }
   
-  public static TcpServer open(ServerBootstrap boot) {
-    return new TcpServer(boot);
-  }
-  
-  public List<Supplier<Consumer<WritableTcpChannel>>> connectHandlers() {
-    return connectHandlers;
-  }
-  
-  @Override
-  public TcpServer addMessageHandler(Supplier<TcpHandler> handler) {
-    channelNotCreated();
-    super.addMessageHandler(handler);
-    return this;
-  }
-  
-  public TcpServer addConnectHandler(Supplier<Consumer<WritableTcpChannel>> handler) {
-    channelNotCreated();
-    if(handler != null) connectHandlers.add(handler);
-    return this;
-  }
-  
-  private ServerBootstrap initHandlers(ServerBootstrap sbt) {
-    List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    ls.add(TcpOutboundHandler::new);
-    Function<Supplier<Consumer<WritableTcpChannel>>,Supplier<ChannelHandler>> cfn = s->()->new TcpConnectHandler(s.get());
-    connectHandlers.stream().map(cfn).forEach(ls::add);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> hfn = s->()->new TcpInboundHandler(s.get());
-    messageHandlers.stream().map(hfn).forEach(ls::add);
-    ls.add(TcpUcaughtExceptionHandler::new);
-    return sbt.childHandler(new AddingLastChannelInitializer(ls));
+  public static TcpServer open(ServerBootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    return new TcpServer(boot, factory);
   }
   
   private static ServerBootstrap bootstrap(EventLoopGroup parent, EventLoopGroup child) {
@@ -88,9 +56,15 @@ public class TcpServer extends AbstractTcpChannel {
   public TcpServer bind(Host host) {
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [SERVER] BIND ---");
-      return initHandlers((ServerBootstrap)b).bind(host.toSocketAddr());
+      return setupServerBootstrap(TcpServer.this).bind(host.toSocketAddr());
     };
     addListener(evt);
+    return this;
+  }
+  
+  @Override
+  public TcpServer closeChannel() {
+    close();
     return this;
   }
   

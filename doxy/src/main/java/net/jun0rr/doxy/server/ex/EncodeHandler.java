@@ -33,7 +33,9 @@ public class EncodeHandler implements HttpHandler {
   }
 
   @Override
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
+  public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
+    throw new UnsupportedOperationException();
+    /*
     System.out.println("-> ENCODE_HANDLER");
     HttpRequest req = he.request();
     StringBuilder buf = new StringBuilder();
@@ -85,6 +87,7 @@ public class EncodeHandler implements HttpHandler {
     );
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
     return he.withResponse(response);
+    */
   }
 
 

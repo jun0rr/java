@@ -5,16 +5,23 @@
  */
 package net.jun0rr.doxy.server.http;
 
-import java.util.Optional;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import net.jun0rr.doxy.tcp.ChannelHandler;
+
 
 
 /**
  *
  * @author juno
  */
-@FunctionalInterface
-public interface HttpHandler {
+public interface HttpHandler extends ChannelHandler<HttpExchange> {
   
-  public Optional<HttpExchange> handle(HttpExchange he) throws Exception;
+  public static final HttpHandler BAD_REQUEST = x -> {
+    HttpResponse res = HttpResponse.of(HttpResponseStatus.BAD_REQUEST);
+    res.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    return x.send(res);
+  };
   
 }

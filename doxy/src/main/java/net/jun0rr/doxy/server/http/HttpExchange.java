@@ -5,14 +5,23 @@
  */
 package net.jun0rr.doxy.server.http;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import net.jun0rr.doxy.tcp.ConnectedTcpChannel;
 import net.jun0rr.doxy.tcp.TcpChannel;
 import net.jun0rr.doxy.tcp.TcpExchange;
 
@@ -23,81 +32,92 @@ import net.jun0rr.doxy.tcp.TcpExchange;
  */
 public interface HttpExchange extends TcpExchange {
   
+  public static final ThreadLocal<HttpExchange> CURRENT_EXCHANGE = new ThreadLocal<>();
+  
+  
+  
   public HttpRequest request();
   
   public HttpResponse response();
   
-  public Optional<HttpExchange> withRequest(HttpRequest req);
+  public HttpExchange withRequest(HttpRequest req);
   
-  public Optional<HttpExchange> withResponse(HttpResponse res);
+  public HttpExchange withResponse(HttpResponse res);
   
   /**
    * Return a new HttpExchange (filled Optional) with the informed message object.
-   * @param msg The message object can be either a HttpRequest, HttpResponse or the HttpResponse message.
+   * @param msg The message object can be either a HttpRequest, HttpResponse or the HttpResponse body.
    * @return Optional filled with a new HttpExchange.
    */
-  @Override public Optional<HttpExchange> withMessage(Object msg);
+  @Override 
+  public HttpExchange withMessage(Object msg);
+  
+  @Override
+  public HttpExchange withPromise(ChannelPromise prms);
+  
+  @Override
+  public HttpExchange setAttr(String key, Object val);
   
   /**
    * Return this HttpExchange (filled Optional).
    * @return Optional filled with this HttpExchange.
    */
-  @Override public Optional<HttpExchange> forward();
+  @Override 
+  public Optional<HttpExchange> forward();
   
   /**
    * Return an empty Optional.
    * @return Empty Optional.
    */
-  @Override public Optional<HttpExchange> empty();
+  @Override 
+  public Optional<HttpExchange> empty();
   
-  @Override public Optional<? extends HttpExchange> send();
-  
-  public Optional<HttpExchange> send(HttpResponse res);
-  
-  @Override public Optional<HttpExchange> send(Object content);
-  
-  @Override public Optional<HttpExchange> sendAndClose();
-  
-  public Optional<HttpExchange> sendAndClose(HttpResponse res);
-  
-  @Override public Optional<HttpExchange> sendAndClose(Object content);
-  
-  @Override public HttpRequest message();
-  
-  @Override public Optional<HttpExchange> close();
-  
-  @Override public Optional<HttpExchange> shutdown();
+  @Override 
+  public HttpRequest message();
   
   
   
-  public static HttpExchange of(TcpChannel channel, ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
-    return new Impl(channel, ctx, req, res);
+  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
+    return new HttpExchangeImpl(channel, connected, ctx, req, res);
   }
   
-  public static HttpExchange of(TcpChannel channel, ChannelHandlerContext ctx, HttpRequest req) {
-    return new Impl(channel, ctx, req);
+  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req) {
+    return new HttpExchangeImpl(channel, connected, ctx, req);
+  }
+  
+  public static HttpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx) {
+    return  new HttpExchangeImpl(channel, connected, ctx);
   }
   
   
   
   
   
-  public static class Impl extends TcpExchange.TcpExchangeImpl implements HttpExchange {
+  public static class HttpExchangeImpl extends TcpExchange.TcpExchangeImpl implements HttpExchange {
     
     private final HttpRequest request;
     
     private final HttpResponse response;
     
-    public Impl(TcpChannel channel, ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
-      super(channel, ctx, new ConcurrentHashMap<>(), Optional.of(res));
+    public HttpExchangeImpl(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
+      super(channel, connected, ctx, new ConcurrentHashMap<>(), req);
       this.request = Objects.requireNonNull(req, "Bad null HttpRequest");
       this.response = Objects.requireNonNull(res, "Bad null HttpResponse");
+      CURRENT_EXCHANGE.set(this);
     }
     
-    public Impl(TcpChannel channel, ChannelHandlerContext ctx, HttpRequest req) {
-      super(channel, ctx, new ConcurrentHashMap<>(), Optional.of(HttpResponse.of(HttpResponseStatus.OK)));
+    public HttpExchangeImpl(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, HttpRequest req) {
+      super(channel, connected, ctx, new ConcurrentHashMap<>(), req);
       this.request = Objects.requireNonNull(req, "Bad null HttpRequest");
       this.response = HttpResponse.of(HttpResponseStatus.OK);
+      CURRENT_EXCHANGE.set(this);
+    }
+    
+    public HttpExchangeImpl(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx) {
+      super(channel, connected, ctx, new ConcurrentHashMap<>(), HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/"));
+      this.request = this.message();
+      this.response = HttpResponse.of(HttpResponseStatus.OK);
+      CURRENT_EXCHANGE.set(this);
     }
     
     @Override
@@ -111,51 +131,30 @@ public interface HttpExchange extends TcpExchange {
     }
     
     @Override
-    public Optional<HttpExchange> withRequest(HttpRequest req) {
-      return  Optional.of(of(channel, context, req, response));
+    public HttpExchange withRequest(HttpRequest req) {
+      request.dispose();
+      return new HttpExchangeImpl(channel, connected, context, req, response);
     }
     
     @Override
-    public Optional<HttpExchange> withResponse(HttpResponse res) {
-      return Optional.of(of(channel, context, request, res));
-    }
-    
-    @Override 
-    public Optional<HttpExchange> send() {
-      return send(response);
+    public HttpExchange withResponse(HttpResponse res) {
+      response.dispose();
+      return new HttpExchangeImpl(channel, connected, context, request, res);
     }
     
     @Override
-    public Optional<HttpExchange> send(HttpResponse res) {
-      super.send(res);
-      return empty();
+    public HttpExchange setAttr(String key, Object val) {
+      super.setAttr(key, val);
+      return this;
     }
     
-    @Override
-    public Optional<HttpExchange> send(Object msg) {
-      return send(HttpResponse.of(
-          response.protocolVersion(), 
-          response.status(), 
-          response.headers(), 
-          msg)
-      );
-    }
-    
-    @Override
-    public Optional<HttpExchange> sendAndClose() {
-      return sendAndClose(response);
-    }
-    
-    @Override
-    public Optional<HttpExchange> sendAndClose(HttpResponse res) {
-      res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-      context.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-      return empty();
-    }
-    
-    @Override
-    public Optional<HttpExchange> sendAndClose(Object msg) {
-      return send(response.withMessage(msg).get());
+    private HttpResponse responseWith(Object msg) {
+      HttpResponse res = response;
+      if(msg instanceof CharSequence) {
+        ByteBuf buf = Unpooled.copiedBuffer((CharSequence)msg, StandardCharsets.UTF_8);
+        res = response.withMessage(buf);
+      }
+      return res;
     }
     
     @Override
@@ -169,20 +168,26 @@ public interface HttpExchange extends TcpExchange {
     }
     
     @Override
-    public Optional<HttpExchange> withMessage(Object msg) {
-      Optional<HttpExchange> opt = empty();
+    public HttpExchange withMessage(Object msg) {
+      HttpExchange ex = this;
       if(msg != null) {
         if(msg instanceof HttpRequest) {
-          opt = Optional.of(of(channel, context, (HttpRequest)msg, response));
+          ex = withRequest((HttpRequest)msg);
+        }
+        else if(msg instanceof FullHttpRequest) {
+          ex = withRequest(HttpRequest.of((FullHttpRequest)msg));
         }
         else if(msg instanceof HttpResponse) {
-          opt = Optional.of(of(channel, context, request, (HttpResponse)msg));
+          ex = withResponse((HttpResponse)msg);
+        }
+        else if(msg instanceof FullHttpResponse) {
+          ex = withResponse(HttpResponse.of((FullHttpResponse)msg));
         }
         else {
-          opt = Optional.of(of(channel, context, request, response.withMessage(msg).get()));
+          ex = new HttpExchangeImpl(channel, connected, context, request, responseWith(msg));
         }
       }
-      return opt;
+      return ex;
     }
     
     @Override

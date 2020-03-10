@@ -16,7 +16,7 @@ public interface MessageContainer {
   
   public <T> T message();
   
-  public Optional<? extends MessageContainer> withMessage(Object msg);
+  public MessageContainer withMessage(Object msg);
   
   public Optional<? extends MessageContainer> forward();
   

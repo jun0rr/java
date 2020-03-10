@@ -5,16 +5,9 @@
  */
 package net.jun0rr.doxy.tcp;
 
-import java.util.Optional;
-
 
 /**
  *
  * @author juno
  */
-@FunctionalInterface
-public interface TcpHandler {
-  
-  public Optional<? extends TcpExchange> handle(TcpExchange ex) throws Exception;
-  
-}
+public interface TcpHandler extends ChannelHandler<TcpExchange> {}

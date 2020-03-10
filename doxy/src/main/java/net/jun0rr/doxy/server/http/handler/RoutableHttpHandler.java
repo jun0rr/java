@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.server.http.impl;
+package net.jun0rr.doxy.server.http.handler;
 
+import net.jun0rr.doxy.server.http.Routable;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpRoute;
-import net.jun0rr.doxy.server.http.Routable;
 
 
 /**
@@ -39,8 +39,8 @@ public interface RoutableHttpHandler extends HttpHandler, Routable {
     }
     
     @Override
-    public Optional<HttpExchange> handle(HttpExchange he) throws Exception {
-      return handler.handle(he);
+    public Optional<? extends HttpExchange> apply(HttpExchange he) throws Exception {
+      return handler.apply(he);
     }
     
     @Override

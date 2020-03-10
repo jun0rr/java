@@ -67,21 +67,22 @@ public class RemoteTransport extends AbstractRunnable {
   }
   
   private DoxyChannel createChannel(Packet p) throws IOException {
-    System.out.println("* RemoteTransport.createChannel1: creating...");
-    Channel ch = TcpClient.create(group)
-        .addHandler(new RemoteInputHandler(env, p.channelID()))
-        .connect(p.remote())
-        .sync();
-    System.out.println("* RemoteTransport.createChannel2: " + ch);
-    DoxyChannel dc = new DoxyChannelImpl(
-        env, p.channelID(), ch
+    throw new UnsupportedOperationException();
+    //System.out.println("* RemoteTransport.createChannel1: creating...");
+    //Channel ch = TcpClient.create(group)
+        //.addHandler(new RemoteInputHandler(env, p.channelID()))
+        //.connect(p.remote())
+        //.sync();
+    //System.out.println("* RemoteTransport.createChannel2: " + ch);
+    //DoxyChannel dc = new DoxyChannelImpl(
+        //env, p.channelID(), ch
         //TcpClient.create(group)
             //.addHandler(new RemoteInputHandler(env, p.channelID()))
             //.connect(p.remote())
             //.sync()
-    );
-    env.channels().add(dc);
-    return dc;
+    //);
+    //env.channels().add(dc);
+    //return dc;
   }
   
 }

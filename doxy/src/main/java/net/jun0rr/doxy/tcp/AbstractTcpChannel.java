@@ -6,13 +6,15 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.AbstractBootstrap;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
@@ -20,7 +22,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import us.pserver.tools.Unchecked;
 
 
@@ -30,41 +31,45 @@ import us.pserver.tools.Unchecked;
  */
 public abstract class AbstractTcpChannel implements TcpChannel {
   
-  protected final EventLoopGroup group;
-  protected volatile Future future;
   protected final AbstractBootstrap boot;
-  protected final List<Supplier<TcpHandler>> messageHandlers;
+  
+  protected final ChannelHandlerSetup setup;
+  
+  protected final EventLoopGroup group;
+  
+  protected volatile Future future;
+  
   protected final BlockingDeque<TcpEvent> events;
+  
   protected final AtomicBoolean listening;
   
-  public AbstractTcpChannel(AbstractBootstrap bootstrap) {
+  
+  public AbstractTcpChannel(AbstractBootstrap bootstrap, ChannelHandlerSetup setup) {
     this.boot = Objects.requireNonNull(bootstrap, "Bad null Bootstrap");
+    this.setup = Objects.requireNonNull(setup, "Bad null ChannelInitFactory");
     this.group = boot.config().group();
-    this.messageHandlers = new LinkedList<>();
-    this.events = new LinkedBlockingDeque<>();
     this.future = null;
+    this.events = new LinkedBlockingDeque<>();
     this.listening = new AtomicBoolean(false);
   }
   
-  /**
-   * Add a message TcpHandler supplier.
-   * @param handler TcpHandler supplier.
-   * @return This TcpChannel.
-   */
-  @Override
-  public AbstractTcpChannel addMessageHandler(Supplier<TcpHandler> handler) {
-    channelNotCreated();
-    if(handler != null) messageHandlers.add(handler);
-    return this;
+  protected static Bootstrap bootstrap(EventLoopGroup group) {
+    return new Bootstrap()
+        .channel(NioSocketChannel.class)
+        .option(ChannelOption.TCP_NODELAY, Boolean.TRUE)
+        .option(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
+        .option(ChannelOption.AUTO_READ, Boolean.TRUE)
+        .group(group);
   }
   
-  /**
-   * Return all TcpHandler suppliers.
-   * @return TcpHandler suppliers list.
-   */
-  @Override
-  public List<Supplier<TcpHandler>> messageHandlers() {
-    return messageHandlers;
+  protected ServerBootstrap setupServerBootstrap(TcpChannel ch) {
+    ServerBootstrap sb = (ServerBootstrap) boot;
+    return sb.childHandler(setup.create(ch));
+  }
+  
+  protected Bootstrap setupBootstrap(TcpChannel ch) {
+    Bootstrap b = (Bootstrap) boot;
+    return b.handler(setup.create(ch));
   }
   
   /**
@@ -202,24 +207,16 @@ public abstract class AbstractTcpChannel implements TcpChannel {
    */
   @Override
   public void close() {
-    TcpEvent.ChannelFutureEvent e = f->{
-      if(f.channel().isOpen()) {
-        return f.channel().close();
+    TcpEvent.FutureEvent e = f->{
+      if(f instanceof ChannelFuture) {
+        ChannelFuture cf = (ChannelFuture) f;
+        if(cf.channel().isOpen()) {
+          return cf.channel().close();
+        }
       }
       return f;
     };
     addListener(e);
-  }
-  
-  /**
-   * Close the channel (do not shutdown the EventLoopGroup).
-   * @return This TcpChannel.
-   * @see net.jun0rr.doxy.tcp.TcpChannel#close() 
-   */
-  @Override
-  public AbstractTcpChannel closeChannel() {
-    close();
-    return this;
   }
   
   /**
@@ -230,10 +227,16 @@ public abstract class AbstractTcpChannel implements TcpChannel {
   @Override
   public AbstractTcpChannel shutdown() {
     close();
-    TcpEvent.ChannelFutureEvent e = f -> {
+    TcpEvent.FutureEvent e = f -> {
       return group.shutdownGracefully();
     };
     addListener(e);
+    return this;
+  }
+  
+  @Override
+  public AbstractTcpChannel awaitShutdown() {
+    group.terminationFuture().syncUninterruptibly();
     return this;
   }
   
@@ -251,7 +254,7 @@ public abstract class AbstractTcpChannel implements TcpChannel {
    * @return Non-empty optional if channel is already created and is not closed, empty otherwise.
    */
   @Override
-  public Optional<Channel> channel() {
+  public Optional<Channel> nettyChannel() {
     if(future != null && future instanceof ChannelFuture) {
       ChannelFuture cf = (ChannelFuture) future;
       return Optional.of(cf.channel());

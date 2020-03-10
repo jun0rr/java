@@ -23,7 +23,7 @@ import us.pserver.tools.Hash;
  * @author Juno
  */
 public class Client {
-  
+  /*
   private final TcpServer server;
   
   private final DoxyEnvironment env;
@@ -60,6 +60,6 @@ public class Client {
   public void start() {
     server.start();
   }
-  
+  */
   
 }

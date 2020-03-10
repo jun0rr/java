@@ -3,13 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.jun0rr.doxy.tcp;
+package net.jun0rr.doxy.tcp.handler;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+import net.jun0rr.doxy.tcp.TcpExchange;
 
 
 /**
@@ -41,7 +42,17 @@ public class TcpOutboundHandler extends ChannelOutboundHandlerAdapter {
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    log.error(e);
+    log.error(new TcpOutboundException(e));
+  }
+  
+  
+  
+  public class TcpOutboundException extends RuntimeException {
+    
+    public TcpOutboundException(Throwable cause) {
+      super(String.join(": ", cause.getClass().getName(), cause.getMessage()), cause);
+    }
+    
   }
   
 }

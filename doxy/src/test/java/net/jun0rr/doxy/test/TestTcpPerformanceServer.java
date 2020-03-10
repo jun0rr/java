@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * @author Juno
  */
 public class TestTcpPerformanceServer {
-  
+  /*
   @Test
   public void tcpServer() throws InterruptedException {
     System.out.println("----- tcpServer() -----");
@@ -31,5 +31,5 @@ public class TestTcpPerformanceServer {
     server.channel().get().closeFuture().sync();
     server.shutdown().sync();
   }
-  
+  */
 }

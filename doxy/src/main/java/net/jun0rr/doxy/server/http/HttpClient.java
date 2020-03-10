@@ -32,7 +32,7 @@ public class HttpClient extends AbstractTcpChannel implements WritableTcpChannel
   private final List<Supplier<HttpHandler>> handlers;
   
   public HttpClient(Bootstrap bootstrap) {
-    super(bootstrap);
+    super(bootstrap, null);
     this.handlers = new LinkedList<>();
   }
   
@@ -48,46 +48,18 @@ public class HttpClient extends AbstractTcpChannel implements WritableTcpChannel
     return new HttpClient(boot);
   }
   
-  private static Bootstrap bootstrap(EventLoopGroup group) {
-    return new Bootstrap()
-        .channel(NioSocketChannel.class)
-        .option(ChannelOption.TCP_NODELAY, Boolean.TRUE)
-        .option(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
-        .option(ChannelOption.AUTO_READ, Boolean.TRUE)
-        .group(group);
-  }
-  
-  /**
-   * Unsupported operation
-   * @param handler
-   * @throws UnsupportedOperationException
-   */
-  @Override
-  public HttpClient addMessageHandler(Supplier<TcpHandler> handler) throws UnsupportedOperationException {
-    throw new UnsupportedOperationException();
-  }
-  
   public HttpClient addHttpHandler(Supplier<HttpHandler> handler) {
     channelNotCreated();
     handlers.add(handler);
     return this;
   }
   
-  private Bootstrap initHandlers(Bootstrap sbt) {
-    List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    ls.add(TcpOutboundHandler::new);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(this, s.get());
-    messageHandlers.stream().map(fn).forEach(ls::add);
-    ls.add(TcpUcaughtExceptionHandler::new);
-    return sbt.handler(new AddingLastChannelInitializer(ls));
-  }
-  
   public HttpClient connect(Host host) {
     channelNotCreated();
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [CLIENT] CONNECT ---");
-      ChannelFuture f = initHandlers((Bootstrap)b).connect(host.toSocketAddr());
-      return f;
+      //ChannelFuture f = ((Bootstrap)setupBootstrap()).connect(host.toSocketAddr());
+      return null;
     };
     addListener(evt);
     return this;
@@ -139,6 +111,12 @@ public class HttpClient extends AbstractTcpChannel implements WritableTcpChannel
   public HttpClient sync() {
     super.sync();
     return this;
+  }
+
+
+  @Override
+  public TcpChannel closeChannel() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
   
 }

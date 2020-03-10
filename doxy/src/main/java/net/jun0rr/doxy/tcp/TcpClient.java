@@ -7,18 +7,10 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import net.jun0rr.doxy.cfg.Host;
-import net.jun0rr.doxy.common.AddingLastChannelInitializer;
 
 
 /**
@@ -27,52 +19,27 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
  */
 public class TcpClient extends AbstractTcpChannel implements WritableTcpChannel {
   
-  public TcpClient(Bootstrap bootstrap) {
-    super(bootstrap);
+  public TcpClient(Bootstrap bootstrap, ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    super(bootstrap, factory);
   }
   
-  public static TcpClient open() {
-    return open(bootstrap(new NioEventLoopGroup(1)));
+  public static TcpClient open(ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    return open(bootstrap(new NioEventLoopGroup(1)), factory);
   }
   
-  public static TcpClient open(EventLoopGroup group) {
-    return open(bootstrap(group));
+  public static TcpClient open(EventLoopGroup group, ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    return open(bootstrap(group), factory);
   }
   
-  public static TcpClient open(Bootstrap boot) {
-    return new TcpClient(boot);
-  }
-  
-  private static Bootstrap bootstrap(EventLoopGroup group) {
-    return new Bootstrap()
-        .channel(NioSocketChannel.class)
-        .option(ChannelOption.TCP_NODELAY, Boolean.TRUE)
-        .option(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
-        .option(ChannelOption.AUTO_READ, Boolean.TRUE)
-        .group(group);
-  }
-  
-  @Override
-  public TcpClient addMessageHandler(Supplier<TcpHandler> handler) {
-    channelNotCreated();
-    super.addMessageHandler(handler);
-    return this;
-  }
-  
-  private Bootstrap initHandlers(Bootstrap sbt) {
-    List<Supplier<ChannelHandler>> ls = new LinkedList<>();
-    ls.add(TcpOutboundHandler::new);
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> fn = s->()->new TcpInboundHandler(s.get());
-    messageHandlers.stream().map(fn).forEach(ls::add);
-    ls.add(TcpUcaughtExceptionHandler::new);
-    return sbt.handler(new AddingLastChannelInitializer(ls));
+  public static TcpClient open(Bootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> factory) {
+    return new TcpClient(boot, factory);
   }
   
   public TcpClient connect(Host host) {
     channelNotCreated();
     TcpEvent.ConnectEvent evt = b -> {
       //System.out.println("--- [CLIENT] CONNECT ---");
-      return initHandlers((Bootstrap)b).connect(host.toSocketAddr());
+      return ((Bootstrap)setupBootstrap(TcpClient.this)).connect(host.toSocketAddr());
     };
     addListener(evt);
     return this;
@@ -111,6 +78,12 @@ public class TcpClient extends AbstractTcpChannel implements WritableTcpChannel 
   @Override
   public TcpClient onShutdown(Consumer<EventLoopGroup> success, Consumer<Throwable> error) {
     super.onShutdown(success, error);
+    return this;
+  }
+  
+  @Override
+  public TcpClient closeChannel() {
+    super.close();
     return this;
   }
   

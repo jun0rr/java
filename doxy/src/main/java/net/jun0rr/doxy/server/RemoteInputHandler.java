@@ -46,17 +46,18 @@ public class RemoteInputHandler implements TcpHandler {
   }
   
   @Override
-  public Optional<TcpExchange> handle(TcpExchange ex) throws Exception {
-    if(ex.message().isPresent()) {
-      ByteBuf buf = (ByteBuf) ex.message().get();
-      ByteBuffer cont = env.alloc(buf.readableBytes());
-      buf.readBytes(cont);
-      cont.flip();
-      buf.release();
-      Packet p = new PacketImpl(cid, cont, env.configuration().getRemoteHost(), order.getAndIncrement(), cont.remaining(), false);
-      env.inbox().offerLast(encoder.encodePacket(p));
-    }
-    return ex.empty();
+  public Optional<TcpExchange> apply(TcpExchange ex) throws Exception {
+    throw new UnsupportedOperationException();
+    //if(ex.message().isPresent()) {
+      //ByteBuf buf = (ByteBuf) ex.message().get();
+      //ByteBuffer cont = env.alloc(buf.readableBytes());
+      //buf.readBytes(cont);
+      //cont.flip();
+      //buf.release();
+      //Packet p = new PacketImpl(cid, cont, env.configuration().getRemoteHost(), order.getAndIncrement(), cont.remaining(), false);
+      //env.inbox().offerLast(encoder.encodePacket(p));
+    //}
+    //return ex.empty();
   }
   
 }

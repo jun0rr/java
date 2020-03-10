@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.util.ReferenceCounted;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.common.MessageContainer;
@@ -23,12 +24,14 @@ import net.jun0rr.doxy.common.MessageContainer;
  * @author Juno
  */
 public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, MessageContainer {
-  
-  @Override public Optional<HttpResponse> withMessage(Object msg);
+
+  @Override public HttpResponse withMessage(Object msg);
   
   @Override public Optional<HttpResponse> forward();
   
   @Override public Optional<HttpResponse> empty();
+  
+  public void dispose();
   
   
   
@@ -70,7 +73,7 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, 
     
     public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers, Object msg) {
       super(version, status, (msg instanceof ByteBuf) ? (ByteBuf)msg : Unpooled.EMPTY_BUFFER, headers, EmptyHttpHeaders.INSTANCE);
-      this.msg = Optional.ofNullable(msg);
+      this.msg = msg;
     }
     
     public HttpResponseImpl(HttpVersion version, HttpResponseStatus status, HttpHeaders headers) {
@@ -79,12 +82,12 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, 
     
     public HttpResponseImpl(HttpVersion version, HttpResponseStatus status) {
       super(version, status);
-      this.msg = Optional.empty();
+      this.msg = null;
     }
     
     public HttpResponseImpl(HttpResponseStatus status, Object msg) {
       super(HttpVersion.HTTP_1_1, status);
-      this.msg = Optional.ofNullable(msg);
+      this.msg = msg;
     }
     
     public HttpResponseImpl(HttpResponseStatus status) {
@@ -93,12 +96,22 @@ public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, 
     
     @Override
     public <T> T message() {
-      return (T) msg;
+      return (T) (msg != null ? msg : this.content());
     }
     
     @Override
-    public Optional<HttpResponse> withMessage(Object msg) {
-      return Optional.of(new HttpResponseImpl(protocolVersion(), status(), headers(), msg));
+    public HttpResponse withMessage(Object msg) {
+      dispose();
+      return new HttpResponseImpl(protocolVersion(), status(), headers(), msg);
+    }
+    
+    @Override
+    public void dispose() {
+      if(this.refCnt() > 0) this.release(refCnt());
+      if(this.msg != null && this.msg instanceof ReferenceCounted) {
+        ReferenceCounted ref = (ReferenceCounted)this.msg;
+        if(ref.refCnt() > 0) ref.release(ref.refCnt());
+      }
     }
     
     @Override
