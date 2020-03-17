@@ -6,7 +6,6 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -27,19 +26,15 @@ public interface TcpExchange extends MessageContainer {
   
   public <A> Optional<A> getAttr(String key);
   
-  public ConnectedTcpChannel connectedChannel();
+  public TcpChannel channel();
   
-  public TcpChannel mainChannel(); 
-  
-  public TcpExchange withPromise(ChannelPromise prms);
+  public TcpChannel bootstrapChannel(); 
   
   /**
-   * Return a TcpExchange with the new message.
-   * @param msg New message.
-   * @return TcpExchange with new message.
+   * Send the message (aborting the inbound pipeline).
+   * @return Emtpy Optional.
    */
-  @Override
-  public TcpExchange withMessage(Object msg);
+  public Optional<? extends TcpExchange> send();
   
   /**
    * Return an empty optional.
@@ -55,10 +50,18 @@ public interface TcpExchange extends MessageContainer {
   @Override
   public Optional<? extends TcpExchange> forward();
   
+  /**
+   * Return a TcpExchange with the new message.
+   * @param msg New message.
+   * @return TcpExchange with new message.
+   */
+  @Override
+  public TcpExchange withMessage(Object msg);
   
   
-  public static TcpExchange of(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, Object msg) {
-    return new TcpExchangeImpl(channel, connected, ctx, new TreeMap<>(), msg);
+  
+  public static TcpExchange of(TcpChannel boot, TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
+    return new TcpExchangeImpl(boot, channel, ctx, new TreeMap<>(), msg);
   }
   
   
@@ -67,9 +70,9 @@ public interface TcpExchange extends MessageContainer {
   
   static class TcpExchangeImpl implements TcpExchange {
     
-    protected final ConnectedTcpChannel connected;
+    protected final TcpChannel boot;
     
-    protected final TcpChannel channel;
+    protected final TcpChannel connected;
     
     protected final ChannelHandlerContext context;
     
@@ -77,9 +80,8 @@ public interface TcpExchange extends MessageContainer {
     
     protected final Object message;
     
-    
-    public TcpExchangeImpl(TcpChannel channel, ConnectedTcpChannel connected, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
-      this.channel = channel;
+    public TcpExchangeImpl(TcpChannel boot, TcpChannel connected, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
+      this.boot = boot;
       this.connected = connected;
       this.context = ctx;
       this.attributes = attrs;
@@ -92,13 +94,13 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public ConnectedTcpChannel connectedChannel() {
+    public TcpChannel channel() {
       return connected;
     }
     
     @Override
-    public TcpChannel mainChannel() {
-      return channel;
+    public TcpChannel bootstrapChannel() {
+      return boot;
     }
     
     @Override
@@ -125,13 +127,14 @@ public interface TcpExchange extends MessageContainer {
     }
     
     @Override
-    public TcpExchange withPromise(ChannelPromise prms) {
-      return new TcpExchangeImpl(channel, connected.withPromise(prms), context, attributes, message);
+    public TcpExchange withMessage(Object msg) {
+      return new TcpExchangeImpl(boot, connected, context, attributes, msg);
     }
     
     @Override
-    public TcpExchange withMessage(Object msg) {
-      return new TcpExchangeImpl(channel, connected, context, attributes, msg);
+    public Optional<? extends TcpExchange> send() {
+      context.writeAndFlush(message);
+      return empty();
     }
     
     @Override
