@@ -5,22 +5,14 @@
  */
 package net.jun0rr.doxy.server;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import net.jun0rr.doxy.common.AbstractRunnable;
 import net.jun0rr.doxy.common.DoxyChannel;
-import net.jun0rr.doxy.common.DoxyChannel.DoxyChannelImpl;
 import net.jun0rr.doxy.common.DoxyEnvironment;
 import net.jun0rr.doxy.common.Packet;
-import net.jun0rr.doxy.tcp.TcpClient;
 import us.pserver.tools.Unchecked;
 
 
@@ -56,7 +48,7 @@ public class RemoteTransport extends AbstractRunnable {
     return () -> {
       try {
         System.out.println("* RemoteTransport.writing: " + p);
-        env.getChannelById(p.channelID())
+        env.getChannel(p.channelID())
             .orElse(createChannel(p))
             .writePacket(p);
       }

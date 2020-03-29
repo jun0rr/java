@@ -8,6 +8,7 @@ package net.jun0rr.doxy.common;
 import io.netty.channel.Channel;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import net.jun0rr.doxy.tcp.TcpChannel;
 import us.pserver.tools.Unchecked;
 
 
@@ -23,7 +24,7 @@ public interface DoxyChannel extends AutoCloseable {
   
   public long nextOrder();
   
-  public Channel channel();
+  public TcpChannel channel();
   
   @Override public void close();
   
@@ -31,7 +32,7 @@ public interface DoxyChannel extends AutoCloseable {
   
   
   
-  public static DoxyChannel of(DoxyEnvironment env, String channelID, Channel c) {
+  public static DoxyChannel of(DoxyEnvironment env, String channelID, TcpChannel c) {
     return new DoxyChannelImpl(env, channelID, c);
   }
   
@@ -47,11 +48,11 @@ public interface DoxyChannel extends AutoCloseable {
 
     private final AtomicLong order;
 
-    private final Channel channel;
+    private final TcpChannel channel;
 
     private final PacketDecoder decoder;
 
-    public DoxyChannelImpl(DoxyEnvironment env, String uid, Channel sc) {
+    public DoxyChannelImpl(DoxyEnvironment env, String uid, TcpChannel sc) {
       this.env = Objects.requireNonNull(env, "Bad null DoxyEnvironment");
       this.uid = Objects.requireNonNull(uid, "Bad null uid String");
       this.channel = Objects.requireNonNull(sc, "Bad null Channel");
@@ -78,7 +79,7 @@ public interface DoxyChannel extends AutoCloseable {
     }
 
     @Override
-    public Channel channel() {
+    public TcpChannel channel() {
       return channel;
     }
 
@@ -90,7 +91,8 @@ public interface DoxyChannel extends AutoCloseable {
 
     @Override
     public void writePacket(Packet p) {
-      channel.write(decoder.decodePacket(p).data());
+      channel.events().write(p.data()).execute();
+      //channel.write(decoder.decodePacket(p).data());
     }
 
     @Override

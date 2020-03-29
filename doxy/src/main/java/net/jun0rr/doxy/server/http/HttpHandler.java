@@ -19,9 +19,9 @@ import net.jun0rr.doxy.tcp.ChannelHandler;
 public interface HttpHandler extends ChannelHandler<HttpExchange> {
   
   public static final HttpHandler BAD_REQUEST = x -> {
-    HttpResponse res = HttpResponse.of(HttpResponseStatus.BAD_REQUEST);
-    res.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-    return x.send(res);
+    x.response().setStatus(HttpResponseStatus.BAD_REQUEST);
+    x.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+    return x.sendAndClose();
   };
   
 }

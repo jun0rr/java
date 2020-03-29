@@ -23,7 +23,6 @@ package br.com.bb.disec.micros.test;
 
 import br.com.bb.disec.micros.db.DBSqlSourcePool;
 import java.io.IOException;
-import us.pserver.timer.Timer;
 
 /**
  *
@@ -34,12 +33,8 @@ public class TestDBSqlSourcePool {
 
   
   public static void main(String[] args) throws IOException {
-    Timer tm = new Timer.Nanos().start();
     System.out.println(DBSqlSourcePool.pool().getSql("disecMicro", "insertLog"));
-    System.out.println(tm.stop());
-    tm.clear().start();
     System.out.println(DBSqlSourcePool.pool().getSql("orc", "dspTipoMes"));
-    System.out.println(tm.stop());
   }
   
 }

@@ -5,16 +5,13 @@
  */
 package net.jun0rr.doxy.server.http.handler;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
-import net.jun0rr.doxy.server.http.HttpResponse;
 import net.jun0rr.doxy.server.http.HttpRoute;
 
 
@@ -37,22 +34,31 @@ public class HttpRouteHandler implements HttpHandler {
     this(BAD_REQUEST, handlers);
   }
   
-  private HttpHandler getHandler(HttpRoute r) {
-    return handlers.stream()
+  private Iterator<HttpHandler> getHandlers(HttpRoute r) {
+    Iterator<HttpHandler> it = handlers.stream()
         .filter(h->h.match(r))
         .map(h->(HttpHandler)h)
-        .findFirst()
-        .orElse(defaultHandler);
+        .sorted()
+        .iterator();
+    if(!it.hasNext()) {
+      it = List.of(defaultHandler).iterator();
+    }
+    return it;
   }
   
   @Override
   public Optional<? extends HttpExchange> apply(HttpExchange he) throws Exception {
-    return getHandler(HttpRoute.of(he.request())).apply(he);
+    Iterator<HttpHandler> it = getHandlers(HttpRoute.of(he.request()));
+    Optional<? extends HttpExchange> optx = Optional.of(he);
+    while(it.hasNext() && optx.isPresent()) {
+      optx = it.next().apply(optx.get());
+    }
+    return optx;
   }
   
   @Override
   public String toString() {
-    return "HttpRouteHandler{" + "handlers=" + handlers + ", defaultHandler=" + defaultHandler + '}';
+    return "HttpRouteHandler{" + "default=" + defaultHandler + ", handlers=" + handlers + '}';
   }
   
 }

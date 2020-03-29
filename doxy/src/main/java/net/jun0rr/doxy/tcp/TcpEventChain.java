@@ -7,6 +7,7 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -32,12 +33,19 @@ public class TcpEventChain implements EventChain {
   
   protected final List<TcpEvent> events;
   
-  public TcpEventChain(TcpChannel c, Future f) {
+  protected final ChannelPromise promise;
+  
+  public TcpEventChain(TcpChannel c, Future f, ChannelPromise cp) {
     this.future = Objects.requireNonNull(f, "Bad null Future");
     this.channel = Objects.requireNonNull(c, "Bad null EventLoopGroup");
     this.events = new LinkedList<>();
+    this.promise = cp;
   }
-
+  
+  public TcpEventChain(TcpChannel c, Future f) {
+    this(c, f, null);
+  }
+  
   @Override
   public EventChain onComplete(Consumer<Channel> success) {
     return onComplete(success, Unchecked::unchecked);
@@ -156,14 +164,11 @@ public class TcpEventChain implements EventChain {
   
   @Override
   public EventChain write(Object msg) {
-    TcpEvent.ChannelFutureEvent evt = f -> f.channel().writeAndFlush(msg);
+    TcpEvent.ChannelFutureEvent evt = f -> (promise != null) 
+        ? f.channel().writeAndFlush(msg, promise) 
+        : f.channel().writeAndFlush(msg);
     events.add(evt);
     return this;
-  }
-  
-  @Override
-  public Future<?> future() {
-    return future;
   }
   
   @Override

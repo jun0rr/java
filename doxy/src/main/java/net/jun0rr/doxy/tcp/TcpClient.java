@@ -17,19 +17,19 @@ import net.jun0rr.doxy.cfg.Host;
  */
 public class TcpClient extends AbstractBootstrapChannel {
   
-  public TcpClient(Bootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public TcpClient(Bootstrap boot, ChannelHandlerSetup<TcpHandler> setup) {
     super(boot, setup);
   }
   
-  public static TcpClient open(ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public static TcpClient open(ChannelHandlerSetup<TcpHandler> setup) {
     return open(bootstrap(new NioEventLoopGroup(1)), setup);
   }
   
-  public static TcpClient open(EventLoopGroup group, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public static TcpClient open(EventLoopGroup group, ChannelHandlerSetup<TcpHandler> setup) {
     return open(bootstrap(group), setup);
   }
   
-  public static TcpClient open(Bootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public static TcpClient open(Bootstrap boot, ChannelHandlerSetup<TcpHandler> setup) {
     return new TcpClient(boot, setup);
   }
   

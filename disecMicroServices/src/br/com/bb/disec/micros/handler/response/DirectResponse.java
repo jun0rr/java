@@ -28,7 +28,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import java.io.OutputStream;
 import org.jboss.logging.Logger;
-import us.pserver.timer.Timer;
 
 /**
  *
@@ -66,12 +65,12 @@ public class DirectResponse extends AbstractResponse {
   
   @Override
   public void sendResponse(OutputStream out) throws Exception {
-    Timer tm = new Timer.Nanos().start();
+    //Timer tm = new Timer.Nanos().start();
     try {
       this.getEncoder().encode(jiter, out);
     }
     finally {
-      Logger.getLogger(getClass()).info("DIRECT RETRIEVE TIME: "+ tm.lapAndStop());
+      //Logger.getLogger(getClass()).info("DIRECT RETRIEVE TIME: "+ tm.lapAndStop());
       query.close();
     }
   }

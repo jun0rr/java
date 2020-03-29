@@ -8,12 +8,16 @@ package net.jun0rr.doxy.server.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.EmptyHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.ReferenceCounted;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.common.MessageContainer;
@@ -23,7 +27,9 @@ import net.jun0rr.doxy.common.MessageContainer;
  *
  * @author Juno
  */
-public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, MessageContainer {
+public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, MessageContainer, ReferenceCounted {
+  
+  public static final ThreadLocal<HttpRequest> CURRENT_REQUEST = new ThreadLocal<>();
   
   @Override public HttpRequest withMessage(Object msg);
   
@@ -34,6 +40,10 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
   public void dispose();
   
   
+  
+  public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, Object body) {
+    return new HttpRequestImpl(vrs, mth, uri, body);
+  }
   
   public static HttpRequest of(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
     return new HttpRequestImpl(vrs, mth, uri, hds, body);
@@ -64,8 +74,17 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
     private final Object body;
     
     public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds, Object body) {
-      super(vrs, mth, uri, (body instanceof ByteBuf) ? (ByteBuf)body : Unpooled.EMPTY_BUFFER, hds, EmptyHttpHeaders.INSTANCE);
+      super(vrs, mth, uri, ofBody(body), hds, EmptyHttpHeaders.INSTANCE);
       this.body = body;
+      setContentHeaders();
+      CURRENT_REQUEST.set(this);
+    }
+    
+    public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, Object body) {
+      super(vrs, mth, uri, ofBody(body), new DefaultHttpHeaders(), EmptyHttpHeaders.INSTANCE);
+      this.body = body;
+      setContentHeaders();
+      CURRENT_REQUEST.set(this);
     }
     
     public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri, HttpHeaders hds) {
@@ -75,6 +94,33 @@ public interface HttpRequest extends io.netty.handler.codec.http.HttpRequest, Me
     public HttpRequestImpl(HttpVersion vrs, HttpMethod mth, String uri) {
       super(vrs, mth, uri);
       this.body = Optional.empty();
+      CURRENT_REQUEST.set(this);
+    }
+    
+    private static ByteBuf ofBody(Object body) {
+      ByteBuf msg = Unpooled.EMPTY_BUFFER;
+      if(body != null && body instanceof CharSequence) {
+        return Unpooled.copiedBuffer((CharSequence) body, StandardCharsets.UTF_8);
+      }
+      else if(body != null && body instanceof ByteBuf) {
+        return (ByteBuf) body;
+      }
+      return msg;
+    }
+    
+    private void setContentHeaders() {
+      int len = 0;
+      if(body != null && body instanceof CharSequence) {
+        headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
+        len = ((CharSequence)body).length();
+      }
+      else if(body != null && body instanceof ByteBuf && ((ByteBuf)body).isReadable()) {
+        headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_OCTET_STREAM);
+        len = ((ByteBuf)body).readableBytes();
+      }
+      if(len > 0) {
+        headers().set(HttpHeaderNames.CONTENT_LENGTH, len);
+      }
     }
     
     @Override

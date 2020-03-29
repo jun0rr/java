@@ -8,6 +8,7 @@ package net.jun0rr.doxy.tcp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
@@ -15,11 +16,11 @@ import java.util.function.Supplier;
  *
  * @author Juno
  */
-public abstract class AbstractChannelHandlerSetup<I,H> implements ChannelHandlerSetup<I,H> {
+public abstract class AbstractChannelHandlerSetup<H extends ChannelHandler> implements ChannelHandlerSetup<H> {
 
   private final List<Supplier<H>> handlers;
   
-  private final List<Supplier<H>> connectHandlers;
+  private final List<Supplier<Consumer<TcpChannel>>> connectHandlers;
   
   private Optional<SSLHandlerFactory> sslHandlerFactory;
   
@@ -30,7 +31,7 @@ public abstract class AbstractChannelHandlerSetup<I,H> implements ChannelHandler
   }
   
   @Override
-  public ChannelHandlerSetup<I,H> addMessageHandler(Supplier<H> sup) {
+  public ChannelHandlerSetup<H> addMessageHandler(Supplier<H> sup) {
     if(sup != null) {
       this.handlers.add(sup);
     }
@@ -38,7 +39,7 @@ public abstract class AbstractChannelHandlerSetup<I,H> implements ChannelHandler
   }
   
   @Override
-  public ChannelHandlerSetup<I,H> addConnectHandler(Supplier<H> sup) {
+  public ChannelHandlerSetup<H> addConnectHandler(Supplier<Consumer<TcpChannel>> sup) {
     if(sup != null) {
       this.connectHandlers.add(sup);
     }
@@ -46,7 +47,7 @@ public abstract class AbstractChannelHandlerSetup<I,H> implements ChannelHandler
   }
   
   @Override
-  public ChannelHandlerSetup<I,H> enableSSL(SSLHandlerFactory shf) {
+  public ChannelHandlerSetup<H> enableSSL(SSLHandlerFactory shf) {
     this.sslHandlerFactory = Optional.ofNullable(shf);
     return this;
   }
@@ -69,7 +70,7 @@ public abstract class AbstractChannelHandlerSetup<I,H> implements ChannelHandler
   }
   
   @Override
-  public List<Supplier<H>> connectHandlers() {
+  public List<Supplier<Consumer<TcpChannel>>> connectHandlers() {
     return connectHandlers;
   }
   

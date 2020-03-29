@@ -9,8 +9,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Objects;
-import java.util.Optional;
+import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -22,6 +24,10 @@ public class AbstractTcpChannel implements TcpChannel {
   protected final EventLoopGroup group;
   
   protected volatile Future future;
+  
+  protected SocketAddress local;
+  
+  protected SocketAddress remote;
   
   public AbstractTcpChannel(EventLoopGroup group) {
     this.group = Objects.requireNonNull(group, "Bad null EventLoopGroup");
@@ -51,17 +57,10 @@ public class AbstractTcpChannel implements TcpChannel {
     return group;
   }
   
-  /**
-   * Return the Channel if TcpChannel current state has a channel.
-   * @return Non-empty optional if channel is already created and is not closed, empty otherwise.
-   */
   @Override
-  public Optional<Channel> nettyChannel() {
-    if(future != null && future instanceof ChannelFuture) {
-      ChannelFuture cf = (ChannelFuture) future;
-      return Optional.of(cf.channel());
-    }
-    return Optional.empty();
+  public Channel nettyChannel() {
+    return  (future != null && future instanceof ChannelFuture)
+        ? ((ChannelFuture)future).channel() : null;
   }
   
   @Override
@@ -71,8 +70,40 @@ public class AbstractTcpChannel implements TcpChannel {
   }
   
   @Override
+  public EventChain closeFuture() {
+    channelCreated();
+    Future f = (future instanceof ChannelFuture) 
+        ? ((ChannelFuture)future).channel().closeFuture() : future;
+    return new TcpEventChain(this, f);
+  }
+  
+  @Override
   public void close() throws Exception {
     events().close().execute();
+  }
+
+
+  @Override
+  public Host localHost() {
+    if(future != null && future instanceof ChannelFuture)  {
+      InetSocketAddress addr = (InetSocketAddress) ((ChannelFuture)future).channel().localAddress();
+      return Host.of(addr.getHostString(), addr.getPort());
+    }
+    else {
+      return null;
+    }
+  }
+
+
+  @Override
+  public Host remoteHost() {
+    if(future != null && future instanceof ChannelFuture)  {
+      InetSocketAddress addr = (InetSocketAddress) ((ChannelFuture)future).channel().remoteAddress();
+      return Host.of(addr.getHostString(), addr.getPort());
+    }
+    else {
+      return null;
+    }
   }
   
 }

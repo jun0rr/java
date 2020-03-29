@@ -6,15 +6,13 @@
 package net.jun0rr.doxy.server;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.Objects;
 import java.util.Optional;
 import net.jun0rr.doxy.common.DoxyEnvironment;
+import net.jun0rr.doxy.server.http.HttpExceptionalResponse;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
-import net.jun0rr.doxy.server.http.HttpResponse;
-import net.jun0rr.doxy.server.http.handler.HttpServerErrorHandler;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -66,31 +64,22 @@ public class JwtAuthFilter implements HttpHandler {
 
   @Override
   public Optional<HttpExchange> apply(HttpExchange he) throws Exception {
-    return Optional.empty();
-    /*
     if(!he.request().headers().contains(HttpHeaderNames.AUTHORIZATION)) {
-      HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.UNAUTHORIZED);
-      new HttpServerErrorHandler()
-          .setErrorType("Authorization")
-          .setErrorMessage("Authorization header not present")
-          .setErrorTrace("JwtAuthFilter.handle():70")
-          .toHeaders(res.headers());
-      res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-      return he.send(res);
+      return he.withResponse(HttpExceptionalResponse.of(
+          HttpResponseStatus.BAD_REQUEST, 
+          new JwtAuthException("Authorization header missing"))
+      ).sendAndClose();
     }
     try {
       String auth = he.request().headers().get(HttpHeaderNames.AUTHORIZATION);
       JwtClaims jc = consumer.processToClaims(auth.substring(AUTH_TOKEN_IDX));
       he.attributes().put(JWTCLAIMS, jc);
-      return Optional.of(he);
+      return he.forward();
     }
     catch(InvalidJwtException e) {
-      HttpResponse res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.UNAUTHORIZED);
-      new HttpServerErrorHandler().setError(e).toHeaders(res.headers());
-      res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-      return he.send(res);
+      return he.withResponse(HttpExceptionalResponse.of(HttpResponseStatus.UNAUTHORIZED, e))
+          .sendAndClose();
     }
-    */
   }
   
 }

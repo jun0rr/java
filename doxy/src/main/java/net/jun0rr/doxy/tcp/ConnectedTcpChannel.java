@@ -6,9 +6,10 @@
 package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -18,16 +19,29 @@ import java.util.Optional;
  */
 public class ConnectedTcpChannel extends AbstractTcpChannel {
   
+  private final ChannelHandlerContext context;
+  
   protected final ChannelPromise promise;
   
-  public ConnectedTcpChannel(ChannelFuture cf, ChannelPromise prms) {
-    super(cf.channel().eventLoop().parent());
-    this.future = cf;
+  public ConnectedTcpChannel(ChannelHandlerContext ctx, ChannelPromise prms) {
+    super(Objects.requireNonNull(ctx, "Bad null ChannelHandlerContext")
+        .channel().eventLoop().parent());
+    this.context = ctx;
     this.promise = prms;
+    this.future = null;
+  }
+  
+  public ConnectedTcpChannel(ChannelHandlerContext ctx) {
+    this(ctx, null);
   }
   
   public ConnectedTcpChannel withPromise(ChannelPromise prms) {
-    return new ConnectedTcpChannel((ChannelFuture)future, prms);
+    return new ConnectedTcpChannel(context, prms);
+  }
+  
+  @Override
+  public EventChain events() {
+    return new ContextEventChain(context, promise);
   }
   
   /**
@@ -39,17 +53,13 @@ public class ConnectedTcpChannel extends AbstractTcpChannel {
     return group;
   }
   
-  /**
-   * Return the Channel if TcpChannel current state has a channel.
-   * @return Non-empty optional if channel is already created and is not closed, empty otherwise.
-   */
   @Override
-  public Optional<Channel> nettyChannel() {
-    if(future != null && future instanceof ChannelFuture) {
-      ChannelFuture cf = (ChannelFuture) future;
-      return Optional.of(cf.channel());
-    }
-    return Optional.empty();
+  public Channel nettyChannel() {
+    return context.channel();
+  }
+  
+  public Optional<ChannelPromise> promise() {
+    return Optional.ofNullable(promise);
   }
 
 }

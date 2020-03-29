@@ -5,7 +5,9 @@
  */
 package net.jun0rr.doxy.tcp;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.ReferenceCounted;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -36,6 +38,8 @@ public interface TcpExchange extends MessageContainer {
    */
   public Optional<? extends TcpExchange> send();
   
+  public Optional<? extends TcpExchange> sendAndClose();
+  
   /**
    * Return an empty optional.
    * @return Emtpy Optional.
@@ -60,7 +64,7 @@ public interface TcpExchange extends MessageContainer {
   
   
   
-  public static TcpExchange of(TcpChannel boot, TcpChannel channel, ChannelHandlerContext ctx, Object msg) {
+  public static TcpExchange of(TcpChannel boot, ConnectedTcpChannel channel, ChannelHandlerContext ctx, Object msg) {
     return new TcpExchangeImpl(boot, channel, ctx, new TreeMap<>(), msg);
   }
   
@@ -72,7 +76,7 @@ public interface TcpExchange extends MessageContainer {
     
     protected final TcpChannel boot;
     
-    protected final TcpChannel connected;
+    protected final ConnectedTcpChannel connected;
     
     protected final ChannelHandlerContext context;
     
@@ -80,7 +84,7 @@ public interface TcpExchange extends MessageContainer {
     
     protected final Object message;
     
-    public TcpExchangeImpl(TcpChannel boot, TcpChannel connected, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
+    public TcpExchangeImpl(TcpChannel boot, ConnectedTcpChannel connected, ChannelHandlerContext ctx, Map<String,Object> attrs, Object msg) {
       this.boot = boot;
       this.connected = connected;
       this.context = ctx;
@@ -128,12 +132,28 @@ public interface TcpExchange extends MessageContainer {
     
     @Override
     public TcpExchange withMessage(Object msg) {
+      if(message != null && message != msg && message instanceof ReferenceCounted) {
+        ReferenceCounted r = (ReferenceCounted) message;
+        if(r.refCnt() > 0) r.release(r.refCnt());
+      }
       return new TcpExchangeImpl(boot, connected, context, attributes, msg);
+    }
+    
+    protected ChannelFuture sendFuture() {
+      return connected.promise().isPresent() 
+          ? context.write(this, connected.promise().get()) 
+          : context.writeAndFlush(this);
     }
     
     @Override
     public Optional<? extends TcpExchange> send() {
-      context.writeAndFlush(message);
+      connected.events().write(message).execute();
+      return empty();
+    }
+    
+    @Override
+    public Optional<? extends TcpExchange> sendAndClose() {
+      connected.events().write(message).close().execute();
       return empty();
     }
     

@@ -28,11 +28,11 @@ import br.com.bb.disec.micro.jwt.JWTHeader;
 import br.com.bb.disec.micro.jwt.JWTKey;
 import br.com.bb.disec.micro.jwt.JWTPayload;
 import br.com.bb.disec.micro.util.AuthorizationService;
-import br.com.bb.disec.micro.util.MicroSSOUserFactory;
 import br.com.bb.disec.micro.util.StringPostParser;
-import br.com.bb.disec.util.URLD;
+import br.com.bb.disec.micro.util.URLD;
+import br.com.bb.sso.Cookies;
+import br.com.bb.sso.SSOUserFactory;
 import br.com.bb.sso.bean.User;
-import br.com.bb.sso.session.CookieName;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -169,16 +169,15 @@ public class JWTAuthHandler implements JsonHandler {
       throw new IOException("Invalid Auth Cookies");
     }
     if(cks[0] == null) {
-      throw new IOException("Missing Cookie "+ CookieName.BBSSOToken.name());
+      throw new IOException("Missing Cookie "+ Cookies.BBSSOToken.name());
     }
     if(cks[1] == null) {
-      throw new IOException("Missing Cookie "+ CookieName.ssoacr.name());
+      throw new IOException("Missing Cookie "+ Cookies.ssoacr.name());
     }
-    MicroSSOUserFactory suf = new MicroSSOUserFactory(cks);
-    User user = null;
-    user = suf.createUser();
+    SSOUserFactory factory = new SSOUserFactory(cks);
+    User user = factory.createUser();
     if(user == null) {
-      throw new IOException("Invalid Cookie "+ CookieName.BBSSOToken.name());
+      throw new IOException("Invalid Cookie "+ Cookies.BBSSOToken.name());
     }
     return user;
   } 

@@ -22,6 +22,7 @@
 package br.com.bb.disec.micro.handler;
 
 import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HttpString;
 import java.time.Instant;
 
 /**
@@ -38,6 +39,7 @@ public class TimeHandler implements JsonHandler {
    */
   @Override
   public void handleRequest(HttpServerExchange hse) throws Exception {
+    hse.getResponseHeaders().put(new HttpString("Content-Type"), "text/plain; charset=utf-8");
     hse.getResponseSender().send(Instant.now().toString());
     hse.endExchange();
   }

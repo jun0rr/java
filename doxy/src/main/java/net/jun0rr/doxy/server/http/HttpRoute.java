@@ -34,6 +34,22 @@ public interface HttpRoute extends Routable {
     return new HttpRouteImpl(uri, mts);
   }
   
+  public static HttpRoute get(String uri) {
+    return new HttpRouteImpl(uri, HttpMethod.GET);
+  }
+  
+  public static HttpRoute post(String uri) {
+    return new HttpRouteImpl(uri, HttpMethod.POST);
+  }
+  
+  public static HttpRoute put(String uri) {
+    return new HttpRouteImpl(uri, HttpMethod.PUT);
+  }
+  
+  public static HttpRoute delete(String uri) {
+    return new HttpRouteImpl(uri, HttpMethod.DELETE);
+  }
+  
   public static HttpRoute of(HttpRequest req) {
     return new HttpRouteImpl(req.uri(), req.method());
   }

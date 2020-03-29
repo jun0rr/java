@@ -23,7 +23,6 @@ package br.com.bb.disec.microb.test;
 
 import br.com.bb.disec.micro.db.SqlSourcePool;
 import java.lang.reflect.Constructor;
-import us.pserver.timer.Timer;
 
 /**
  *
@@ -34,9 +33,7 @@ public class TestSqlSourcePool {
 
   
   public static void main(String[] args) throws Exception {
-    Timer tm = new Timer.Nanos().start();
     System.out.println(SqlSourcePool.pool().getSql("disecMicro", "insertLog"));
-    System.out.println(tm.stop());
     
     System.out.println();
     

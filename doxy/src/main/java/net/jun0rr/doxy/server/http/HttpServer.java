@@ -7,12 +7,8 @@ package net.jun0rr.doxy.server.http;
 
 import net.jun0rr.doxy.tcp.*;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import java.util.function.Consumer;
 import net.jun0rr.doxy.cfg.Host;
 
 
@@ -20,106 +16,35 @@ import net.jun0rr.doxy.cfg.Host;
  *
  * @author juno
  */
-public class HttpServer extends AbstractTcpChannel {
+public class HttpServer extends AbstractBootstrapChannel {
   
-  private final EventLoopGroup childGroup;
-  
-  public HttpServer(ServerBootstrap bootstrap, ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
-    super(bootstrap, setup);
-    this.childGroup = bootstrap.config().childGroup();
+  public HttpServer(ServerBootstrap boot, ChannelHandlerSetup<HttpHandler> setup) {
+    super(boot, setup);
   }
   
-  public static HttpServer open(ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
-    return new HttpServer(bootstrap(new NioEventLoopGroup(2), new NioEventLoopGroup()), setup);
+  public static HttpServer open(ChannelHandlerSetup<HttpHandler> setup) {
+    return new HttpServer(serverBootstrap(
+        new NioEventLoopGroup(1), 
+        new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2)), 
+        setup
+    );
   }
   
-  public static HttpServer open(EventLoopGroup parent, EventLoopGroup child, ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
-    return open(bootstrap(parent, child), setup);
+  public static HttpServer open(EventLoopGroup parent, EventLoopGroup child, ChannelHandlerSetup<HttpHandler> setup) {
+    return open(serverBootstrap(parent, child), setup);
   }
   
-  public static HttpServer open(ServerBootstrap boot, ChannelHandlerSetup<TcpChannel,HttpHandler> setup) {
+  public static HttpServer open(ServerBootstrap boot, ChannelHandlerSetup<HttpHandler> setup) {
     return new HttpServer(boot, setup);
   }
   
-  private static ServerBootstrap bootstrap(EventLoopGroup parent, EventLoopGroup child) {
-    return new ServerBootstrap()
-        .channel(NioServerSocketChannel.class)
-        .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
-        .childOption(ChannelOption.AUTO_CLOSE, Boolean.TRUE)
-        .childOption(ChannelOption.AUTO_READ, Boolean.TRUE)
-        .group(parent, child);
-  }
-  
-  public HttpServer bind(Host host) {
-    TcpEvent.ConnectEvent evt = b -> {
-      //System.out.println("--- [SERVER] BIND ---");
-      return setupServerBootstrap(this).bind(host.toSocketAddr());
-    };
-    addListener(evt);
-    return this;
-  }
-  
-  /**
-   * Close the channel and shutdown all EventLoopGroup's.
-   * @return This TcpClient.
-   * @see net.jun0rr.doxy.tcp.TcpClient#close() 
-   */
-  @Override
-  public HttpServer shutdown() {
-    close();
-    TcpEvent.ChannelFutureEvent e = f -> {
-      //System.out.println("--- [SERVER] SHUTDOWN ---");
-      childGroup.shutdownGracefully();
-      return group.shutdownGracefully();
-    };
-    addListener(e);
-    return this;
+  public EventChain bind(Host host) {
+    future = setupServerBootstrap().bind(host.toSocketAddr());
+    return events();
   }
   
   public EventLoopGroup childGroup() {
-    return childGroup;
-  }
-  
-  @Override
-  public HttpServer onComplete(Consumer<Channel> success) {
-    super.onComplete(success);
-    return this;
-  }
-  
-  @Override
-  public HttpServer onComplete(Consumer<Channel> success, Consumer<Throwable> error) {
-    super.onComplete(success, error);
-    return this;
-  }
-  
-  @Override
-  public HttpServer onShutdown(Consumer<EventLoopGroup> success) {
-    super.onShutdown(success);
-    return this;
-  }
-  
-  @Override
-  public HttpServer onShutdown(Consumer<EventLoopGroup> success, Consumer<Throwable> error) {
-    super.onShutdown(success, error);
-    return this;
-  }
-  
-  @Override
-  public HttpServer start() {
-    super.start();
-    return this;
-  }
-  
-  @Override
-  public HttpServer sync() {
-    super.sync();
-    return this;
-  }
-
-
-  @Override
-  public TcpChannel closeChannel() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return ((ServerBootstrap)boot).config().childGroup();
   }
   
 }

@@ -10,10 +10,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.Objects;
+import java.util.function.Consumer;
 import net.jun0rr.doxy.tcp.ConnectedTcpChannel;
 import net.jun0rr.doxy.tcp.TcpChannel;
-import net.jun0rr.doxy.tcp.TcpExchange;
-import net.jun0rr.doxy.tcp.TcpHandler;
 
 
 /**
@@ -24,18 +23,17 @@ public class TcpConnectHandler extends ChannelInboundHandlerAdapter {
   
   private final TcpChannel channel;
   
-  private final TcpHandler handler;
+  private final Consumer<TcpChannel> handler;
   
-  public TcpConnectHandler(TcpChannel ch, TcpHandler handler) {
+  public TcpConnectHandler(TcpChannel ch, Consumer<TcpChannel> handler) {
     this.handler = Objects.requireNonNull(handler, "Bad null TcpHandler");
     this.channel = Objects.requireNonNull(ch, "Bad null TcpChannel");
   }
   
   @Override 
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    TcpExchange x = TcpExchange.of(channel, new ConnectedTcpChannel(ctx.channel().newSucceededFuture(), null), ctx, null);
     SslHandler ssl = ctx.pipeline().get(SslHandler.class);
-    GenericFutureListener lst = f->handler.apply(x);
+    GenericFutureListener lst = f->handler.accept(new ConnectedTcpChannel(ctx));
     if(ssl != null) {
       ssl.handshakeFuture().addListener(lst);
     }

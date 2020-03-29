@@ -37,8 +37,6 @@ public interface EventChain {
   
   public EventChain write(Object obj);
   
-  public Future<?> future();
-  
   public TcpChannel channel();
   
 }

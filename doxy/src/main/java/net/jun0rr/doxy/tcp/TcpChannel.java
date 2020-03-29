@@ -7,7 +7,7 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import java.util.Optional;
+import net.jun0rr.doxy.cfg.Host;
 
 
 /**
@@ -18,8 +18,14 @@ public interface TcpChannel extends AutoCloseable {
   
   public EventChain events();
   
+  public EventChain closeFuture();
+  
   public EventLoopGroup group();
   
-  public Optional<Channel> nettyChannel();
+  public Channel nettyChannel();
+  
+  public Host localHost();
+  
+  public Host remoteHost();
   
 }

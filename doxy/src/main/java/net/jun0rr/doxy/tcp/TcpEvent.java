@@ -7,6 +7,7 @@ package net.jun0rr.doxy.tcp;
 
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Future;
 import java.util.EventListener;
 import java.util.function.Function;
@@ -25,9 +26,15 @@ public interface TcpEvent<T> extends Function<T,Future>, EventListener {
   
   public static interface ChannelFutureEvent extends TcpEvent<ChannelFuture> {}
   
+  public static interface ChannelContextEvent extends TcpEvent<ChannelHandlerContext> {}
+  
   public static interface FutureEvent extends TcpEvent<Future> {}
   
   
+  
+  public static ChannelContextEvent context(Function<ChannelHandlerContext,Future> fn) {
+    return fn::apply;
+  }
   
   public static ChannelFutureEvent channel(Function<ChannelFuture,Future> fn) {
     return fn::apply;

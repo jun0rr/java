@@ -6,7 +6,7 @@
   "debugHeaders": false,
   "dispatcherEnabled": false,
   "shutdownHandlerEnabled": false,
-  "authenticationShield": true,
+  "authenticationShield": false,
   "jwtAuthKey": "F8BFDDC2130A81CDD33E63D63B1A39BE815EDB49272F442CB2E50090ABD40D88",
   "handlers": {
     "/cache": "br.com.bb.disec.micros.handler.PublicCacheHandler",
@@ -24,7 +24,7 @@
     "sslEnabled": true,
     "sslAddress": "0.0.0.0",
     "sslPort": 9443,
-    "keystore": "/resources/micro.jks",
-    "keystorePass": "32132155"
+    "keystore": "/resources/disec6.intranet.bb.com.br.jks",
+    "keystorePass": "372147"
   }
 }

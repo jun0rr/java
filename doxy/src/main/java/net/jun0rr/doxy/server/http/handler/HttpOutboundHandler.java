@@ -5,18 +5,22 @@
  */
 package net.jun0rr.doxy.server.http.handler;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import java.nio.charset.StandardCharsets;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
+import net.jun0rr.doxy.server.http.HttpRequest;
 import net.jun0rr.doxy.server.http.HttpResponse;
+import net.jun0rr.doxy.tcp.ConnectedTcpChannel;
+import net.jun0rr.doxy.tcp.TcpChannel;
 
 
 /**
@@ -25,39 +29,62 @@ import net.jun0rr.doxy.server.http.HttpResponse;
  */
 public class HttpOutboundHandler extends ChannelOutboundHandlerAdapter {
   
+  private final TcpChannel boot;
+  
+  private final HttpHandler handler;
+  
   private final BiFunction<HttpExchange,Throwable,Optional<HttpResponse>> uncaughtHandler;
   
-  private final Optional<HttpHandler> delegate;
-  
-  public HttpOutboundHandler(HttpHandler delegate, BiFunction<HttpExchange,Throwable,Optional<HttpResponse>> uncaughtHandler) {
+  public HttpOutboundHandler(TcpChannel boot, HttpHandler handler, BiFunction<HttpExchange,Throwable,Optional<HttpResponse>> uncaughtHandler) {
+    this.boot = Objects.requireNonNull(boot, "Bad null boot TcpChannel");
     this.uncaughtHandler = Objects.requireNonNull(uncaughtHandler, "Bad null UncaughtExceptionHandler BiFunction<HttpExchange,Throwable,Optional<HttpResponse>>");
-    this.delegate = Optional.ofNullable(delegate);
+    this.handler = Objects.requireNonNull(handler, "Bad null HttpHandler");
   }
   
-  public HttpOutboundHandler(BiFunction<HttpExchange,Throwable,Optional<HttpResponse>> uncaughtHandler) {
-    this(null, uncaughtHandler);
-  }
-  
-  public HttpOutboundHandler() {
-    this(null, new HttpServerErrorHandler());
+  private HttpExchange exchange(ChannelHandlerContext ctx, Object msg, ChannelPromise pms) {
+    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx, pms);
+    //System.out.println("[HttpOutboundHandler] message=" + msg.getClass());
+    HttpExchange ex;
+    if(msg instanceof HttpExchange) {
+      ex = (HttpExchange) msg;
+      ex = HttpExchange.of(
+          boot, cnc, ctx, 
+          ex.request(), 
+          ex.response()
+      );
+    }
+    else if(msg instanceof HttpRequest) {
+      ex = HttpExchange.of(
+          boot, cnc, ctx, 
+          (HttpRequest) msg, 
+          HttpResponse.of(HttpResponseStatus.OK)
+      );
+    }
+    else if(msg instanceof FullHttpRequest) {
+      ex = HttpExchange.of(
+          boot, cnc, ctx, 
+          HttpRequest.of((FullHttpRequest)msg), 
+          HttpResponse.of(HttpResponseStatus.OK)
+      );
+    }
+    else if(msg instanceof HttpResponse) {
+      ex = HttpExchange.CURRENT_EXCHANGE.get()
+          .withResponse((HttpResponse)msg);
+    }
+    else if(msg instanceof FullHttpResponse) {
+      ex = HttpExchange.CURRENT_EXCHANGE.get()
+          .withResponse(HttpResponse.of((FullHttpResponse)msg));
+    }
+    else {
+      throw new IllegalStateException(String.format("[%s] Unknown message type: %s", handler.getClass().getName(), msg.getClass()));
+    }
+    return ex;
   }
   
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise cp) throws Exception {
     try {
-      HttpExchange x;
-      if(msg instanceof HttpExchange) {
-        x = (HttpExchange) msg;
-      }
-      else {
-        x = HttpExchange.CURRENT_EXCHANGE.get().withMessage(msg).get();
-      }
-      if(delegate.isPresent()) {
-        delegate.get().apply(x).ifPresent(e->ctx.writeAndFlush(e.response(), cp));
-      }
-      else {
-        ctx.writeAndFlush(x.response(), cp);
-      }
+      handler.apply(exchange(ctx, msg, cp)).ifPresent(x->ctx.writeAndFlush(x, cp));
     }
     catch(Exception e) {
       this.exceptionCaught(ctx, e);
@@ -66,7 +93,8 @@ public class HttpOutboundHandler extends ChannelOutboundHandlerAdapter {
   
   @Override 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-    uncaughtHandler.apply(HttpExchange.CURRENT_EXCHANGE.get(), e).ifPresent(ctx::writeAndFlush);
+    uncaughtHandler.apply(HttpExchange.CURRENT_EXCHANGE.get(), e)
+        .ifPresent(x->ctx.writeAndFlush(x).addListener(ChannelFutureListener.CLOSE));
   }
   
 }

@@ -57,7 +57,7 @@ public class InboxHandler implements HttpHandler {
         res = HttpResponse.of(he.request().protocolVersion(), HttpResponseStatus.OK, he.response().headers(), buf);
       }
       res.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-      he.send(res);
+      //he.send(res);
     };
   }
   

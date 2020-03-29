@@ -14,6 +14,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import net.jun0rr.doxy.common.AddingLastChannelInitializer;
@@ -23,7 +24,7 @@ import net.jun0rr.doxy.common.AddingLastChannelInitializer;
  *
  * @author Juno
  */
-public class TcpHandlerSetup extends AbstractChannelHandlerSetup<TcpChannel,TcpHandler> {
+public class TcpHandlerSetup extends AbstractChannelHandlerSetup<TcpHandler> {
   
   public TcpHandlerSetup() {
     super();
@@ -38,7 +39,7 @@ public class TcpHandlerSetup extends AbstractChannelHandlerSetup<TcpChannel,TcpH
     List<Supplier<ChannelHandler>> ls = new LinkedList<>();
     ls.add(TcpOutboundHandler::new);
     Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> hfn = s->()->new TcpInboundHandler(tch, s.get());
-    Function<Supplier<TcpHandler>,Supplier<ChannelHandler>> cfn = s->()->new TcpConnectHandler(tch, s.get());
+    Function<Supplier<Consumer<TcpChannel>>,Supplier<ChannelHandler>> cfn = s->()->new TcpConnectHandler(tch, s.get());
     connectHandlers().stream().map(cfn).forEach(ls::add);
     messageHandlers().stream().map(hfn).forEach(ls::add);
     ls.add(TcpUcaughtExceptionHandler::new);

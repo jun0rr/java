@@ -44,7 +44,6 @@ import io.undertow.server.HttpServerExchange;
 import java.io.OutputStream;
 import java.sql.Connection;
 import org.jboss.logging.Logger;
-import us.pserver.timer.Timer;
 import static br.com.bb.disec.micros.util.JsonConstants.NAME;
 
 /**
@@ -121,12 +120,12 @@ public abstract class AbstractResponse implements HttpHandler {
   @Override
   public void handleRequest(HttpServerExchange hse) throws Exception {
     query = this.createSqlQuery();
-    Timer tm = new Timer.Nanos().start();
+    //Timer tm = new Timer.Nanos().start();
     query.execResultSet(json.get(GROUP).getAsString(), 
         json.get(NAME).getAsString(), 
         this.getArguments(json)
     );
-    Logger.getLogger(getClass()).info("DATABASE TIME: "+ tm.lapAndStop());
+    //Logger.getLogger(getClass()).info("DATABASE TIME: "+ tm.lapAndStop());
   }
   
   

@@ -23,7 +23,6 @@ package br.com.bb.disec.micros.test;
 
 import br.com.bb.disec.micro.ResourceLoader;
 import java.io.IOException;
-import us.pserver.timer.Timer;
 
 /**
  *
@@ -35,14 +34,8 @@ public class TestResourceLoader {
   
   public static void main(String[] args) throws IOException {
     String resource = "/resources/serverconf.json";
-    Timer tlocal = new Timer.Nanos();
-    Timer tother = new Timer.Nanos();
-    tlocal.start();
     ResourceLoader local = ResourceLoader.caller();
-    System.out.println("* tlocal: "+ tlocal.stop());
-    tother.start();
     ResourceLoader other = ResourceLoader.self();
-    System.out.println("* tother: "+ tother.stop());
     System.out.println("* Local serverconf.json:");
     System.out.println(local.loadStringContent(resource));
     System.out.println();

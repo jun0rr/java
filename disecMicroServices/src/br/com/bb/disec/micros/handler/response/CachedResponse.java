@@ -28,7 +28,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import java.io.OutputStream;
 import org.jboss.logging.Logger;
-import us.pserver.timer.Timer;
 
 /**
  *
@@ -75,9 +74,9 @@ public class CachedResponse extends AbstractResponse {
   public CachedResponse setupCache() throws Exception {
     if(!json.has(METADATA)) {
       super.handleRequest(null);
-      Timer t = new Timer.Nanos().start();
+      //Timer t = new Timer.Nanos().start();
       cache.doCache(query.getResultSet());
-      Logger.getLogger(getClass()).info("CACHE BUILD TIME: "+ t.lapAndStop());
+      //Logger.getLogger(getClass()).info("CACHE BUILD TIME: "+ t.lapAndStop());
       query.close();
     }
     return this;

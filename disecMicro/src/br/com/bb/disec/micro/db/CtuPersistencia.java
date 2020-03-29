@@ -23,9 +23,7 @@ package br.com.bb.disec.micro.db;
 
 import br.com.bb.disec.bean.iface.IDcrCtu;
 import br.com.bb.disec.bean.reader.DcrCtuReader;
-import br.com.bb.disec.sql.SqlXmlResource;
-import br.com.bb.disec.util.SqlClose;
-import br.com.bb.disec.util.URLD;
+import br.com.bb.disec.micro.util.URLD;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -111,7 +109,9 @@ public class CtuPersistencia {
       throw new SQLException(e.getMessage(), e);
     }
 		finally {
-			SqlClose.of(con, pst, rst).close();
+      rst.close();
+      pst.close();
+      con.close();
 		}
 	}
 	
@@ -152,7 +152,9 @@ public class CtuPersistencia {
       throw new SQLException(e.getMessage(), e);
     }
 		finally {
-			SqlClose.of(con, pst, rst).close();
+      rst.close();
+      pst.close();
+      con.close();
 		}
 	}
 	
@@ -193,14 +195,15 @@ public class CtuPersistencia {
 				while(rst.next()) {
 					list.add(DcrCtuReader.of(rst).readBean());
 				}
-				SqlClose.of(pst, rst).close();
 			}
 		}
     catch(IOException e) {
       throw new SQLException(e.getMessage(), e);
     }
 		finally {
-			SqlClose.of(con, pst, rst).close();
+      rst.close();
+      pst.close();
+      con.close();
 		}
 	}
 	
@@ -220,9 +223,7 @@ public class CtuPersistencia {
 		PreparedStatement pst = null;
 		ResultSet rst = null;
 		try {
-			sql = SqlXmlResource.resource(this.getClass()).getQuery(
-					SQL_GROUP, SQL_SEL_CTU_BY_ID
-			);
+      sql = SqlSourcePool.pool().getSql(SQL_GROUP, SQL_SEL_CTU_BY_ID);
 			con = PoolFactory.getPool("107").getConnection();
 			pst = con.prepareStatement(sql);
 			rst = pst.executeQuery();
@@ -230,8 +231,13 @@ public class CtuPersistencia {
 				ctu = DcrCtuReader.of(rst).readBean();
 			}
 		}
+    catch(IOException e) {
+      throw new SQLException(e.getMessage(), e);
+    }
 		finally {
-			SqlClose.of(con, pst, rst).close();
+      rst.close();
+      pst.close();
+      con.close();
 		}
     return ctu;
 	}

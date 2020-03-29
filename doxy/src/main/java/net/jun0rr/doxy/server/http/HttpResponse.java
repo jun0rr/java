@@ -23,7 +23,7 @@ import net.jun0rr.doxy.common.MessageContainer;
  *
  * @author Juno
  */
-public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, MessageContainer {
+public interface HttpResponse extends io.netty.handler.codec.http.HttpResponse, MessageContainer, ReferenceCounted {
 
   @Override public HttpResponse withMessage(Object msg);
   

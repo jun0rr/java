@@ -17,11 +17,11 @@ import net.jun0rr.doxy.cfg.Host;
  */
 public class TcpServer extends AbstractBootstrapChannel {
   
-  public TcpServer(ServerBootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public TcpServer(ServerBootstrap boot, ChannelHandlerSetup<TcpHandler> setup) {
     super(boot, setup);
   }
   
-  public static TcpServer open(ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public static TcpServer open(ChannelHandlerSetup<TcpHandler> setup) {
     return new TcpServer(serverBootstrap(
         new NioEventLoopGroup(1), 
         new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2)), 
@@ -29,11 +29,11 @@ public class TcpServer extends AbstractBootstrapChannel {
     );
   }
   
-  public static TcpServer open(EventLoopGroup parent, EventLoopGroup child, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public static TcpServer open(EventLoopGroup parent, EventLoopGroup child, ChannelHandlerSetup<TcpHandler> setup) {
     return open(serverBootstrap(parent, child), setup);
   }
   
-  public static TcpServer open(ServerBootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public static TcpServer open(ServerBootstrap boot, ChannelHandlerSetup<TcpHandler> setup) {
     return new TcpServer(boot, setup);
   }
   

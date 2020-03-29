@@ -23,9 +23,9 @@ public class AbstractBootstrapChannel extends AbstractTcpChannel {
   
   protected final AbstractBootstrap boot;
   
-  protected final ChannelHandlerSetup<TcpChannel,TcpHandler> setup;
+  protected final ChannelHandlerSetup<? extends ChannelHandler> setup;
   
-  public AbstractBootstrapChannel(AbstractBootstrap boot, ChannelHandlerSetup<TcpChannel,TcpHandler> setup) {
+  public AbstractBootstrapChannel(AbstractBootstrap boot, ChannelHandlerSetup<? extends ChannelHandler> setup) {
     super(Objects.requireNonNull(boot, "Bad null Bootstrap").config().group());
     this.boot = boot;
     this.setup = Objects.requireNonNull(setup, "Bad null ChannelHandlerSetup<TcpChannel,TcpHandler>");

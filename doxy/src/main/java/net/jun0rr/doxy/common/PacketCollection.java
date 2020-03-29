@@ -112,6 +112,12 @@ public class PacketCollection implements Collection<Packet> {
   
   
   
+  public static PacketCollection of(Collection<Packet> c) {
+    return new PacketCollection(c);
+  }
+  
+  
+  
   public static PacketCollection of(ByteBuffer buf) {
     int len = buf.getInt();
     int size = buf.getInt();

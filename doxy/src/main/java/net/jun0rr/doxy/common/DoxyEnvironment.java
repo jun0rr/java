@@ -9,16 +9,16 @@ import java.nio.ByteBuffer;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.IntFunction;
 import net.jun0rr.doxy.cfg.DoxyConfig;
-import net.jun0rr.doxy.client.HttpPacketRequest;
 import us.pserver.tools.Unchecked;
 
 
@@ -36,11 +36,9 @@ public interface DoxyEnvironment {
   
   public BlockingDeque<Packet> outbox();
   
-  public List<DoxyChannel> channels();
+  public Map<String,DoxyChannel> channels();
   
-  public Optional<DoxyChannel> getChannelById(String id);
-  
-  public HttpPacketRequest http();
+  public Optional<DoxyChannel> getChannel(String id);
   
   public ByteBuffer alloc();
   
@@ -70,9 +68,7 @@ public interface DoxyEnvironment {
 
     private final BlockingDeque<Packet> outbox;
 
-    private final List<DoxyChannel> channels;
-
-    private final HttpPacketRequest http;
+    private final Map<String,DoxyChannel> channels;
 
     private final PublicKey pub;
 
@@ -85,10 +81,9 @@ public interface DoxyEnvironment {
       this.exec = Executors.newCachedThreadPool();
       this.inbox = new LinkedBlockingDeque<>();
       this.outbox = new LinkedBlockingDeque<>();
-      this.channels = new CopyOnWriteArrayList<>();
+      this.channels = new ConcurrentHashMap<>();
       this.pub = Unchecked.call(()->DerKeyFactory.loadPublicKey(config.getSecurityConfig().getPublicKeyPath()));
       this.pk = Unchecked.call(()->DerKeyFactory.loadPrivateKey(config.getSecurityConfig().getPrivateKeyPath()));
-      this.http = new HttpPacketRequest(this);
       this.alloc = config.isDirectBuffer() ? ByteBuffer::allocateDirect : ByteBuffer::allocate;
     }
 
@@ -113,18 +108,13 @@ public interface DoxyEnvironment {
     }
 
     @Override
-    public List<DoxyChannel> channels() {
+    public Map<String,DoxyChannel> channels() {
       return channels;
     }
-
+    
     @Override
-    public Optional<DoxyChannel> getChannelById(String id) {
-      return channels.stream().filter(c->c.uid().equals(id)).findAny();
-    }
-
-    @Override
-    public HttpPacketRequest http() {
-      return http;
+    public Optional<DoxyChannel> getChannel(String id) {
+      return Optional.ofNullable(channels.get(id));
     }
 
     @Override

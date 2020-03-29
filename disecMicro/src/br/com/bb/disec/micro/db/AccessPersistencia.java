@@ -23,7 +23,6 @@ package br.com.bb.disec.micro.db;
 
 import br.com.bb.disec.bean.iface.IPflAcss;
 import br.com.bb.disec.bean.reader.PflAcssReader;
-import br.com.bb.disec.util.SqlClose;
 import br.com.bb.sso.bean.User;
 import java.io.IOException;
 import java.sql.Connection;
@@ -85,7 +84,9 @@ public class AccessPersistencia {
       throw new SQLException(e.getMessage(), e);
     }
 		finally {
-			SqlClose.of(con, ps, rs).close();
+      rs.close();
+      ps.close();
+      con.close();
 		}
 		return pfls;
 	}
@@ -133,7 +134,9 @@ public class AccessPersistencia {
 			}
 		}
 		finally {
-			SqlClose.of(con, ps, rs).close();
+      rs.close();
+      ps.close();
+      con.close();
 		}
 		return access;
 	}

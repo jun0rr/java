@@ -27,7 +27,6 @@ import br.com.bb.disec.micro.db.CtuPersistencia;
 import br.com.bb.disec.micro.db.PoolFactory;
 import br.com.bb.disec.micro.db.SqlQuery;
 import br.com.bb.disec.micro.db.SqlSourcePool;
-import br.com.bb.disec.util.URLD;
 import br.com.bb.sso.bean.User;
 import io.undertow.server.HttpServerExchange;
 import java.util.Arrays;

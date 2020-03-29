@@ -9,8 +9,12 @@ import net.jun0rr.doxy.tcp.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import java.util.Objects;
+import net.jun0rr.doxy.common.InstanceOf;
 import net.jun0rr.doxy.server.http.HttpExchange;
 import net.jun0rr.doxy.server.http.HttpHandler;
 import net.jun0rr.doxy.server.http.HttpRequest;
@@ -33,30 +37,24 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
   }
   
   private HttpExchange exchange(ChannelHandlerContext ctx, Object msg) {
-    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx.channel().newSucceededFuture(), null);
-    System.out.println("[HttpInboundHandler] message=" + msg.getClass());
-    HttpExchange ex;
-    if(msg instanceof FullHttpRequest) {
-      ex = HttpExchange.of(
-          channel, cnc, ctx, 
-          HttpRequest.of((FullHttpRequest)msg), 
-          HttpResponse.of(HttpResponseStatus.OK)
-      );
-    }
-    else if(msg instanceof HttpRequest) {
-      ex = HttpExchange.of(
-          channel, cnc, ctx, 
-          (HttpRequest) msg, 
-          HttpResponse.of(HttpResponseStatus.OK)
-      );
-    }
-    else if(msg instanceof HttpExchange) {
-      ex = (HttpExchange) msg;
-    }
-    else {
-      throw new HttpInboundException("Unknown message type: %s", msg.getClass());
-    }
-    return ex;
+    ConnectedTcpChannel cnc = new ConnectedTcpChannel(ctx);
+    HttpResponse res = HttpResponse.of(HttpResponseStatus.OK);
+    return InstanceOf.of(HttpRequest.class, r->HttpExchange.of(channel, cnc, ctx, r, res))
+        .elseOf(FullHttpRequest.class, r->HttpExchange.of(channel, cnc, ctx, HttpRequest.of(r), res))
+        .elseOf(HttpResponse.class, r->{
+          HttpRequest req = HttpRequest.CURRENT_REQUEST.get() != null
+              ? HttpRequest.CURRENT_REQUEST.get()
+              : HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
+          return HttpExchange.of(channel, cnc, ctx, req, r);
+        })
+        .elseOf(FullHttpResponse.class, r->{
+          HttpRequest req = HttpRequest.CURRENT_REQUEST.get() != null
+              ? HttpRequest.CURRENT_REQUEST.get()
+              : HttpRequest.of(HttpVersion.HTTP_1_1, HttpMethod.GET, "/");
+          return HttpExchange.of(channel, cnc, ctx, req, HttpResponse.of(r));
+        })
+        .elseThrow(o->new HttpInboundException("Unknown message type: %s", o))
+        .apply(msg).get();
   }
   
   @Override 

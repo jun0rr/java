@@ -19,7 +19,6 @@ import net.jun0rr.doxy.tcp.TcpClient;
 import net.jun0rr.doxy.tcp.TcpHandler;
 import net.jun0rr.doxy.tcp.TcpServer;
 import org.junit.jupiter.api.Test;
-import us.pserver.tools.Timer;
 import net.jun0rr.doxy.tcp.ChannelHandlerSetup;
 import net.jun0rr.doxy.tcp.EventChain;
 
@@ -34,7 +33,7 @@ public class TestTcpServer {
   public void echoServer() {
     System.out.println("------ echoServer ------");
     final AtomicInteger count = new AtomicInteger(1);
-    ChannelHandlerSetup<TcpChannel,TcpHandler> setup = TcpHandlerSetup.newSetup().addMessageHandler(()-> x->{
+    ChannelHandlerSetup<TcpHandler> setup = TcpHandlerSetup.newSetup().addMessageHandler(()-> x->{
       System.out.println("[SERVER] " + x.<ByteBuf>message().toString(StandardCharsets.UTF_8));
       EventChain ex = x.channel().events().write(x.message()).close();
       if(count.decrementAndGet() <= 0) {
@@ -43,25 +42,24 @@ public class TestTcpServer {
       ex.execute();
       return x.empty();
     });
-    TcpServer server = TcpServer.open(setup);
-    server.bind(Host.of("0.0.0.0", 4455))
+    TcpChannel server = TcpServer.open(setup)
+        .bind(Host.of("0.0.0.0", 4455))
         .onComplete(c->System.out.println("[SERVER] listening on " + c.localAddress()))
-        .executeSync();
+        .executeSync()
+        .channel();
     setup = TcpHandlerSetup.newSetup().addMessageHandler(()-> x->{
       System.out.println("[CLIENT] " + x.<ByteBuf>message().toString(StandardCharsets.UTF_8));
       return x.empty();
     });
     ByteBuf msg = Unpooled.copiedBuffer("Hello World!", StandardCharsets.UTF_8);
-    System.out.printf("* Sending: %s", msg.toString(StandardCharsets.UTF_8));
-    Timer tm = new Timer.Nanos().start();
-    TcpClient cli = TcpClient.open(setup);
-    cli.connect(Host.of("localhost:4455"))
+    System.out.printf("* Sending: %s%n", msg.toString(StandardCharsets.UTF_8));
+    TcpChannel cli = TcpClient.open(setup)
+        .connect(Host.of("localhost:4455"))
         .onComplete(f->System.out.printf("[CLIENT] Connected: %s --> %s%n", f.localAddress(), f.remoteAddress()))
         .write(msg)
         .onComplete(f->System.out.println("[CLIENT] Message Sent"))
-        .executeSync();
-    tm.stop();
-    System.out.println(tm);
+        .executeSync()
+        .channel();
     server.events()
         .awaitShutdown()
         .onShutdown(g->System.out.printf("[SERVER] Shutdown Complete (%s)%n", g), Throwable::printStackTrace)
@@ -76,7 +74,7 @@ public class TestTcpServer {
   public void timestampServer() throws InterruptedException {
     System.out.println("------ timestampServer ------");
     final AtomicInteger count = new AtomicInteger(1);
-    ChannelHandlerSetup<TcpChannel,TcpHandler> setup = TcpHandlerSetup.newSetup().addConnectHandler(()-> x->{
+    ChannelHandlerSetup<TcpHandler> setup = TcpHandlerSetup.newSetup().addConnectHandler(()-> x->{
       ByteBuf msg = x.context().alloc().buffer(Long.BYTES);
       msg.writeLong(Instant.now().toEpochMilli());
       EventChain ec = x.channel().events().write(msg).close();
@@ -87,21 +85,22 @@ public class TestTcpServer {
       return x.empty();
     }).enableSSL(SSLHandlerFactory.forServer(Paths.get("d:/java/doxy.jks"), "32132155".toCharArray()));
     //}).enableSSL(SSLHandlerFactory.forServer(Paths.get("/media/storage/java/doxy.jks"), "32132155".toCharArray()));
-    TcpServer server = TcpServer.open(setup);
-    server.bind(Host.of("0.0.0.0", 3344))
+    TcpChannel server = TcpServer.open(setup)
+        .bind(Host.of("0.0.0.0", 3344))
         .onComplete(c->System.out.println("[SERVER] listening on " + c.localAddress()))
         .executeSync()
-        ;
+        .channel();
     setup = TcpHandlerSetup.newSetup().addMessageHandler(()-> x->{
       Instant timestamp = Instant.ofEpochMilli(x.<ByteBuf>message().readLong());
       System.out.printf("[CLIENT] Timestamp: %s%n", timestamp);
-      x.channel().events().close().shutdown().execute();
+      x.channel().events().shutdown().execute();
       return x.empty();
     }).enableSSL(SSLHandlerFactory.forClient());
-    TcpClient cli = TcpClient.open(setup);
-    cli.connect(Host.of("localhost:3344"))
+    TcpChannel cli = TcpClient.open(setup)
+        .connect(Host.of("localhost:3344"))
         .onComplete(f->System.out.printf("[CLIENT] Connected: %s --> %s%n", f.localAddress(), f.remoteAddress()))
-        .executeSync();
+        .executeSync()
+        .channel();
     server.events()
         .awaitShutdown()
         .onShutdown(g->System.out.println("[SERVER] Shutdown Complete!"))

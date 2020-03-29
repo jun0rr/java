@@ -22,26 +22,22 @@
 package br.com.bb.disec.micro.handler;
 
 import br.com.bb.disec.micro.ServerSetup;
-import br.com.bb.disec.micro.util.AuthCookieManager;
 import br.com.bb.disec.micro.db.DBUserFactory;
 import br.com.bb.disec.micro.jwt.JWT;
 import br.com.bb.disec.micro.jwt.JWTHeader;
 import br.com.bb.disec.micro.jwt.JWTKey;
 import br.com.bb.disec.micro.jwt.JWTPayload;
 import br.com.bb.disec.micro.util.AuthorizationService;
-import br.com.bb.disec.micro.util.MicroSSOUserFactory;
 import br.com.bb.disec.micro.util.StringPostParser;
 import br.com.bb.disec.micro.util.URIParam;
-import br.com.bb.disec.util.URLD;
+import br.com.bb.disec.micro.util.URLD;
 import br.com.bb.sso.bean.User;
-import br.com.bb.sso.session.CookieName;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.Cookie;
 import io.undertow.util.Methods;
 import java.io.IOException;
 import java.sql.SQLException;
